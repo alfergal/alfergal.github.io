@@ -1,0 +1,39 @@
+---
+title: 'Prueba aislada: MDX y fórmulas'
+description: 'Fixture sintético para validar matemáticas, código y gráficos.'
+pubDate: '2021-01-01'
+category: 'Machine Learning'
+tags: ['Python', 'Statistics']
+draft: false
+---
+
+import Figure from '../../components/Figure.astro';
+import BarChart from '../../components/BarChart.astro';
+
+## Datos sintéticos
+
+Contenido ficticio, sin resultados científicos ni información profesional.
+La expresión en línea es $x_i^2 + \alpha$.
+
+$$
+\operatorname{MSE}=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
+$$
+
+$$
+\begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix}
+$$
+
+```python
+valores = [1, 2, 3]  # Datos ficticios
+assert sum(valores) == 6
+```
+
+| Observación | Valor |
+| --- | --- |
+| Ilustrativa | 1 |
+
+<Figure caption="Figura de prueba con datos ficticios.">
+  <BarChart title="Gráfico sintético" description="Datos ilustrativos." data={[{label: 'A', value: 1}]} />
+</Figure>
+
+PUBLICACION_SINTETICA_SOLO_TEST

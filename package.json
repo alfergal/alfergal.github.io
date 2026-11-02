@@ -1,0 +1,47 @@
+{
+  "name": "alfergal.github.io",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "astro dev --background",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "test": "playwright test",
+    "format": "prettier --write \"src/**/*.{astro,ts,js,css}\" astro.config.mjs playwright.config.ts \"tests/**/*.ts\" \"scripts/*.mjs\" README.md",
+    "check:repo": "node scripts/check-repository.mjs",
+    "pretest": "npm run check:repo"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.3",
+    "@astrojs/mdx": "^8.1.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.1",
+    "d3-force": "^3.0.0",
+    "katex": "~0.18.2",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.35.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.11",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "@types/d3-force": "^3.0.10",
+    "github-slugger": "^2.0.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
+    "typescript": "^6.0.3"
+  },
+  "private": true,
+  "overrides": {
+    "katex": "$katex"
+  }
+}

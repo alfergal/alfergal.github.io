@@ -1,0 +1,106 @@
+---
+import 'katex/dist/katex.min.css';
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import SiteLayout from './SiteLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Icon from '../components/Icon.astro';
+import { readingTime } from '../lib/content';
+import { profile } from '../data/profile';
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+const { post } = Astro.props;
+const {
+	title,
+	description,
+	pubDate,
+	updatedDate,
+	heroImage,
+	category,
+	tags,
+	lang,
+	draft,
+} = post.data;
+const schema = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	headline: title,
+	description,
+	datePublished: pubDate.toISOString(),
+	...(updatedDate ? { dateModified: updatedDate.toISOString() } : {}),
+	author: {
+		'@type': 'Person',
+		name: profile.name,
+		url: new URL('/', Astro.site).href,
+	},
+	mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+};
+---
+
+<SiteLayout
+	title={title}
+	description={description}
+	article
+	image={heroImage}
+	published={draft ? undefined : pubDate}
+	updated={draft ? undefined : updatedDate}
+	lang={lang}
+	noindex={draft}
+>
+	{!draft && (
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify(schema).replace(/</g, '\\u003c')}
+		/>
+	)}
+	<div class="container">
+		<div class="article-reading">
+			<header class="article-header">
+				<a class="back-link" href="/">
+					<Icon name="arrow" size={16} />
+					Volver al inicio
+				</a>
+				{draft && (
+					<p class="draft-notice">
+						Borrador · vista previa solo en desarrollo. Sin publicar.
+					</p>
+				)}
+				<p class="article-category">{category}</p>
+				<h1>{title}</h1>
+				<p class="description">{description}</p>
+				<div class="article-meta">
+					<FormattedDate date={pubDate} />
+					<span>{readingTime(post.body)} min de lectura</span>
+					{updatedDate && (
+						<span>
+							Actualizado: <FormattedDate date={updatedDate} />
+						</span>
+					)}
+				</div>
+				{tags.length > 0 && (
+					<ul class="tags" aria-label="Etiquetas">
+						{tags.map((tag) => (
+							<li>{tag}</li>
+						))}
+					</ul>
+				)}
+			</header>
+			<article class="prose" aria-label={title}>
+				{heroImage && (
+					<Image
+						class="article-hero"
+						src={heroImage}
+						width={960}
+						height={480}
+						alt=""
+					/>
+				)}
+				<slot />
+			</article>
+			<a class="back-link article-return" href="/">
+				<Icon name="arrow" size={16} /> Volver al inicio
+			</a>
+		</div>
+	</div>
+</SiteLayout>

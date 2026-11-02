@@ -1,0 +1,13 @@
+---
+import { professionalLinks } from '../data/profile';
+import Icon from './Icon.astro';
+---
+
+<div class="professional-links">
+	{professionalLinks.map((link) => (
+		<a class="text-link" href={link.href} rel="noopener noreferrer">
+			{link.label}
+			<Icon name="external" size={16} />
+		</a>
+	))}
+</div>

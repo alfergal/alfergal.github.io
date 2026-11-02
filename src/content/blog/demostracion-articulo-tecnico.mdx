@@ -1,0 +1,98 @@
+---
+title: 'Demostración: estructura de un artículo técnico'
+description: 'Contenido de prueba para revisar la lectura, el código, las fórmulas, las tablas y las figuras del blog.'
+pubDate: '2026-11-02'
+category: 'Data Science'
+tags: ['Python', 'Statistics', 'Markdown', 'MDX']
+lang: 'es'
+draft: true
+---
+
+import Figure from '../../components/Figure.astro';
+import BarChart from '../../components/BarChart.astro';
+
+**Contenido de prueba.** Este borrador permite revisar el formato del blog durante el desarrollo local. Todos los datos son ficticios e ilustrativos: no representan un experimento, un resultado científico ni una experiencia profesional.
+
+## Introducción
+
+Un artículo técnico necesita explicar su contexto, mostrar el procedimiento y permitir que quien lo lea comprenda sus límites. Esta página comprueba esas piezas con [Markdown y MDX en Astro](https://docs.astro.build/en/guides/markdown-content/).
+
+### Organización del contenido
+
+La cabecera contiene el título, la descripción, la fecha de prueba, la categoría y el tiempo estimado de lectura. El cuerpo admite texto **en negrita**, *énfasis* y código en línea como `sum(valores)`.
+
+- Definir el propósito de la explicación.
+- Identificar el origen y las limitaciones de los datos.
+- Acompañar el código con una interpretación comprensible.
+
+Para revisar un ejemplo:
+
+1. Leer los datos de entrada.
+2. Ejecutar el código de manera local.
+3. Comparar los valores con la tabla y la figura.
+
+## Código Python
+
+Este fragmento utiliza únicamente la biblioteca estándar de Python. Las tres observaciones son inventadas para ilustrar el formato; no evalúan ningún modelo real.
+
+```python
+from statistics import mean
+
+observaciones = [12, 8, 16]  # Datos ficticios e ilustrativos
+referencia = [10, 10, 15]
+
+promedio = mean(observaciones)
+error_cuadratico = mean(
+    (observado - esperado) ** 2
+    for observado, esperado in zip(observaciones, referencia, strict=True)
+)
+
+print(f"Media ilustrativa: {promedio:.1f}")
+print(f"Error cuadrático ilustrativo: {error_cuadratico:.1f}")
+```
+
+El [tutorial oficial de Python](https://docs.python.org/3/tutorial/) explica las estructuras utilizadas. El resaltado se genera al compilar el contenido, sin ejecutar el fragmento en el navegador.
+
+## Fórmulas matemáticas
+
+La media de una secuencia se escribe $\bar{x} = \frac{1}{n}\sum_{i=1}^{n}x_i$. Una fórmula en bloque puede expresar el error cuadrático medio:
+
+$$
+\operatorname{MSE} = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+$$
+
+Aquí $n$ es el número de observaciones y $y_i$, $\hat{y}_i$ son dos valores que se comparan. La fórmula describe una operación matemática; no comunica una medida de rendimiento obtenida en una investigación.
+
+## Tabla y figura
+
+Los valores de esta tabla son **datos ficticios**, sin unidades ni procedencia experimental.
+
+| Observación | Valor ilustrativo | Referencia ilustrativa |
+| :--- | ---: | ---: |
+| A | 12 | 10 |
+| B | 8 | 10 |
+| C | 16 | 15 |
+
+<Figure id="figura-ilustrativa" caption="Figura 1. Tres valores ficticios para comprobar la presentación de gráficos. No son resultados de investigación.">
+  <BarChart title="Valores ilustrativos" description="Datos de prueba sin unidades." data={[{ label: 'A', value: 12 }, { label: 'B', value: 8 }, { label: 'C', value: 16 }]} />
+</Figure>
+
+La figura usa componentes Astro reutilizables y conserva una descripción textual de los valores para lectores de pantalla.
+
+## Una nota sobre la interpretación
+
+> Un ejemplo de formato permite revisar cómo se presenta una explicación, pero no constituye evidencia sobre un problema real.
+
+Esta cita es una nota redactada para la demostración, sin atribución a una fuente externa.
+
+## Conclusiones
+
+El ejemplo reúne los elementos de lectura de un artículo técnico: texto, enlaces, listas, código, matemáticas, tablas y figuras. Antes de publicar un artículo real habrá que sustituir este contenido de prueba por material revisado y autorizado.
+
+Este archivo permanece como borrador y no genera una página pública en la compilación de producción.
+
+## Referencias
+
+1. [Astro: Markdown y MDX](https://docs.astro.build/en/guides/markdown-content/). Documentación del formato del contenido.
+2. [Python: tutorial oficial](https://docs.python.org/3/tutorial/). Sintaxis y estructuras del lenguaje.
+3. [KaTeX: funciones compatibles](https://katex.org/docs/supported). Notación matemática disponible.

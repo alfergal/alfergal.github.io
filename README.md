@@ -33,7 +33,13 @@ npm run check:repo
 
 Las pruebas **no requieren un servidor editorial activo ni un build previo**. Construyen copias temporales del proyecto, arrancan sus propios servidores de desarrollo y preview en segundo plano con puertos asignados automáticamente y los detienen al terminar. No utilizan `TEST_BASE_URL`. `CHROME_PATH` es opcional: si no tienes Chrome, instala Chromium de Playwright (`npx playwright install chromium`) y omite esa variable.
 
-`npm run format` aplica Prettier a código, helpers de pruebas, scripts y README. La salida estática normal se genera en `dist/`, preparada para GitHub Pages (`https://alfergal.github.io`), con `.nojekyll`, 404, metadatos Open Graph, RSS y sitemap. No hay un workflow de despliegue activo.
+`npm run format` aplica Prettier a código, helpers de pruebas, scripts y README. La salida estática normal se genera en `dist/`, preparada para GitHub Pages (`https://alfergal.github.io`), con `.nojekyll`, 404, metadatos Open Graph, RSS y sitemap.
+
+## Despliegue automático
+
+`.github/workflows/deploy.yml` se ejecuta con cada push a `main` y también permite ejecución manual desde Actions. Primero instala desde el lockfile con `npm ci`, ejecuta Astro Check y la suite Playwright, incluida la exclusión de borradores y la verificación de enlaces de producción. Después `withastro/action` compila Astro en modo producción y sube únicamente `dist/`; `actions/deploy-pages` publica el artefacto en el entorno `github-pages`. Las acciones se fijan por SHA y se utiliza Node.js 22.23.1.
+
+En Settings → Pages, Source debe ser **GitHub Actions**, sin compilación Jekyll desde una rama. No se necesitan secretos propios: el despliegue usa el token temporal de GitHub y OIDC, con permisos de escritura de Pages limitados al job de publicación. Las ejecuciones se serializan para evitar despliegues simultáneos. El repositorio es un sitio de usuario, por lo que `site` es `https://alfergal.github.io` y no necesita un `base` adicional. Un fallo de validación o compilación impide publicar.
 
 ## Estructura
 

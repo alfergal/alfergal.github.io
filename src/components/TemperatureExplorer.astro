@@ -1,0 +1,205 @@
+---
+import {
+	temperatureBaseline as baseline,
+	temperatureCurve,
+} from '../lib/temperature';
+const id = `temperature-${crypto.randomUUID()}`;
+const f = (n: number) => n.toFixed(6);
+---
+
+<temperature-explorer>
+	<section class="temp-explorer" aria-labelledby={`${id}-title`}>
+		<h3 id={`${id}-title`}>
+			Explora una misma clasificación con distintas probabilidades
+		</h3>
+		<div class="temp-control">
+			<label for={`${id}-slider`}>Temperatura T:</label>
+			<output
+				data-temp-value
+				id={`${id}-value`}
+				for={`${id}-slider`}
+				aria-live="off"
+			>
+				1,00
+			</output>
+		</div>
+		<input
+			data-temp-slider
+			id={`${id}-slider`}
+			type="range"
+			min="0.5"
+			max="3"
+			step="0.05"
+			value="1"
+			disabled
+			aria-describedby={`${id}-description`}
+		/>
+		<p id={`${id}-description`} class="help">
+			T menor que 1: probabilidades más extremas. T mayor que 1: probabilidades
+			más cercanas a 0,5.
+		</p>
+		<p class="help" data-temp-static>
+			Vista estática: T=1. El control requiere JavaScript.
+		</p>
+		<svg
+			viewBox="0 0 420 246"
+			role="img"
+			aria-label="Transformación de probabilidades según la temperatura, comparada con la identidad"
+			class="temp-figure"
+		>
+			<path
+				d="M40 200H360 M40 200V40"
+				fill="none"
+				stroke="currentColor"
+				opacity=".35"
+				stroke-width="1"
+			/>
+			<path
+				d="M40 200L360 40"
+				fill="none"
+				stroke="var(--palette-white)"
+				stroke-dasharray="4 5"
+				opacity=".5"
+			/>
+			<path
+				data-temp-curve
+				d={temperatureCurve(1)}
+				fill="none"
+				stroke="var(--palette-pink)"
+				stroke-width="2.8"
+			/>
+			<text
+				x="200"
+				y="233"
+				text-anchor="middle"
+				fill="currentColor"
+				font-size="14"
+			>
+				Probabilidad original
+			</text>
+			<text
+				x="24"
+				y="116"
+				text-anchor="middle"
+				transform="rotate(-90 24 116)"
+				fill="currentColor"
+				font-size="14"
+			>
+				Transformada
+			</text>
+			<text x="39" y="216" fill="currentColor" font-size="12">
+				0
+			</text>
+			<text x="358" y="216" fill="currentColor" font-size="12">
+				1
+			</text>
+		</svg>
+		<dl class="temp-stats">
+			<div>
+				<dt>ROC-AUC</dt>
+				<dd data-temp-auc>{f(baseline.roc_auc)}</dd>
+			</div>
+			<div>
+				<dt>Brier Score ↓</dt>
+				<dd data-temp-brier>{f(baseline.brier)}</dd>
+			</div>
+			<div>
+				<dt>Log-loss ↓</dt>
+				<dd data-temp-loss>{f(baseline.log_loss)}</dd>
+			</div>
+		</dl>
+		<p
+			class="sr-only"
+			role="status"
+			aria-live="polite"
+			aria-atomic="true"
+			data-temp-status
+		/>
+		<p class="help">
+			Resultados precalculados sobre las mismas 80.000 observaciones del
+			experimento. Sin datos enviados a ningún servidor.
+		</p>
+	</section>
+</temperature-explorer>
+
+<script>
+	import '../scripts/temperature-explorer';
+</script>
+
+<style>
+	temperature-explorer {
+		display: block;
+		min-width: 0;
+	}
+	.temp-explorer {
+		padding: 1.1rem;
+		border: 1px solid color-mix(in srgb, var(--palette-blue), transparent 65%);
+		border-radius: 0.55rem;
+		margin-block: 1.5rem;
+	}
+	.temp-explorer h3 {
+		font-size: 1.12rem;
+		margin: 0 0 1rem;
+	}
+	.temp-control {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.4rem;
+	}
+	label {
+		font-weight: 600;
+	}
+	output {
+		color: var(--palette-pink);
+		font-variant-numeric: tabular-nums;
+	}
+	input[type='range'] {
+		display: block;
+		width: 100%;
+		min-height: 32px;
+		margin-block: 0.75rem;
+		accent-color: var(--palette-pink);
+	}
+	.help {
+		font-size: 14px;
+		color: var(--muted);
+		margin: 0.2rem 0 1rem;
+		line-height: 1.5;
+	}
+	.temp-figure {
+		display: block;
+		margin-inline: auto;
+		width: min(100%, 420px);
+		height: auto;
+		color: var(--palette-white);
+	}
+	.temp-stats {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.6rem;
+		padding: 0;
+		margin: 0.8rem 0;
+	}
+	.temp-stats > div {
+		background: color-mix(in srgb, var(--palette-blue), transparent 94%);
+		padding: 0.65rem;
+		border-radius: 0.35rem;
+		text-align: center;
+	}
+	dt {
+		font-size: 14px;
+		color: var(--muted);
+	}
+	dd {
+		font-family: var(--font-code);
+		font-size: 0.92rem;
+		margin: 0.25rem 0 0;
+		color: var(--palette-blue);
+	}
+	@media (max-width: 460px) {
+		.temp-stats {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

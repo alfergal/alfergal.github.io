@@ -15,9 +15,17 @@ export default defineConfig({
 				'graph.spec.ts',
 				'security.spec.ts',
 				'visual.spec.ts',
+				'temperature.spec.ts',
 			],
 		},
-		{ name: 'content', testMatch: ['content.spec.ts', 'reader.spec.ts'] },
+		{
+			name: 'content',
+			testMatch: [
+				'content.spec.ts',
+				'reader.spec.ts',
+				'temperature-fixture.spec.ts',
+			],
+		},
 	],
 	use: {
 		browserName: 'chromium',

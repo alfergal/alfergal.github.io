@@ -1,0 +1,305 @@
+---
+title: 'Tu modelo tiene una ROC-AUC de 0,99. ¿Puedes fiarte de sus probabilidades?'
+description: 'Una demostración matemática y un experimento reproducible muestran por qué una discriminación excelente no garantiza probabilidades fiables.'
+pubDate: '2026-11-02'
+category: 'Machine Learning'
+tags: ['Statistics', 'Python', 'Classification']
+lang: 'es'
+draft: true
+featured: false
+---
+
+import Figure from '../../components/Figure.astro';
+import Callout from '../../components/Callout.astro';
+import TemperatureExplorer from '../../components/TemperatureExplorer.astro';
+
+**Una ROC-AUC de 0,99 suena casi perfecta. Pero ¿qué significa exactamente ese número?** Si una aplicación debe ordenar casos de mayor a menor riesgo, es una buena noticia. Si necesita interpretar una predicción de 0,80 como una probabilidad del 80 %, la misma cifra no responde a la pregunta.
+
+En este artículo construiremos dos conjuntos de predicciones sobre **las mismas 80.000 observaciones**, con el mismo orden de riesgo y exactamente la misma ROC-AUC, pero con diferencias cuantificables en la calidad de sus probabilidades. Primero demostraremos por qué ocurre. Después lo reproduciremos en Python y examinaremos si podemos corregirlo sin entrenar otro clasificador.
+
+<Callout type="important" title="La idea central">La **discriminación** mide cómo se ordenan las observaciones. La **calibración** evalúa si los valores estimados concuerdan con las frecuencias reales. Son propiedades distintas: una ROC-AUC alta no garantiza probabilidades bien calibradas.</Callout>
+
+## 1. Introducción: una puntuación excelente puede ocultar otro problema
+
+Imagina un sistema que asigna riesgos a operaciones. Su ROC-AUC supera 0,99, y el equipo considera utilizar sus predicciones para calcular pérdidas esperadas. Pero un riesgo estimado del 90 % no siempre significa que nueve de cada diez casos semejantes terminen siendo positivos.
+
+En nuestro experimento controlado, la comparación produce lo siguiente:
+
+| Métrica en test | Probabilidades de referencia | Probabilidades distorsionadas |
+| :--- | ---: | ---: |
+| ROC-AUC ↑ | **0,991700** | **0,991700** |
+| Average Precision ↑ | **0,991895** | **0,991895** |
+| Brier Score ↓ | **0,035366** | 0,037752 |
+| Log-loss ↓ | **0,116855** | 0,145393 |
+| ECE, 15 grupos por cuantiles ↓ | 0,000912 | 0,018381 |
+
+Los resultados proceden de una simulación reproducible, no de datos bancarios ni de dos modelos entrenados de manera independiente. Para aislar el fenómeno, partimos de probabilidades conocidas del generador y transformamos sus valores sin cambiar su orden. El experimento, su semilla y sus limitaciones se describen más adelante.
+
+<Figure id="roc-superpuestas" caption="Figura 1. Las curvas ROC se superponen: una transformación estrictamente creciente cambia las probabilidades, pero conserva el ranking. Experimento reproducible con 80.000 observaciones de prueba.">
+  <img src="/figures/roc-auc-calibracion/01-curvas-roc.svg" alt="Curvas ROC idénticas de las predicciones de referencia y las distorsionadas, ambas con ROC-AUC de 0,991700." loading="lazy" />
+</Figure>
+
+¿Por qué una métrica permanece inalterada mientras las demás empeoran? La explicación comienza distinguiendo dos preguntas que a menudo se mezclan.
+
+## 2. Discriminación no es calibración
+
+### 2.1. Qué mide la ROC-AUC
+
+La curva ROC representa la tasa de verdaderos positivos frente a la tasa de falsos positivos al variar el umbral de clasificación. Su área, ROC-AUC, resume hasta qué punto las puntuaciones sitúan los casos positivos por encima de los negativos.
+
+Una interpretación probabilística es que, al elegir al azar un caso positivo y otro negativo, la ROC-AUC es la probabilidad de que el positivo reciba una puntuación mayor, contando los empates como medio acierto. **No mide cuánto se parecen las puntuaciones a probabilidades reales.**
+
+### 2.2. Qué significa estar calibrado
+
+Sea $\hat p$ una probabilidad estimada y $Y\in\{0,1\}$ el resultado. La calibración perfecta exige, para los valores pertinentes de $p$:
+
+$$
+\mathbb{P}(Y=1\mid\hat p=p)=p.
+$$
+
+Es una propiedad de grupos comparables, no una garantía sobre el resultado de un caso individual. Si muchas observaciones reciben una probabilidad cercana al 80 %, aproximadamente un 80 % deberían resultar positivas.
+
+En la práctica, no conocemos la probabilidad condicional exacta: estimamos frecuencias en intervalos o mediante técnicas de suavizado. Por eso una curva de calibración es un **diagnóstico estimado**, no una prueba absoluta de calibración perfecta.
+
+### 2.3. Dos evaluaciones complementarias
+
+La ROC-AUC se preocupa por quién aparece primero en un ranking. La calibración exige que la escala de ese ranking sea interpretable en términos probabilísticos. Dos conjuntos de predicciones pueden ordenar exactamente igual y comunicar riesgos muy distintos.
+
+<Figure id="diagrama-calibracion" caption="Figura 2. Diagrama de fiabilidad con 18 grupos por cuantiles. La diagonal indica la calibración ideal; las desviaciones son estimaciones muestrales, no una medida libre de incertidumbre.">
+  <img src="/figures/roc-auc-calibracion/02-calibracion.svg" alt="Gráfica de calibración donde la referencia se aproxima a la diagonal mientras las probabilidades distorsionadas muestran sobreconfianza." loading="lazy" />
+</Figure>
+
+Este enfoque complementario es central en el artículo de Dimitriadis y colaboradores (2024), que propone estudiar conjuntamente discriminación, fiabilidad y calidad global de las predicciones [4].
+
+## 3. La propiedad matemática que explica la paradoja
+
+### 3.1. La ROC-AUC depende del orden
+
+Si $S^+$ y $S^-$ representan las puntuaciones de un positivo y un negativo independientes, respectivamente, la definición que incluye empates es:
+
+$$
+\mathrm{AUC}(S)=\mathbb{P}(S^+>S^-)+\frac12\mathbb{P}(S^+=S^-).
+$$
+
+### 3.2. Transformaciones estrictamente crecientes
+
+Sea $f$ estrictamente creciente. Para cualquier par de observaciones $i,j$:
+
+$$
+S_i>S_j\iff f(S_i)>f(S_j),
+$$
+
+mientras que una igualdad también se conserva. Por tanto, no cambian ni las comparaciones ni los empates que determinan la ROC-AUC:
+
+$$
+\boxed{\mathrm{AUC}(S)=\mathrm{AUC}(f(S))}.
+$$
+
+El resultado no depende de que las puntuaciones sean probabilidades; sí exige que la transformación conserve estrictamente el orden. Las transformaciones solo no decrecientes, como ciertas funciones escalonadas, pueden crear empates y modificar la ROC-AUC. En computación de precisión finita también pueden aparecer empates por redondeo en los extremos, aunque la igualdad matemática se mantenga.
+
+### 3.3. Cambiar probabilidades sin cambiar posiciones
+
+Una familia útil es el escalado por temperatura:
+
+$$
+\hat p_T=\sigma\!\left(\frac{\operatorname{logit}(\hat p)}{T}\right), \qquad T>0,
+$$
+
+con $\sigma(z)=1/(1+e^{-z})$. Cuando $T=1$, la transformación es la identidad; si $T<1$, empuja las probabilidades hacia 0 y 1, y si $T>1$, las acerca a 0,5. Siempre conserva el orden real para probabilidades interiores al intervalo $(0,1)$.
+
+<Figure id="transformaciones-monotonas" caption="Figura 3. Temperaturas distintas producen escalas de probabilidad diferentes sin invertir el orden de ningún par de observaciones.">
+  <img src="/figures/roc-auc-calibracion/03-transformaciones.svg" alt="Curvas estrictamente crecientes para temperaturas 0,5; 1; y 2, con distinta extremidad de probabilidades." loading="lazy" />
+</Figure>
+
+### 3.4. Por qué Brier Score y log-loss sí cambian
+
+Para $n$ observaciones binarias, definimos:
+
+$$
+\mathrm{Brier}=\frac1n\sum_{i=1}^n(\hat p_i-y_i)^2
+$$
+
+$$
+\mathrm{LogLoss}=-\frac1n\sum_{i=1}^n\left[y_i\log(\hat p_i)+(1-y_i)\log(1-\hat p_i)\right].
+$$
+
+Ambas métricas tienen en cuenta **el valor numérico** de cada predicción, no solo su posición en el ranking. Son reglas de puntuación propias: en esperanza, bajo las condiciones habituales, favorecen declarar la probabilidad condicional verdadera. La log-loss penaliza especialmente las predicciones excesivamente seguras y equivocadas.
+
+<Callout type="warning" title="No confundas calidad probabilística con calibración pura">Brier Score y log-loss combinan diferentes aspectos del rendimiento. Una cifra menor no demuestra por sí sola una calibración mejor si los modelos también difieren en su capacidad informativa. La descomposición de Murphy [8] y el enfoque de Dimitriadis et al. [4] permiten distinguir componentes.</Callout>
+
+## 4. Diseño del experimento: conocer la probabilidad verdadera
+
+### 4.1. Un proceso generador controlado
+
+Para comprobar una afirmación causal sobre la transformación de probabilidades, necesitamos conocer la función que genera los resultados. Usamos:
+
+$$
+X\sim\mathcal{U}(-1,1), \qquad p^*(X)=\sigma(14X),\qquad Y\mid X\sim\mathrm{Bernoulli}(p^*(X)).
+$$
+
+Aquí $p^*(X)$ es, **por construcción**, la probabilidad condicional verdadera. Generamos 100.000 observaciones y reservamos 20.000 para ajustar calibradores y 80.000 para evaluación final. La semilla es `20261102`; el conjunto de test permanece intacto para todas las comparaciones.
+
+Este diseño no pretende representar una población real ni entrenar un clasificador que descubra la función verdadera. Su función es aislar el mecanismo matemático: **mismo ranking, distinta escala de probabilidades**.
+
+### 4.2. Predicciones que comparamos
+
+La referencia utiliza $\hat p_{\mathrm{ref}}=p^*(X)$. Construimos después una versión sobreconfiada:
+
+$$
+\hat p_{\mathrm{dist}}=\sigma\!\left(2\operatorname{logit}(\hat p_{\mathrm{ref}})\right),
+$$
+
+que corresponde a $T=0{,}5$. No cambiamos ninguna etiqueta, observación ni orden de puntuaciones. Al ser una transformación estrictamente creciente, la ROC-AUC **debe** conservarse; la pregunta experimental es cuánto cambian las métricas sensibles a la escala.
+
+### 4.3. Métricas y límites
+
+Calculamos ROC-AUC, **Average Precision** (resumen de la curva precision–recall que implementa scikit-learn), Brier Score, log-loss y un *Expected Calibration Error* descriptivo con 15 grupos por cuantiles. No llamamos indistintamente «PR-AUC» a Average Precision y al área trapezoidal: son resúmenes diferentes.
+
+ECE depende de cómo se definan los grupos, del tamaño de la muestra y de la distribución de puntuaciones. Por tanto, lo utilizamos como indicador auxiliar junto a los diagramas de fiabilidad, nunca como prueba definitiva.
+
+### 4.4. Reproducibilidad
+
+El script `experimento.py` genera los datos, las métricas, las figuras y los valores de la visualización interactiva. Requiere Python, NumPy, SciPy, scikit-learn y Matplotlib. El código y las salidas numéricas acompañan a esta publicación en el repositorio de la web.
+
+Una versión simplificada del núcleo de la demostración es:
+
+```python title="invariancia_auc.py"
+import numpy as np
+from scipy.special import expit
+from sklearn.metrics import roc_auc_score, brier_score_loss, log_loss
+
+rng = np.random.default_rng(20261102)
+x = rng.uniform(-1, 1, size=100_000)
+p_ref = expit(14 * x)
+y = rng.binomial(1, p_ref)
+p_dist = expit(28 * x)  # Temperatura T = 0.5
+
+assert np.isclose(roc_auc_score(y, p_ref), roc_auc_score(y, p_dist), atol=1e-12)
+
+for name, p in [("Referencia", p_ref), ("Distorsionado", p_dist)]:
+    print(name, roc_auc_score(y, p), brier_score_loss(y, p), log_loss(y, p))
+```
+
+Este fragmento es autónomo y verifica la invariancia con toda la muestra. **Los números de las tablas del artículo** proceden, en cambio, del experimento completo con partición de calibración y test; no deben atribuirse a este ejemplo abreviado.
+
+## 5. Resultados: misma ROC-AUC, peor calidad probabilística
+
+### 5.1. La discriminación no cambia
+
+Los dos vectores de probabilidades alcanzan ROC-AUC **0,991700** y Average Precision **0,991895**, con las mismas observaciones. Las curvas ROC coinciden y la puntuación precision–recall también permanece inalterada porque la transformación conserva el ranking y sus empates.
+
+Este dato no significa que un modelo aprendido generalice mejor que otro. Significa que estas métricas no detectan el cambio en la **escala** de las probabilidades.
+
+### 5.2. Las probabilidades se vuelven sobreconfiadas
+
+En el diagrama de fiabilidad, la transformación $T=0{,}5$ concentra las predicciones más cerca de 0 y 1. Sin embargo, la frecuencia real de positivos en los grupos no se desplaza de la misma manera. El resultado es una discrepancia visible frente a la diagonal ideal.
+
+El ECE por cuantiles pasa de **0,000912** a **0,018381** en nuestra muestra de prueba. Son valores dependientes del procedimiento elegido: ayudan a describir este experimento, pero no constituyen una medida universal de calibración.
+
+### 5.3. Brier Score y log-loss detectan la distorsión
+
+El Brier Score aumenta de **0,035366** a **0,037752**. La log-loss aumenta de **0,116855** a **0,145393**. Como aquí conocemos y usamos las probabilidades condicionales verdaderas, la versión distorsionada introduce error probabilístico sin añadir información predictiva.
+
+Un bootstrap pareado de 300 remuestreos sobre el test da un incremento estimado de Brier de **0,002386** (intervalo percentil del 95 %: **[0,002109, 0,002678]**) y un incremento estimado de log-loss de **0,028539** (**[0,025974, 0,030689]**). Estos intervalos describen incertidumbre de muestreo bajo la simulación especificada; no cuantifican cómo se comportaría un modelo en otra población.
+
+### 5.4. Sensibilidad a la temperatura
+
+<Figure id="temperatura-metricas" caption="Figura 4. Brier Score y log-loss en el conjunto de prueba según T. ROC-AUC permanece constante aunque ambas métricas sensibles a probabilidades cambien.">
+  <img src="/figures/roc-auc-calibracion/04-temperatura-metricas.svg" alt="Gráfica de dos escalas que muestra cómo Brier Score y log-loss varían con la temperatura, con la referencia en T igual a 1." loading="lazy" />
+</Figure>
+
+La variación no es necesariamente monótona: acercar las probabilidades a 0,5 también puede empeorar la calidad si partimos de estimaciones correctas. Lo relevante es que existe una familia entera de predicciones con el mismo orden y distintas pérdidas probabilísticas.
+
+### 5.5. Experimenta tú con la temperatura
+
+<TemperatureExplorer />
+
+Mueve el control y observa cómo cambian Brier Score, log-loss y la curva de transformación. La ROC-AUC mantiene el valor de referencia. Los valores mostrados fueron **calculados previamente con los datos de test**, no simulados en el navegador.
+
+## 6. ¿Podemos recuperar probabilidades fiables?
+
+Ajustamos tres métodos **exclusivamente con las 20.000 observaciones de calibración** y evaluamos después en las 80.000 de test. Ningún procedimiento ve las etiquetas del test durante el ajuste.
+
+### 6.1. Platt Scaling
+
+Ajusta una transformación logística de las puntuaciones mediante una regresión logística adicional. Al ser paramétrica, suele resultar apropiada cuando la distorsión puede describirse bien con una sigmoide. Su comportamiento dependerá de la muestra de calibración y de la adecuación de esa familia funcional [1].
+
+### 6.2. Regresión isotónica
+
+Aprende una transformación monótona no decreciente y más flexible, sin imponer una forma sigmoide específica. Puede sobreajustarse con pocas observaciones y, al producir regiones constantes, **crear empates** que alteren la ROC-AUC [1, 5].
+
+### 6.3. Temperature Scaling
+
+Ajusta únicamente $T>0$ para minimizar log-loss sobre un conjunto independiente. Aquí resulta especialmente adecuado porque la distorsión fue generada con ese mismo mecanismo. Es importante no confundirlo con una mejora garantizada para cualquier distribución o arquitectura [3].
+
+### 6.4. Comparación de métodos
+
+| Predicciones evaluadas en test | ROC-AUC ↑ | Brier ↓ | Log-loss ↓ |
+| :--- | ---: | ---: | ---: |
+| Referencia generadora | **0,991700** | **0,035366** | 0,116855 |
+| Distorsionadas ($T=0{,}5$) | **0,991700** | 0,037752 | 0,145393 |
+| Recalibración por temperatura | **0,991700** | **0,035366** | **0,116853** |
+| Platt Scaling | **0,991700** | **0,035366** | **0,116853** |
+| Regresión isotónica | 0,991568 | 0,035629 | 0,119143 |
+
+La temperatura estimada a partir del conjunto de calibración es **$T=1{,}9955$**, muy próxima al valor 2 que invertiría exactamente la distorsión artificial. El método isotónico obtiene en este test una ROC-AUC ligeramente inferior, coherente con los empates que puede introducir. Las pequeñas diferencias entre los dos métodos paramétricos y la referencia se deben al ajuste finito y al redondeo de las cifras mostradas.
+
+<Figure id="antes-despues" caption="Figura 5. Recalibración por temperatura ajustada sobre datos independientes, evaluada en el conjunto de prueba. La transformación recupera una curva cercana a la referencia.">
+  <img src="/figures/roc-auc-calibracion/05-antes-despues.svg" alt="Curvas de calibración para probabilidades distorsionadas, referencia y versión recalibrada por temperatura." loading="lazy" />
+</Figure>
+
+<Callout type="limitation" title="Un resultado deliberadamente favorable">El generador está calibrado por construcción y el error introducido es exactamente de la familia que Temperature Scaling puede corregir. Esto demuestra el mecanismo, pero **no** prueba que este método sea el mejor en datos reales. Platt, isotónica y beta calibration presentan ventajas y límites distintos según el problema [2, 5, 6].</Callout>
+
+## 7. Implicaciones para Machine Learning
+
+### 7.1. Cuándo importa especialmente discriminar
+
+Si se trata de **priorizar** casos para su revisión y el presupuesto permite examinar los primeros $k$, las métricas de ranking son fundamentales. Una ROC-AUC elevada indica que, en conjunto, los positivos tienden a recibir puntuaciones mayores. En conjuntos muy desbalanceados también conviene estudiar precisión, recall y métricas precision–recall relevantes para la capacidad operativa.
+
+### 7.2. Cuándo necesitamos probabilidades fiables
+
+Si las predicciones alimentan una estimación monetaria, una decisión basada en pérdidas esperadas o un umbral de riesgo con costes conocidos, la escala absoluta importa. Con el mismo ranking se pueden obtener decisiones distintas a umbrales de probabilidad diferentes. En particular, una transformación de temperatura preserva el umbral 0,5, pero **no** mantiene necesariamente el conjunto de casos por encima de cualquier otro umbral fijado numéricamente.
+
+La literatura médica insiste en separar discriminación, calibración, calidad global y utilidad de decisión; estas distinciones se trasladan a otros contextos, aunque las decisiones y sus costes deban justificarse en cada dominio [7, 10].
+
+### 7.3. Una evaluación multidimensional
+
+Para un clasificador probabilístico, conviene combinar como mínimo:
+
+- **Discriminación:** ROC-AUC y, si el problema lo exige, medidas precision–recall y resultados operativos por umbral.
+- **Calibración:** curva de fiabilidad, y medidas apropiadas con incertidumbre e información sobre subgrupos relevantes.
+- **Calidad probabilística global:** Brier Score y log-loss, interpretados sin confundirlos con errores exclusivamente de calibración.
+- **Decisión:** evaluación de costes, utilidad y umbrales cuando la aplicación lo requiera.
+
+La propuesta gráfica de Dimitriadis et al. [4] —fiabilidad, ROC y Murphy— resume precisamente la necesidad de observar dimensiones complementarias.
+
+### 7.4. Lo que el experimento no demuestra
+
+Trabajamos con datos sintéticos, eventos binarios, una prevalencia cercana al 50 %, un proceso estacionario y una única familia de distorsiones. No hemos estudiado distribución cambiante, probabilidades aprendidas con sesgo, clases raras, subgrupos heterogéneos ni incertidumbre por entrenamiento. La referencia puede conocerse solo porque hemos definido el generador.
+
+Los diagramas de fiabilidad y el ECE dependen del tamaño de la muestra y del método de estimación. Incluso cuando el modelo generador es perfectamente calibrado en la población, sus frecuencias observadas fluctúan en una muestra finita. Nixon et al. [9] y Silva Filho et al. [5] discuten límites importantes de los indicadores habituales.
+
+## 8. Conclusiones
+
+Podemos responder ya a la pregunta inicial: **sí, una ROC-AUC excelente puede convivir con probabilidades poco fiables**. No hay contradicción: la ROC-AUC mide el orden, mientras que calibración y pérdidas probabilísticas examinan aspectos que dependen de la escala.
+
+En nuestra simulación, una transformación estrictamente creciente conservó exactamente **ROC-AUC = 0,991700**, pero elevó tanto Brier Score como log-loss y produjo una curva de fiabilidad claramente peor. Una recalibración ajustada sin acceder a las etiquetas del test recuperó buena parte de la calidad perdida, sin necesidad de cambiar el ranking.
+
+La conclusión no es que ROC-AUC sea una mala métrica: es una métrica que **responde a otra pregunta**. Un análisis serio debe escoger las medidas según el uso real de las predicciones y reconocer qué propiedad identifica cada una.
+
+### Código y reproducibilidad
+
+La implementación completa se encuentra en `experiments/roc-auc-calibracion/experimento.py`, dentro del [repositorio de esta web](https://github.com/alfergal/alfergal.github.io). El script produce las cinco figuras y `resultados.json` usando la semilla y la separación de muestras documentadas. Los datos son completamente sintéticos y no requieren descargas externas.
+
+### Referencias científicas
+
+1. Niculescu-Mizil, A., & Caruana, R. (2005). [Predicting Good Probabilities with Supervised Learning](https://doi.org/10.1145/1102351.1102430). *ICML*.
+2. Ojeda, F. M., et al. (2023). [Calibrating machine learning approaches for probability estimation: A comprehensive comparison](https://doi.org/10.1002/sim.9921). *Statistics in Medicine*.
+3. Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). [On Calibration of Modern Neural Networks](https://proceedings.mlr.press/v70/guo17a.html). *ICML*.
+4. Dimitriadis, T., Gneiting, T., Jordan, A. I., & Vogel, P. (2024). [Evaluating probabilistic classifiers: The triptych](https://doi.org/10.1016/j.ijforecast.2023.09.007). *International Journal of Forecasting*.
+5. Silva Filho, T., et al. (2023). [Classifier calibration: A survey on how to assess and improve predicted class probabilities](https://doi.org/10.1007/s10994-023-06336-7). *Machine Learning*.
+6. Kull, M., Silva Filho, T., & Flach, P. (2017). [Beta calibration: A well-founded and easily implemented improvement on logistic calibration for binary classifiers](https://proceedings.mlr.press/v54/kull17a.html). *AISTATS*.
+7. Van Calster, B., et al. (2019). [Calibration: The Achilles heel of predictive analytics](https://doi.org/10.1186/s12916-019-1466-7). *BMC Medicine*.
+8. Murphy, A. H. (1973). [A New Vector Partition of the Probability Score](https://doi.org/10.1175/1520-0450(1973)012%3C0595:ANVPOT%3E2.0.CO;2). *Journal of Applied Meteorology*.
+9. Nixon, J., et al. (2019). [Measuring Calibration in Deep Learning](https://openaccess.thecvf.com/content_CVPRW_2019/html/Uncertainty_and_Robustness_in_Deep_Visual_Learning/Nixon_Measuring_Calibration_in_Deep_Learning_CVPRW_2019_paper.html). *CVPR Workshops*.
+10. Van Calster, B., et al. (2025). [Evaluation of performance measures in predictive artificial intelligence models to support medical decisions: Overview and guidance](https://doi.org/10.1016/j.landig.2025.100916). *The Lancet Digital Health*.

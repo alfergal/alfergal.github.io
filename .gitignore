@@ -35,3 +35,9 @@ src/content/blog/qa-verification-*
 playwright-report/
 test-results/
 .qa/
+
+# Local article intake and Python environments/caches
+/ARTICULO_ROC_AUC_Codex.zip
+.venv*/
+__pycache__/
+*.py[cod]

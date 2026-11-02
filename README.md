@@ -165,3 +165,11 @@ En MDX se admite `Callout.astro` con tipos `note`, `important`, `warning`, `tip`
 Los bloques vallados aceptan, por ejemplo, `python title="ejemplo.py"`. Shiki mantiene el resaltado y expone lenguaje y archivo como metadatos; la mejora de artículos añade una barra con copia exacta del texto, confirmación accesible y un mensaje si el navegador deniega el portapapeles. Se comprueban Python, SQL, Bash, TypeScript y JSON. Sin JavaScript se conserva el código y el scroll horizontal. No se ejecuta código editorial en el navegador.
 
 Las pruebas sintéticas de destacados, filtros, series, relacionados, metadatos y lectura viven en `tests/fixtures/blog/` y se copian exclusivamente al directorio temporal de pruebas. Nunca se incorporan a la colección editorial ni al artefacto desplegado. No se han añadido dependencias.
+
+## Primer artículo: ROC-AUC y calibración
+
+`src/content/blog/roc-auc-calibracion-probabilidades.mdx` integra el artículo recibido, sus cinco figuras y el explorador de temperatura, manteniendo `draft: true`. Puede revisarse en desarrollo en `/blog/roc-auc-calibracion-probabilidades/`; no se genera esa página en producción ni se incluye en RSS o sitemap. Las referencias científicas y los valores numéricos del paquete se conservan.
+
+`TemperatureExplorer.astro` usa los 51 resultados precalculados de `src/data/roc_auc_temperature.json`: solo dibuja la transformación analítica en el navegador. Tiene control de rango nativo, anuncio accesible de resultados, identificadores por instancia y limpieza de eventos. Sin JavaScript muestra la referencia real T=1 y desactiva el control. Su código se carga exclusivamente en los artículos que lo incorporen.
+
+El experimento y sus instrucciones de verificación sin sobrescritura se encuentran en [experiments/roc-auc-calibracion/README.md](experiments/roc-auc-calibracion/README.md). Las dependencias Python se instalan en un entorno separado de npm. Los SVG de `public/` y las fuentes del repositorio son accesibles por URL: el estado de borrador no los convierte en archivos privados. El ZIP original se conserva localmente, excluido de Git.

@@ -1,0 +1,2 @@
+# Preserve Matplotlib SVG path data byte-for-byte; its lines end in spaces.
+public/figures/roc-auc-calibracion/*.svg whitespace=-blank-at-eol

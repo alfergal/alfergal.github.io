@@ -1,0 +1,110 @@
+{
+  "seed": 20261102,
+  "n_total": 100000,
+  "n_calibration": 20000,
+  "n_test": 80000,
+  "generating_process": "X ~ Uniform(-1, 1); P(Y=1|X)=sigmoid(14*X); Y~Bernoulli(P)",
+  "base_prevalence_test": 0.4990875,
+  "scores": {
+    "reference_true_probabilities": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.035366402387431335,
+      "log_loss": 0.11685459083133032,
+      "ece_15_quantile": 0.0009115000907405196
+    },
+    "distorted_T_0.5": {
+      "roc_auc": 0.9916996823547547,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.03775198258282463,
+      "log_loss": 0.14539342057985735,
+      "ece_15_quantile": 0.018380767181524073
+    },
+    "temperature_refit": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.03536595501377202,
+      "log_loss": 0.11685285601194166,
+      "ece_15_quantile": 0.0008926508370563057
+    },
+    "platt_refit": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.03536605974742795,
+      "log_loss": 0.1168532367879722,
+      "ece_15_quantile": 0.0008737216538321428
+    },
+    "isotonic_refit": {
+      "roc_auc": 0.9915679781660972,
+      "average_precision": 0.9907125893187915,
+      "brier": 0.0356287618593893,
+      "log_loss": 0.11914282254348818,
+      "ece_15_quantile": 0.002377618882272304
+    }
+  },
+  "temperature_sweep": {
+    "0.5": {
+      "roc_auc": 0.9916996823547547,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.03775198258282463,
+      "log_loss": 0.14539342057985735,
+      "ece_15_quantile": 0.018380767181524073
+    },
+    "0.75": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.03585466043461101,
+      "log_loss": 0.12146204732682073,
+      "ece_15_quantile": 0.009979103406088537
+    },
+    "1.0": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.035366402387431335,
+      "log_loss": 0.11685459083133032,
+      "ece_15_quantile": 0.0009115000907405196
+    },
+    "1.5": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.036994783937121314,
+      "log_loss": 0.12696791151639142,
+      "ece_15_quantile": 0.02292827809756346
+    },
+    "2.0": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.0406054047036443,
+      "log_loss": 0.14663252685370876,
+      "ece_15_quantile": 0.046407603687907216
+    },
+    "3.0": {
+      "roc_auc": 0.9916996823547546,
+      "average_precision": 0.9918947680988622,
+      "brier": 0.050599373203574924,
+      "log_loss": 0.19394912775509798,
+      "ece_15_quantile": 0.09289049470558992
+    }
+  },
+  "fitted_temperature": 1.995524596756293,
+  "platt_slope": 0.5011494213258022,
+  "paired_bootstrap": {
+    "delta_brier_bad_minus_reference": {
+      "estimate": 0.002385580195393299,
+      "percentile_95_interval": [
+        0.0021089513096227905,
+        0.0026779119119058593
+      ]
+    },
+    "delta_logloss_bad_minus_reference": {
+      "estimate": 0.02853882974852705,
+      "percentile_95_interval": [
+        0.025974374022721958,
+        0.030689239078667423
+      ]
+    }
+  },
+  "versions": {
+    "numpy": "2.3.5"
+  }
+}

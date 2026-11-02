@@ -29,6 +29,7 @@ export interface Entry {
 	tags: string[];
 	draft: boolean;
 	date: number;
+	featured: boolean;
 }
 export async function readEntries(root: string): Promise<Entry[]> {
 	const directory = join(root, 'src/content/blog');
@@ -57,10 +58,17 @@ export async function readEntries(root: string): Promise<Entry[]> {
 						tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
 						draft: data.draft !== false,
 						date: new Date(data.pubDate).valueOf(),
+						featured: data.featured === true,
 					};
 				}),
 		)
 	).sort((a, b) => b.date - a.date || a.id.localeCompare(b.id));
+}
+export function listedEntries(entries: Entry[]) {
+	const published = entries.filter((entry) => !entry.draft);
+	const featured =
+		published.length >= 3 ? published.filter((entry) => entry.featured) : [];
+	return [...featured, ...entries.filter((entry) => !featured.includes(entry))];
 }
 export interface TestSite {
 	root: string;

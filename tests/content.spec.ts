@@ -1,4 +1,4 @@
-import { test, expect } from './support/site';
+import { test, expect, listedEntries } from './support/site';
 import { verifyBuild, xmlValues } from './support/build';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
@@ -11,7 +11,7 @@ test('isolated collections preview all entries in date order and expose publicat
 	expect(site.fixtureOnly).toBe(true);
 	await page.goto('/');
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		site.entries.map((entry) => entry.title),
+		listedEntries(site.entries).map((entry) => entry.title),
 	);
 	await page.goto(article);
 	const entry = site.entries.find((item) => item.id === 'qa-verification-new')!;
@@ -40,7 +40,9 @@ test('published Markdown and MDX build correctly while explicit and default draf
 }) => {
 	await verifyBuild(site, page, request);
 	const rss = await (await request.get(`${site.baseURL}/rss.xml`)).text();
-	expect(await xmlValues(page, rss, 'item link')).toHaveLength(2);
+	expect(await xmlValues(page, rss, 'item link')).toHaveLength(
+		site.entries.filter((entry) => !entry.draft).length,
+	);
 	for (const marker of [
 		'BORRADOR_EXPLICITO_SOLO_TEST',
 		'BORRADOR_IMPLICITO_SOLO_TEST',

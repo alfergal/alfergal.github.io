@@ -3,6 +3,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { profile } from '../../src/data/profile';
 import type { TestSite } from './site';
+import { listedEntries } from './site';
 
 export async function xmlValues(page: Page, source: string, selector: string) {
 	return page.evaluate(
@@ -118,7 +119,7 @@ export async function verifyBuild(
 		0,
 	);
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		published.map((entry) => entry.title),
+		listedEntries(published).map((entry) => entry.title),
 	);
 	const rssResponse = await request.get(`${site.productionURL}/rss.xml`);
 	expect(rssResponse.status()).toBe(200);

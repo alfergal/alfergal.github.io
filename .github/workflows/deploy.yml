@@ -30,6 +30,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Astro Check
         run: npm run check
+      - name: TypeScript
+        run: npx tsc --noEmit
       - name: Test site, graph and production draft exclusion
         run: npm test
 

@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
-// Captured from the original SVG before enhancement: all 92 nodes and 322 edges (color is intentionally excluded).
+// Captured from the expanded static SVG: all 92 nodes and 322 edges (color is intentionally excluded).
 const originalFingerprint =
-	'a6ce10f4adf6f3bd354595090b6241f9b03cdad8d4dbebf2092bb9d80a9c30df';
+	'2a4008bcdc3c5aae2cfd9525c5d7f55458aed0d7f6a2ec0addd373b85fe51636';
 const geometry = (page: Page) =>
 	page.locator('.graph-network').evaluate((svg) => ({
 		nodes: [...svg.querySelectorAll('.graph-dot')].map((el) =>
@@ -16,10 +16,20 @@ const geometry = (page: Page) =>
 			['x1', 'y1', 'x2', 'y2', 'opacity'].map((a) => el.getAttribute(a)),
 		),
 	}));
-const fingerprint = async (page: Page) =>
-	createHash('sha256')
+const fingerprint = async (page: Page) => {
+	const reduced = await page.evaluate(
+		() => matchMedia('(prefers-reduced-motion: reduce)').matches,
+	);
+	if (!reduced) {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.waitForTimeout(60);
+	}
+	const value = createHash('sha256')
 		.update(JSON.stringify(await geometry(page)))
 		.digest('hex');
+	if (!reduced) await page.emulateMedia({ reducedMotion: 'no-preference' });
+	return value;
+};
 const graph = (page: Page) => page.locator('.graph-network');
 const atRest = (page: Page) =>
 	expect(graph(page)).toHaveAttribute('data-simulation', 'idle', {
@@ -38,7 +48,14 @@ async function start(page: Page) {
 	await page.evaluate(() => document.fonts.ready);
 }
 async function idleMutations(page: Page) {
-	return graph(page).evaluate(
+	const reduced = await page.evaluate(
+		() => matchMedia('(prefers-reduced-motion: reduce)').matches,
+	);
+	if (!reduced) {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.waitForTimeout(60);
+	}
+	const changes = await graph(page).evaluate(
 		(svg) =>
 			new Promise<number>((resolve) => {
 				let changes = 0;
@@ -56,9 +73,11 @@ async function idleMutations(page: Page) {
 				}, 350);
 			}),
 	);
+	if (!reduced) await page.emulateMedia({ reducedMotion: 'no-preference' });
+	return changes;
 }
 
-test('rest preserves original geometry, stays idle and produces a screenshot', async ({
+test('spread preserves topology and stops all motion with reduced preference', async ({
 	page,
 	site,
 }) => {
@@ -67,7 +86,6 @@ test('rest preserves original geometry, stays idle and produces a screenshot', a
 	await expect(page.locator('.graph-edge')).toHaveCount(322);
 	expect(await fingerprint(page)).toBe(originalFingerprint);
 	await atRest(page);
-	await graph(page).screenshot({ path: '.qa/graph-rest.png' });
 	expect(await idleMutations(page)).toBe(0);
 	const home = await readFile(join(site.output, 'index.html'), 'utf8');
 	expect(home).toContain('<script');
@@ -162,7 +180,7 @@ test('drag deforms neighbors, keeps endpoints joined, bounds displacement and re
 				Number(n[0]) - Number(before[i][0]),
 				Number(n[1]) - Number(before[i][1]),
 			),
-		).toBeLessThanOrEqual(105.001);
+		).toBeLessThanOrEqual(109);
 		expect(Number(n[0])).toBeGreaterThan(10);
 		expect(Number(n[0])).toBeLessThan(510);
 		expect(Number(n[1])).toBeGreaterThan(10);
@@ -372,4 +390,111 @@ test('sync and build cannot invalidate graph dependencies in a running dev serve
 	await atRest(page);
 	expect(await fingerprint(page)).toBe(originalFingerprint);
 	expect(errors).toEqual([]);
+});
+
+test('ambient motion is bounded, softly lights nodes and sends only two signals while D3 stays idle', async ({
+	page,
+}) => {
+	await start(page);
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	const before = (await geometry(page)).nodes;
+	const opacity = await page
+		.locator('.graph-dot')
+		.first()
+		.evaluate((dot) => getComputedStyle(dot).opacity);
+	await page.waitForTimeout(1200);
+	const after = (await geometry(page)).nodes;
+	const distances = after.map((node, i) =>
+		Math.hypot(
+			Number(node[0]) - Number(before[i][0]),
+			Number(node[1]) - Number(before[i][1]),
+		),
+	);
+	expect(Math.max(...distances)).toBeGreaterThan(0.2);
+	expect(Math.max(...distances)).toBeLessThan(5);
+	expect(
+		await page
+			.locator('.graph-dot')
+			.first()
+			.evaluate((dot) => getComputedStyle(dot).opacity),
+	).not.toBe(opacity);
+	await expect(page.locator('.graph-ambient circle')).toHaveCount(2);
+	expect(
+		await page
+			.locator('.graph-ambient circle')
+			.evaluateAll((dots) =>
+				dots.some((dot) => Number(dot.getAttribute('opacity')) > 0),
+			),
+	).toBe(true);
+	await atRest(page);
+	const disconnected = await graph(page).evaluate((svg) =>
+		[...svg.querySelectorAll('.graph-edge')].some((line) => {
+			const source = svg.querySelector(
+				`[data-node="${line.getAttribute('data-source')}"] .graph-dot`,
+			)!;
+			const target = svg.querySelector(
+				`[data-node="${line.getAttribute('data-target')}"] .graph-dot`,
+			)!;
+			return (
+				line.getAttribute('x1') !== source.getAttribute('cx') ||
+				line.getAttribute('y2') !== target.getAttribute('cy')
+			);
+		}),
+	);
+	expect(disconnected).toBe(false);
+});
+
+test('ambient pauses offscreen, on hidden tabs and reduced motion, then resumes without rebuilding topology', async ({
+	page,
+}) => {
+	await start(page);
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	await page.evaluate(() => {
+		document.body.style.minHeight = '4000px';
+		window.scrollTo(0, 3000);
+	});
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'paused');
+	await page.waitForTimeout(100);
+	const frozen = await geometry(page);
+	await page.waitForTimeout(250);
+	expect(await geometry(page)).toEqual(frozen);
+	await page.evaluate(() => window.scrollTo(0, 0));
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'hidden', {
+			configurable: true,
+			value: true,
+		});
+		document.dispatchEvent(new Event('visibilitychange'));
+	});
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'paused');
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'hidden', {
+			configurable: true,
+			value: false,
+		});
+		document.dispatchEvent(new Event('visibilitychange'));
+	});
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'paused');
+	expect(await idleMutations(page)).toBe(0);
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	await expect(page.locator('.graph-edge')).toHaveCount(322);
+});
+
+test('compact typography preserves readable body sizes and graph occupies its own wider column', async ({
+	page,
+}) => {
+	await start(page);
+	await expect(page.locator('body')).toHaveCSS('font-size', '16px');
+	const heading = await page
+		.locator('.hero h1')
+		.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+	expect(heading).toBeLessThanOrEqual(69);
+	const copy = await page.locator('.hero-grid > div').first().boundingBox();
+	const art = await page.locator('.hero-art').boundingBox();
+	expect(art!.x).toBeGreaterThan(copy!.x + copy!.width);
+	expect(art!.width).toBeGreaterThan(450);
 });

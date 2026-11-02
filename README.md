@@ -1,8 +1,8 @@
 # Alberto Fernández Gálvez
 
-Web personal con presentación y blog técnico integrados en `/`. Los artículos individuales conservan `/blog/[slug]/`. No hay menú, página «Sobre mí» ni índice separado del blog.
+Web personal con presentación y blog técnico integrados en `/`. Los artículos individuales conservan `/blog/[slug]/`. No hay menú global, página «Sobre mí» ni índice separado del blog. La navegación de lectura aparece únicamente dentro de los artículos.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema exclusivamente oscuro, tipografía de sistema Cambria/Caladea/Georgia y paleta provisional azul oscuro, azul claro, rosa y blanco. Se conservan el logotipo «af.», los favicons y el grafo SVG original. Los enlaces profesionales aparecen solo en la presentación; el pie contiene únicamente copyright y autor.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema exclusivamente oscuro, tipografía de sistema Cambria/Caladea/Georgia y paleta provisional azul oscuro, azul claro, rosa y blanco. Se conservan el logotipo «af.», los favicons y el grafo SVG original. Los enlaces profesionales aparecen solo en la presentación; el pie contiene únicamente copyright, autor y enlace RSS.
 
 ## Identidad visual
 
@@ -24,6 +24,7 @@ npm run astro -- dev logs
 npm run astro -- dev stop
 CHROME_PATH=/usr/bin/google-chrome npm test
 npm run check
+npx tsc --noEmit
 npm run build
 npm audit
 npm run check:repo
@@ -37,7 +38,7 @@ Las pruebas **no requieren un servidor editorial activo ni un build previo**. Co
 
 ## Despliegue automático
 
-`.github/workflows/deploy.yml` se ejecuta con cada push a `main` y también permite ejecución manual desde Actions. Primero instala desde el lockfile con `npm ci`, ejecuta Astro Check y la suite Playwright, incluida la exclusión de borradores y la verificación de enlaces de producción. Después `withastro/action` compila Astro en modo producción y sube únicamente `dist/`; `actions/deploy-pages` publica el artefacto en el entorno `github-pages`. Las acciones se fijan por SHA y se utiliza Node.js 22.23.1.
+`.github/workflows/deploy.yml` se ejecuta con cada push a `main` y también permite ejecución manual desde Actions. Primero instala desde el lockfile con `npm ci`, ejecuta Astro Check, TypeScript y la suite Playwright, incluida la exclusión de borradores y la verificación de enlaces de producción. Después `withastro/action` compila Astro en modo producción y sube únicamente `dist/`; `actions/deploy-pages` publica el artefacto en el entorno `github-pages`. Las acciones se fijan por SHA y se utiliza Node.js 22.23.1.
 
 En Settings → Pages, Source debe ser **GitHub Actions**, sin compilación Jekyll desde una rama. No se necesitan secretos propios: el despliegue usa el token temporal de GitHub y OIDC, con permisos de escritura de Pages limitados al job de publicación. Las ejecuciones se serializan para evitar despliegues simultáneos. El repositorio es un sitio de usuario, por lo que `site` es `https://alfergal.github.io` y no necesita un `base` adicional. Un fallo de validación o compilación impide publicar.
 
@@ -50,7 +51,7 @@ src/
   lib/social-image.ts      Imagen social generada desde el perfil
   components/              Marca, grafo, listado, figuras y gráficos accesibles
   layouts/SiteLayout.astro Documento, SEO, encabezado y pie
-  layouts/BlogPost.astro   Plantilla técnica sin barras laterales
+  layouts/BlogPost.astro   Plantilla técnica con índice contextual
   pages/index.astro        Presentación y listado integrado del blog
   pages/blog/[...slug].astro Artículos individuales
   pages/rss.xml.ts         Feed de publicaciones reales
@@ -60,7 +61,7 @@ public/                    .nojekyll; los favicons se generan como recursos est�
 tests/                     Integración, producción, accesibilidad y responsive
 ```
 
-El perfil conserva la descripción ya existente basada en la información facilitada. No se añaden trayectorias, formación, certificaciones ni datos privados. Se han eliminado rutas, componentes, datos y estilos de navegación obsoletos. No se incorporan buscadores, filtros, modo claro, analítica, cookies propias ni almacenamiento del navegador. La interfaz funciona sin JavaScript.
+El perfil conserva la descripción ya existente basada en la información facilitada. No se añaden trayectorias, formación, certificaciones ni datos privados. Se han eliminado rutas, componentes, datos y estilos de navegación obsoletos. No se incorporan buscadores, modo claro, analítica, cookies propias ni almacenamiento del navegador. Los filtros temáticos solo aparecen a partir de tres publicaciones reales y cuando ofrecen más de una opción. La interfaz funciona sin JavaScript.
 
 ## Artículo de demostración
 
@@ -92,7 +93,7 @@ draft: true
 
 La fecha es ilustrativa: usa la fecha real de publicación. `draft` es `true` por defecto; cambia a `false` únicamente cuando el contenido esté revisado y autorizado. El nombre del archivo define la ruta. La colección ordena por fecha descendente y, en caso de empate, por identificador. Cada artículo requiere una categoría principal de la taxonomía centralizada en `src/data/blog.ts`; las etiquetas son libres y se definen en el frontmatter. También se admiten `updatedDate` y `heroImage`.
 
-La plantilla ofrece SEO individual, datos estructurados para artículos publicados, fechas y lectura estimada, ancho de lectura de 760 px, código resaltado, tablas desplazables, figuras adaptables y referencias. Las fórmulas usan el procesador oficial `@astrojs/markdown-remark` (fijado a 7.3.3 para mantener compatibilidad con Node 22.22), `remark-math` y `rehype-katex`, con CSS y fuentes locales de KaTeX; se renderizan al compilar y conservan MathML accesible. Sintaxis: `$x_i$` en línea o `$$` en líneas independientes para bloques.
+La plantilla ofrece SEO individual, datos estructurados para artículos publicados, fechas y lectura estimada, ancho de lectura de 640 px, código resaltado y copiable, tablas desplazables, figuras adaptables y referencias. El índice automático muestra H2/H3 cuando hay al menos tres encabezados: lateral en escritorio amplio y desplegable en pantallas menores. La barra superior mide el progreso dentro del contenido. Ambas mejoras usan JavaScript nativo exclusivo de artículos y respetan movimiento reducido. Las fórmulas usan el procesador oficial `@astrojs/markdown-remark` (fijado a 7.3.3 para mantener compatibilidad con Node 22.22), `remark-math` y `rehype-katex`, con CSS y fuentes locales de KaTeX; se renderizan al compilar y conservan MathML accesible. Sintaxis: `$x_i$` en línea o `$$` en líneas independientes para bloques.
 
 En MDX se pueden importar `Figure.astro` (pie e identificador de figura) y `BarChart.astro` (barras SVG, descripción accesible y valores no negativos). El artículo de demostración muestra su uso. No hay dependencias de gráficos interactivas ni scripts de fórmulas en el navegador.
 
@@ -106,19 +107,19 @@ Cada artículo tiene título, descripción, fecha, categoría principal, etiquet
 - Data Engineering & MLOps.
 - Software Engineering.
 
-Se mantienen en `src/data/blog.ts` y se validan con el esquema de la colección; no se generan páginas por categoría, filtros, buscadores ni nubes de etiquetas. Las etiquetas son términos técnicos libres, como Python, Statistics, Deep Learning, Graph ML, LLMs, RAG, MLOps y SQL. El dummy se clasifica como Data Science y sigue identificado como contenido de prueba, con `draft: true`.
+Se mantienen en `src/data/blog.ts` y se validan con el esquema de la colección; no se generan páginas por categoría, buscadores ni nubes de etiquetas. Con tres publicaciones reales, los filtros útiles de categoría y etiqueta permiten navegación temática mediante parámetros en Inicio; sin JavaScript se muestran todas las publicaciones. Las etiquetas son términos técnicos libres, como Python, Statistics, Deep Learning, Graph ML, LLMs, RAG, MLOps y SQL. El dummy se clasifica como Data Science y sigue identificado como contenido de prueba, con `draft: true`.
 
 ## Grafo interactivo
 
-`GraphNetwork.astro` conserva los 92 nodos, 322 conexiones, coordenadas originales como SVG estático; únicamente se adapta su color a la nueva paleta. La mejora progresiva se carga solo en Inicio; las páginas de artículos no importan el módulo del grafo.
+`GraphNetwork.astro` conserva los 92 nodos y las 322 conexiones originales, con una distribución extendida un 10 % desde el centro, dentro del mismo SVG. Se mantiene la paleta y la red estática sin JavaScript. La portada reduce aproximadamente un 20 % titulares y espaciados, conservando cuerpo legible de 16 px, metadatos de 14 px y Cambria. La columna del grafo dispone de más espacio relativo sin invadir el texto. La mejora progresiva se carga solo en Inicio; las páginas de artículos no importan el módulo del grafo.
 
 La interacción reside en `src/scripts/graph-network.ts` y la física en `src/lib/graph-physics.ts`. Se utiliza únicamente `d3-force`, con eventos de puntero nativos y captura del puntero para ratón y tacto. Los enlaces conservan su longitud de reposo y cada nodo tiene un anclaje elástico a su posición original. Se limitan velocidades, desplazamiento y límites del SVG.
 
-El bucle se activa al desplazar un nodo, recupera la geometría original al alcanzar el equilibrio y se detiene. El hover y los destellos no inician la física. Al ocultar la pestaña o perder el foco se cancela el movimiento; al desmontar el componente se limpian eventos, animaciones y observadores. Los pasos físicos son de 60 Hz, independientes de la frecuencia de la pantalla.
+La física D3 solo se activa al desplazar un nodo y se detiene al recuperar el equilibrio, con pasos de 60 Hz independientes de la pantalla. `src/lib/graph-ambient.ts` añade desplazamientos analíticos acotados de unos dos puntos SVG por eje, variación luminosa de una cuarta parte de los nodos y hasta dos señales que recorren aristas. No ejecuta D3 en reposo y actualiza la presentación como máximo a 30 Hz. La influencia ambiental se atenúa gradualmente durante el arrastre y la recuperación. IntersectionObserver, visibilidad de pestaña y foco pausan la actividad; al desmontar se limpian eventos, frames, animaciones y observadores.
 
 El SVG tiene un único punto de entrada por teclado: flechas para recorrer nodos, Intro o espacio para activar un destello, Mayúsculas y flechas para desplazar, y Escape para restablecer. Las instrucciones se exponen a tecnologías de asistencia sin añadir controles visibles. En pantallas táctiles se arrastra desde un nodo; el espacio vacío permite desplazar la página. Se admite un arrastre a la vez.
 
-Con `prefers-reduced-motion` no hay simulación ni ondas expansivas: el arrastre es directo y la restauración inmediata. Sin JavaScript se conserva el grafo decorativo original. Las pruebas de `tests/graph.spec.ts` verifican una huella de la geometría original independiente del color, interacción, enlaces unidos, vecinos, recuperación, ausencia de mutaciones en reposo, teclado, tacto y movimiento reducido.
+Con `prefers-reduced-motion` no hay movimiento ambiental, iluminación automática, simulación ni ondas expansivas: el arrastre es directo y la restauración inmediata. Sin JavaScript se conserva el grafo decorativo original. Las pruebas de `tests/graph.spec.ts` verifican una huella de la nueva geometría estática independiente del color, topología conservada, interacción, enlaces unidos, vecinos, recuperación, actividad ambiental acotada, pausas, teclado, tacto y ausencia de mutaciones con movimiento reducido.
 
 ## Pruebas
 
@@ -130,7 +131,7 @@ Los servidores y las copias se limpian en el teardown. Si el proceso se termina 
 
 `tests/support/build.ts` verifica todas las páginas generadas, enlaces internos y anclas, recursos, RSS, sitemap, robots y `.nojekyll`. Compara las rutas con las publicaciones y comprueba que cada borrador devuelve 404 y no aparece en enlaces públicos. Las pruebas matemáticas revisan fórmulas en línea, fracciones, sumas y matrices, resaltado Python, tablas y figuras tanto en desarrollo como en producción.
 
-Playwright comprueba 320, 375, 768, 1024, 1440 y 1920 px, uso sin JavaScript, teclado, tema oscuro y las interacciones del grafo. Axe revisa WCAG A/AA con preferencias de sistema claras y oscuras. Las capturas del rediseño se guardan en `.qa/redesign-home-desktop.png`, `.qa/redesign-home-mobile.png`, `.qa/redesign-article-desktop.png` y `.qa/redesign-article-mobile.png` (además de tablet y grafo); los informes y trazas en `test-results/`. Las comprobaciones automáticas no equivalen a una auditoría manual exhaustiva.
+Playwright comprueba 320, 375, 768, 1024, 1440 y 1920 px, uso sin JavaScript, teclado, tema oscuro y las interacciones del grafo. Axe revisa WCAG A/AA con preferencias de sistema claras y oscuras. No se generan capturas de pantalla; las trazas de fallo en `test-results/` también las desactivan. Las comprobaciones automáticas no equivalen a una auditoría manual exhaustiva.
 
 ## Seguridad y dependencias
 
@@ -143,3 +144,24 @@ La actualización de `fast-uri` a la rama corregida 3.1.9 se mantiene en el lock
 `github-slugger` se declara como dependencia de desarrollo porque las pruebas lo usan directamente para interpretar las rutas; ya forma parte de la cadena de Astro. El resto de versiones mayores y la arquitectura visual se conservan.
 
 Documentación: [rutas de Astro](https://docs.astro.build/en/guides/routing/), [componentes](https://docs.astro.build/en/basics/astro-components/), [colecciones](https://docs.astro.build/en/guides/content-collections/), [estilos](https://docs.astro.build/en/guides/styling/), [remark-math y rehype-katex](https://github.com/remarkjs/remark-math), [KaTeX](https://katex.org/docs/browser).
+
+## Herramientas de publicación y lectura
+
+Metadatos opcionales adicionales:
+
+```yaml
+featured: false
+series:
+  name: 'Nombre de una serie real'
+  order: 1
+```
+
+La serie del ejemplo es solo documentación de formato; no se crea contenido editorial. `featured: true` destaca publicaciones únicamente cuando existen al menos tres artículos publicados, sin duplicarlas en el listado reciente. Los borradores nunca son destacados. Las series usan posiciones enteras positivas: se rechazan posiciones publicadas duplicadas en una misma serie. Su navegación ordenada omite borradores y solo aparece con varias entregas publicadas. Las recomendaciones muestran hasta tres artículos reales, priorizando número de etiquetas compartidas, después categoría y después serie; no se muestran sin coincidencias.
+
+`updatedDate` debe ser posterior o igual a `pubDate`; la fecha de actualización visible solo aparece si es posterior. El sitemap toma `lastmod` del JSON-LD del HTML publicado, con las mismas fechas que la cabecera y Open Graph, sin utilizar la fecha del build. Search Console se puede conectar más adelante con el sitemap público `/sitemap-index.xml`; no se ha accedido ni modificado ninguna cuenta externa ni añadido identificadores ficticios.
+
+En MDX se admite `Callout.astro` con tipos `note`, `important`, `warning`, `tip`, `result` y `limitation`, y un título opcional. Puede contener texto, enlaces y matemáticas. En Markdown, una cita que empieza con `[!NOTE]`, `[!IMPORTANT]`, `[!WARNING]`, `[!TIP]`, `[!RESULT]` o `[!LIMITATION]` genera el mismo bloque informativo accesible. El dummy exclusivo de desarrollo muestra los seis tipos, cinco lenguajes, índice, fórmulas y referencias.
+
+Los bloques vallados aceptan, por ejemplo, `python title="ejemplo.py"`. Shiki mantiene el resaltado y expone lenguaje y archivo como metadatos; la mejora de artículos añade una barra con copia exacta del texto, confirmación accesible y un mensaje si el navegador deniega el portapapeles. Se comprueban Python, SQL, Bash, TypeScript y JSON. Sin JavaScript se conserva el código y el scroll horizontal. No se ejecuta código editorial en el navegador.
+
+Las pruebas sintéticas de destacados, filtros, series, relacionados, metadatos y lectura viven en `tests/fixtures/blog/` y se copian exclusivamente al directorio temporal de pruebas. Nunca se incorporan a la colección editorial ni al artefacto desplegado. No se han añadido dependencias.

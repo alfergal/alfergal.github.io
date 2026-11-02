@@ -1,0 +1,20 @@
+---
+const labels = {
+	note: 'Nota',
+	important: 'Información importante',
+	warning: 'Advertencia',
+	tip: 'Consejo',
+	result: 'Resultado experimental',
+	limitation: 'Limitación metodológica',
+};
+interface Props {
+	type?: keyof typeof labels;
+	title?: string;
+}
+const { type = 'note', title } = Astro.props;
+---
+
+<aside class="callout" data-kind={type} aria-label={title ?? labels[type]}>
+	<p class="callout-title">{title ?? labels[type]}</p>
+	<slot />
+</aside>

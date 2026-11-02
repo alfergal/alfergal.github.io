@@ -10,6 +10,7 @@ draft: true
 
 import Figure from '../../components/Figure.astro';
 import BarChart from '../../components/BarChart.astro';
+import Callout from '../../components/Callout.astro';
 
 **Contenido de prueba.** Este borrador permite revisar el formato del blog durante el desarrollo local. Todos los datos son ficticios e ilustrativos: no representan un experimento, un resultado científico ni una experiencia profesional.
 
@@ -35,7 +36,7 @@ Para revisar un ejemplo:
 
 Este fragmento utiliza únicamente la biblioteca estándar de Python. Las tres observaciones son inventadas para ilustrar el formato; no evalúan ningún modelo real.
 
-```python
+```python title="ejemplo.py"
 from statistics import mean
 
 observaciones = [12, 8, 16]  # Datos ficticios e ilustrativos
@@ -80,6 +81,36 @@ Los valores de esta tabla son **datos ficticios**, sin unidades ni procedencia e
 La figura usa componentes Astro reutilizables y conserva una descripción textual de los valores para lectores de pantalla.
 
 ## Una nota sobre la interpretación
+
+<Callout type="note">Este es un bloque de demostración, sin datos profesionales ni resultados reales.</Callout>
+<Callout type="important">Comprueba las fuentes y las hipótesis antes de interpretar un modelo.</Callout>
+<Callout type="warning">Los valores ilustrativos no deben utilizarse para tomar decisiones.</Callout>
+<Callout type="tip">El código se puede copiar desde su barra superior.</Callout>
+<Callout type="result">El cálculo sobre los datos ficticios solo comprueba el formato de salida.</Callout>
+<Callout type="limitation">Este ejemplo no utiliza una muestra representativa y no permite generalizar.</Callout>
+
+### Otros lenguajes
+
+Los siguientes fragmentos son ejemplos de sintaxis, sin conexión a datos reales.
+
+```sql title="consulta.sql"
+SELECT categoria, COUNT(*) AS total
+FROM datos_ilustrativos
+GROUP BY categoria;
+```
+
+```bash title="comandos.sh"
+python ejemplo.py
+```
+
+```typescript title="ejemplo.ts"
+const valores: number[] = [12, 8, 16];
+console.log(valores.length);
+```
+
+```json title="datos.json"
+{"ilustrativo": true, "valores": [12, 8, 16]}
+```
 
 > Un ejemplo de formato permite revisar cómo se presenta una explicación, pero no constituye evidencia sobre un problema real.
 

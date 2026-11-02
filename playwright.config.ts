@@ -17,7 +17,7 @@ export default defineConfig({
 				'visual.spec.ts',
 			],
 		},
-		{ name: 'content', testMatch: 'content.spec.ts' },
+		{ name: 'content', testMatch: ['content.spec.ts', 'reader.spec.ts'] },
 	],
 	use: {
 		browserName: 'chromium',
@@ -26,6 +26,6 @@ export default defineConfig({
 			: {},
 		viewport: { width: 1440, height: 1000 },
 		colorScheme: 'light',
-		trace: 'retain-on-failure',
+		trace: { mode: 'retain-on-failure', screenshots: false },
 	},
 });

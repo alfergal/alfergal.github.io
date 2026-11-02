@@ -29,6 +29,11 @@ const edges = nodes.flatMap((node, i) =>
 		}))
 		.filter((edge) => edge.distance < 66 && edge.key % 3 !== 0),
 );
+// Spread the original layout without changing its 92 nodes or 322 connections.
+nodes.forEach((node) => {
+	node.x = 260 + (node.x - 260) * 1.1;
+	node.y = 200 + (node.y - 200) * 1.1;
+});
 ---
 
 <elastic-graph>
@@ -60,13 +65,16 @@ const edges = nodes.flatMap((node, i) =>
 		</g>
 		<path
 			data-graph-skeleton
-			d="M188 122 318 148 385 279 266 270 132 278 188 122 266 270 318 148"
+			d="M180.8 114.2 323.8 142.8 397.5 286.9 266.6 277 119.2 285.8 180.8 114.2 266.6 277 323.8 142.8"
 			stroke="var(--graph-accent)"
 			stroke-width="1"
 			opacity=".5"
 		/>
 		{nodes.map((node) => (
-			<g data-node={node.id} style={`--node-radius: ${node.r}px`}>
+			<g
+				data-node={node.id}
+				style={`--node-radius: ${node.r}px; --node-opacity: ${node.r > 3 ? '.9' : '.55'}`}
+			>
 				<circle
 					class="graph-dot"
 					cx={node.x}
@@ -91,8 +99,8 @@ const edges = nodes.flatMap((node, i) =>
 			</g>
 		))}
 		<g data-graph-halo stroke="var(--graph-accent)" opacity=".4">
-			<circle cx="318" cy="148" r="13" />
-			<circle cx="318" cy="148" r="21" stroke-dasharray="2 5" />
+			<circle cx="323.8" cy="142.8" r="13" />
+			<circle cx="323.8" cy="142.8" r="21" stroke-dasharray="2 5" />
 		</g>
 		<g class="graph-effects" aria-hidden="true" />
 	</svg>
@@ -127,6 +135,8 @@ const edges = nodes.flatMap((node, i) =>
 	}
 	.graph-dot {
 		r: var(--node-radius);
+		opacity: var(--ambient-opacity, var(--node-opacity));
+		filter: drop-shadow(0 0 var(--ambient-glow, 0px) currentColor);
 		transition:
 			r 160ms ease,
 			opacity 160ms ease,
@@ -146,14 +156,15 @@ const edges = nodes.flatMap((node, i) =>
 	}
 	.graph-edge[data-active] {
 		stroke: var(--accent);
-		opacity: 0.48;
+		opacity: 0.48 !important;
 	}
 	.graph-network[data-keyboard] [data-selected] .graph-hit {
 		stroke: var(--accent);
 		stroke-width: 1.25;
 		vector-effect: non-scaling-stroke;
 	}
-	.graph-effects {
+	.graph-effects,
+	:global(.graph-ambient) {
 		pointer-events: none;
 	}
 	@media (prefers-reduced-motion: reduce) {

@@ -4,6 +4,7 @@ import {
 	type GraphNode,
 	type GraphLink,
 } from '../lib/graph-physics';
+import { createGraphAmbient } from '../lib/graph-ambient';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const FRAME = 1000 / 60;
@@ -54,7 +55,7 @@ function mountGraph(svg: SVGSVGElement) {
 	const landmarks = coordinates.flatMap((x, i) =>
 		i % 2 === 0 ? [landmark(x, coordinates[i + 1])] : [],
 	);
-	const haloAnchor = landmark(318, 148);
+	const haloAnchor = landmark(323.8, 142.8);
 	let physics: ReturnType<typeof createGraphPhysics> | undefined;
 	let frame = 0;
 	let previousTime = 0;
@@ -81,6 +82,9 @@ function mountGraph(svg: SVGSVGElement) {
 		SVGLineElement,
 		{ source: GraphNode; target: GraphNode }
 	>();
+	let ambient: ReturnType<typeof createGraphAmbient> | undefined;
+	let visible = false;
+	let focused = true;
 
 	const setPosition = (
 		element: SVGElement,
@@ -88,8 +92,14 @@ function mountGraph(svg: SVGSVGElement) {
 		x = 'cx',
 		y = 'cy',
 	) => {
-		element.setAttribute(x, String(node.x));
-		element.setAttribute(y, String(node.y));
+		element.setAttribute(
+			x,
+			String(node.x + (ambient?.offsets[node.id].x ?? 0)),
+		);
+		element.setAttribute(
+			y,
+			String(node.y + (ambient?.offsets[node.id].y ?? 0)),
+		);
 	};
 	const render = () => {
 		nodes.forEach((node, i) => {
@@ -105,13 +115,13 @@ function mountGraph(svg: SVGSVGElement) {
 			landmarks
 				.map(
 					({ x, y, node }, i) =>
-						`${i ? ' ' : 'M'}${x + node.x - node.homeX} ${y + node.y - node.homeY}`,
+						`${i ? ' ' : 'M'}${x + node.x - node.homeX + (ambient?.offsets[node.id].x ?? 0)} ${y + node.y - node.homeY + (ambient?.offsets[node.id].y ?? 0)}`,
 				)
 				.join(''),
 		);
 		halo.setAttribute(
 			'transform',
-			`translate(${haloAnchor.node.x - haloAnchor.node.homeX} ${haloAnchor.node.y - haloAnchor.node.homeY})`,
+			`translate(${haloAnchor.node.x - haloAnchor.node.homeX + (ambient?.offsets[haloAnchor.node.id].x ?? 0)} ${haloAnchor.node.y - haloAnchor.node.homeY + (ambient?.offsets[haloAnchor.node.id].y ?? 0)})`,
 		);
 		pulseLines.forEach(({ source, target }, line) => {
 			setPosition(line, source, 'x1', 'y1');
@@ -134,8 +144,10 @@ function mountGraph(svg: SVGSVGElement) {
 				fy: null,
 			});
 		render();
-		skeleton.setAttribute('d', skeletonPath);
-		halo.removeAttribute('transform');
+		if (!ambient || reduced.matches) {
+			skeleton.setAttribute('d', skeletonPath);
+			halo.removeAttribute('transform');
+		}
 		svg.dataset.simulation = 'idle';
 	};
 	const step = (time: number) => {
@@ -160,7 +172,8 @@ function mountGraph(svg: SVGSVGElement) {
 		frame = requestAnimationFrame(step);
 	};
 	const wake = () => {
-		if (reduced.matches || frame || document.hidden) return;
+		if (reduced.matches || frame || document.hidden || !visible || !focused)
+			return;
 		physics ??= createGraphPhysics(nodes, links);
 		previousTime = 0;
 		quietFrames = 0;
@@ -501,6 +514,7 @@ function mountGraph(svg: SVGSVGElement) {
 		groups.forEach((group) => group.removeAttribute('data-pressed'));
 	};
 	const suspend = () => {
+		ambient?.pause();
 		finishDrag(true);
 		releaseKeyboard();
 		reset();
@@ -508,15 +522,55 @@ function mountGraph(svg: SVGSVGElement) {
 		hover = undefined;
 		highlight();
 	};
-	reduced.addEventListener('change', suspend, { signal });
+	const resume = () => {
+		if (!reduced.matches && visible && focused && !document.hidden)
+			ambient?.start();
+	};
+	reduced.addEventListener(
+		'change',
+		() => {
+			suspend();
+			if (reduced.matches) {
+				ambient?.clear();
+				reset();
+			}
+			resume();
+		},
+		{ signal },
+	);
 	document.addEventListener(
 		'visibilitychange',
 		() => {
 			if (document.hidden) suspend();
+			else resume();
 		},
 		{ signal },
 	);
-	window.addEventListener('blur', suspend, { signal });
+	window.addEventListener(
+		'blur',
+		() => {
+			focused = false;
+			suspend();
+		},
+		{ signal },
+	);
+	window.addEventListener(
+		'focus',
+		() => {
+			focused = true;
+			resume();
+		},
+		{ signal },
+	);
+	const intersection = new IntersectionObserver(
+		([entry]) => {
+			visible = entry.isIntersecting;
+			if (visible) resume();
+			else suspend();
+		},
+		{ threshold: 0 },
+	);
+	intersection.observe(svg);
 	const resize = new ResizeObserver(() => {
 		const matrix = svg.getScreenCTM();
 		if (!matrix) return;
@@ -536,8 +590,21 @@ function mountGraph(svg: SVGSVGElement) {
 	svg.dataset.ready = '';
 	svg.dataset.simulation = 'idle';
 	select(0);
+	ambient = createGraphAmbient(
+		svg,
+		nodes,
+		links,
+		() => {
+			if (!frame) render();
+		},
+		() => !!drag || !!keyboardNode || !!frame,
+	);
 	return () => {
 		abort.abort();
+		intersection.disconnect();
+		ambient?.pause();
+		ambient?.clear();
+		ambient?.destroy();
 		resize.disconnect();
 		cancelAnimationFrame(frame);
 		physics?.stop();

@@ -1,4 +1,4 @@
-import { test, expect, type TestSite } from './support/site';
+import { test, expect, listedEntries, type TestSite } from './support/site';
 import { verifyBuild } from './support/build';
 import { blogCategories } from '../src/data/blog';
 import AxeBuilder from '@axe-core/playwright';
@@ -26,7 +26,7 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 	await expect(page.locator('.graph-network')).toBeVisible();
 	await expect(
 		page.locator(
-			'.graph-network text, nav, button, input, select, .timeline, .skills-grid',
+			'.graph-network text, .site-header nav, .hero button, .hero input, .hero select, .timeline, .skills-grid',
 		),
 	).toHaveCount(0);
 	await expect(page.locator('.hero a')).toHaveText(['GitHub', 'LinkedIn']);
@@ -41,8 +41,10 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 	await expect(page.locator('footer')).toContainText(
 		'Alberto Fernández Gálvez',
 	);
-	await expect(page.locator('footer a')).toHaveCount(0);
-	await expect(page.locator('main h2')).toHaveText('Blog');
+	await expect(page.locator('footer a')).toHaveText('RSS');
+	await expect(page.locator('#blog-title')).toHaveText('Blog');
+	if (site.entries.filter((entry) => !entry.draft).length < 3)
+		await expect(page.locator('.blog-filters, .featured-posts')).toHaveCount(0);
 	for (const route of routesFor(site)) {
 		expect((await page.goto(route))?.status()).toBe(200);
 		await expect(page.locator('main h1')).toHaveCount(1);
@@ -58,7 +60,7 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 			'content',
 			/.+/,
 		);
-		await expect(page.locator('nav, aside')).toHaveCount(0);
+		await expect(page.locator('header nav')).toHaveCount(0);
 	}
 });
 
@@ -116,7 +118,7 @@ test('the integrated blog lists the collection in date order with readable metad
 }) => {
 	await page.goto('/');
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		site.entries.map((entry) => entry.title),
+		listedEntries(site.entries).map((entry) => entry.title),
 	);
 	for (const entry of site.entries) {
 		const link = page.locator(`h3 a[href="/blog/${entry.id}/"]`);
@@ -161,12 +163,6 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
 					),
 				`${width}px ${route}`,
 			).toEqual([]);
-			if ([375, 768, 1440].includes(width))
-				await page.screenshot({
-					path: `.qa/redesign-${route === '/' ? 'home' : 'article'}-${width === 375 ? 'mobile' : width === 1440 ? 'desktop' : 'tablet'}.png`,
-					fullPage: true,
-					animations: 'disabled',
-				});
 		}
 	});
 }

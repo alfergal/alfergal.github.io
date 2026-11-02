@@ -5,6 +5,11 @@ pubDate: '2021-01-01'
 category: 'Machine Learning'
 tags: ['Python', 'Statistics']
 draft: false
+featured: true
+updatedDate: '2021-02-01'
+series:
+  name: 'Serie sintética de pruebas'
+  order: 2
 ---
 
 import Figure from '../../components/Figure.astro';
@@ -23,7 +28,9 @@ $$
 \begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix}
 $$
 
-```python
+### Procedimiento ilustrativo
+
+```python title="prueba.py"
 valores = [1, 2, 3]  # Datos ficticios
 assert sum(valores) == 6
 ```
@@ -37,3 +44,12 @@ assert sum(valores) == 6
 </Figure>
 
 PUBLICACION_SINTETICA_SOLO_TEST
+
+## Límites de la prueba
+
+> [!LIMITATION]
+> Los datos son ficticios y no permiten obtener conclusiones científicas.
+
+## Referencias
+
+1. [Documentación de Python](https://docs.python.org/3/).

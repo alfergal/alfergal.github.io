@@ -97,7 +97,10 @@ test('the article keeps monospace code and syntax colors within the new palette'
 		'font-family',
 		'Cambria, Caladea, Georgia, serif',
 	);
-	await expect(page.locator('pre code')).toHaveCSS('font-family', /monospace/);
+	await expect(page.locator('pre code').first()).toHaveCSS(
+		'font-family',
+		/monospace/,
+	);
 	const colors = await page
 		.locator('pre span[style*="color"]')
 		.evaluateAll((spans) => [
@@ -111,4 +114,48 @@ test('the article keeps monospace code and syntax colors within the new palette'
 		]).toContain(color);
 	await expect(page.locator('.katex-error')).toHaveCount(0);
 	await expect(page.locator('.katex-display')).toBeVisible();
+});
+
+test('the development demonstration exercises all callouts and five named code languages without public content', async ({
+	page,
+	site,
+}) => {
+	const demo = site.entries.find(
+		(entry) => entry.id === 'demostracion-articulo-tecnico',
+	);
+	test.skip(
+		!demo,
+		'The editorial demonstration can be replaced with a real article.',
+	);
+	expect(demo!.draft).toBe(true);
+	await page.goto(`/blog/${demo!.id}/`);
+	for (const kind of [
+		'note',
+		'important',
+		'warning',
+		'tip',
+		'result',
+		'limitation',
+	]) {
+		await expect(page.locator(`.callout[data-kind="${kind}"]`)).toBeVisible();
+	}
+	expect(
+		await page
+			.locator('pre[data-language]')
+			.evaluateAll((blocks) =>
+				blocks.map((block) => block.getAttribute('data-language')),
+			),
+	).toEqual(['python', 'sql', 'bash', 'typescript', 'json']);
+	await expect(page.locator('.code-toolbar button')).toHaveCount(5);
+	await expect(page.locator('.article-toc')).toBeVisible();
+	await expect(page.locator('meta[name=robots]')).toHaveAttribute(
+		'content',
+		/noindex/,
+	);
+	await expect(page.locator('.reading-progress')).toHaveCount(1);
+	expect(
+		(
+			await page.request.get(`${site.productionURL}/blog/${demo!.id}/`)
+		).status(),
+	).toBe(404);
 });

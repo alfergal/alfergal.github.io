@@ -5,12 +5,32 @@ import type { CollectionEntry } from 'astro:content';
 import SiteLayout from './SiteLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Icon from '../components/Icon.astro';
-import { readingTime } from '../lib/content';
+import { getPosts, readingTime } from '../lib/content';
 import { profile } from '../data/profile';
+import type { MarkdownHeading } from 'astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import PostCard from '../components/PostCard.astro';
+import {
+	relatedPosts,
+	seriesPosts,
+	publicationThreshold,
+} from '../lib/publications';
 interface Props {
 	post: CollectionEntry<'blog'>;
+	headings: MarkdownHeading[];
 }
-const { post } = Astro.props;
+const { post, headings } = Astro.props;
+const publishedPosts = await getPosts();
+const related = relatedPosts(post, publishedPosts);
+const series = seriesPosts(post, publishedPosts);
+const position = series.findIndex((entry) => entry.id === post.id);
+const thematic = publishedPosts.length >= publicationThreshold;
+const categoryNavigation =
+	thematic &&
+	new Set(publishedPosts.map((entry) => entry.data.category)).size > 1;
+const tagNavigation =
+	thematic &&
+	new Set(publishedPosts.flatMap((entry) => entry.data.tags)).size > 1;
 const {
 	title,
 	description,
@@ -35,6 +55,8 @@ const schema = {
 		url: new URL('/', Astro.site).href,
 	},
 	mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+	image: new URL(heroImage?.src ?? '/og-image.png', Astro.site).href,
+	inLanguage: lang,
 };
 ---
 
@@ -48,6 +70,9 @@ const schema = {
 	lang={lang}
 	noindex={draft}
 >
+	<div class="reading-progress" aria-hidden="true">
+		<span />
+	</div>
 	{!draft && (
 		<script
 			type="application/ld+json"
@@ -66,13 +91,21 @@ const schema = {
 						Borrador · vista previa solo en desarrollo. Sin publicar.
 					</p>
 				)}
-				<p class="article-category">{category}</p>
+				<p class="article-category">
+					{categoryNavigation ? (
+						<a href={`/?category=${encodeURIComponent(category)}#blog`}>
+							{category}
+						</a>
+					) : (
+						category
+					)}
+				</p>
 				<h1>{title}</h1>
 				<p class="description">{description}</p>
 				<div class="article-meta">
 					<FormattedDate date={pubDate} />
 					<span>{readingTime(post.body)} min de lectura</span>
-					{updatedDate && (
+					{updatedDate && updatedDate > pubDate && (
 						<span>
 							Actualizado: <FormattedDate date={updatedDate} />
 						</span>
@@ -81,12 +114,21 @@ const schema = {
 				{tags.length > 0 && (
 					<ul class="tags" aria-label="Etiquetas">
 						{tags.map((tag) => (
-							<li>{tag}</li>
+							<li>
+								{tagNavigation ? (
+									<a href={`/?tag=${encodeURIComponent(tag)}#blog`}>{tag}</a>
+								) : (
+									tag
+								)}
+							</li>
 						))}
 					</ul>
 				)}
 			</header>
-			<article class="prose" aria-label={title}>
+		</div>
+		<div class="article-layout">
+			<TableOfContents headings={headings} />
+			<article class="prose" data-reading-content aria-label={title}>
 				{heroImage && (
 					<Image
 						class="article-hero"
@@ -98,9 +140,56 @@ const schema = {
 				)}
 				<slot />
 			</article>
+		</div>
+		<div class="article-reading article-end">
+			{series.length > 1 && (
+				<nav class="series-navigation" aria-label="Serie de artículos">
+					<h2 class="section-label">{post.data.series!.name}</h2>
+					<ol>
+						{series.map((entry) => (
+							<li value={entry.data.series!.order}>
+								<a
+									href={`/blog/${entry.id}/`}
+									aria-current={entry.id === post.id ? 'page' : undefined}
+								>
+									{entry.data.title}
+								</a>
+							</li>
+						))}
+					</ol>
+					{position >= 0 && (
+						<div class="series-directions">
+							{position > 0 && (
+								<a rel="prev" href={`/blog/${series[position - 1].id}/`}>
+									Anterior: {series[position - 1].data.title}
+								</a>
+							)}
+							{position < series.length - 1 && (
+								<a rel="next" href={`/blog/${series[position + 1].id}/`}>
+									Siguiente: {series[position + 1].data.title}
+								</a>
+							)}
+						</div>
+					)}
+				</nav>
+			)}
+			{related.length > 0 && (
+				<section class="related-posts" aria-labelledby="related-title">
+					<h2 id="related-title" class="section-label">
+						Artículos relacionados
+					</h2>
+					{related.map((entry) => (
+						<PostCard post={entry} />
+					))}
+				</section>
+			)}
 			<a class="back-link article-return" href="/">
 				<Icon name="arrow" size={16} /> Volver al inicio
 			</a>
 		</div>
 	</div>
 </SiteLayout>
+
+<script>
+	import '../scripts/article';
+</script>

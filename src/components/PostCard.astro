@@ -8,7 +8,11 @@ interface Props {
 const { post } = Astro.props;
 ---
 
-<article class="post-card">
+<article
+	class="post-card"
+	data-post-category={post.data.category}
+	data-post-tags={JSON.stringify(post.data.tags)}
+>
 	<div class="article-meta">
 		<FormattedDate date={post.data.pubDate} />
 		<span>{readingTime(post.body)} min de lectura</span>

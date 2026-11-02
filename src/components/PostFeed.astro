@@ -1,0 +1,133 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+import { publicationGroups, publicationThreshold } from '../lib/publications';
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+const { posts } = Astro.props;
+const published = posts.filter((post) => !post.data.draft);
+const { featured, recent } = publicationGroups(posts);
+const categories = [
+	...new Set(published.map((post) => post.data.category)),
+].sort();
+const tags = [...new Set(published.flatMap((post) => post.data.tags))].sort();
+const filterable =
+	published.length >= publicationThreshold &&
+	(categories.length > 1 || tags.length > 1);
+---
+
+<post-feed>
+	{filterable && (
+		<form class="blog-filters" hidden aria-label="Filtrar publicaciones">
+			{categories.length > 1 && (
+				<label>
+					Categoría{' '}
+					<select name="category">
+						<option value="">Todas</option>
+						{categories.map((category) => (
+							<option>{category}</option>
+						))}
+					</select>
+				</label>
+			)}
+			{tags.length > 1 && (
+				<label>
+					Etiqueta{' '}
+					<select name="tag">
+						<option value="">Todas</option>
+						{tags.map((tag) => (
+							<option>{tag}</option>
+						))}
+					</select>
+				</label>
+			)}
+			<p role="status" class="filter-status" />
+		</form>
+	)}
+	{featured.length > 0 && (
+		<section class="featured-posts" aria-labelledby="featured-title">
+			<h3 id="featured-title" class="section-label">
+				Destacados
+			</h3>
+			{featured.map((post) => (
+				<PostCard post={post} />
+			))}
+		</section>
+	)}
+	<div class="post-list">
+		{recent.map((post) => (
+			<PostCard post={post} />
+		))}
+	</div>
+</post-feed>
+<script>
+	class PostFeed extends HTMLElement {
+		private cleanup?: () => void;
+		connectedCallback() {
+			if (this.cleanup) return;
+			const form = this.querySelector<HTMLFormElement>('form');
+			if (!form) return;
+			const cards = [
+				...this.querySelectorAll<HTMLElement>('[data-post-category]'),
+			];
+			const fields = [...form.querySelectorAll('select')];
+			const params = new URLSearchParams(location.search);
+			fields.forEach((field) => {
+				if (
+					[...field.options].some(
+						(option) => option.value === params.get(field.name),
+					)
+				)
+					field.value = params.get(field.name)!;
+			});
+			const filter = () => {
+				let visible = 0;
+				cards.forEach((card) => {
+					card.hidden = fields.some(
+						(field) =>
+							field.value &&
+							(field.name === 'category'
+								? card.dataset.postCategory !== field.value
+								: !(JSON.parse(card.dataset.postTags!) as string[]).includes(
+										field.value,
+									)),
+					);
+					if (!card.hidden) visible++;
+				});
+				this.querySelectorAll<HTMLElement>('.featured-posts').forEach(
+					(section) => {
+						section.hidden = !section.querySelector('.post-card:not([hidden])');
+					},
+				);
+				form.querySelector('[role=status]')!.textContent =
+					`${visible} publicaciones`;
+			};
+			const change = () => {
+				const url = new URL(location.href);
+				fields.forEach((field) =>
+					field.value
+						? url.searchParams.set(field.name, field.value)
+						: url.searchParams.delete(field.name),
+				);
+				history.replaceState(null, '', url);
+				filter();
+			};
+			const submit = (event: Event) => event.preventDefault();
+			form.hidden = false;
+			form.addEventListener('change', change);
+			form.addEventListener('submit', submit);
+			filter();
+			this.cleanup = () => {
+				form.removeEventListener('change', change);
+				form.removeEventListener('submit', submit);
+			};
+		}
+		disconnectedCallback() {
+			this.cleanup?.();
+			this.cleanup = undefined;
+		}
+	}
+	if (!customElements.get('post-feed'))
+		customElements.define('post-feed', PostFeed);
+</script>

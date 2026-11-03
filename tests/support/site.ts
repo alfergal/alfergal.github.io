@@ -84,7 +84,13 @@ export async function runAstro(root: string, ...args: string[]) {
 			cwd: root,
 			timeout: 60_000,
 			maxBuffer: 2 * 1024 * 1024,
-			env: { ...process.env, ASTRO_TELEMETRY_DISABLED: '1' },
+			env: {
+				...process.env,
+				ASTRO_TELEMETRY_DISABLED: '1',
+				// Astro disables HMR in test mode. These snapshots never change:
+				// a late dependency reload must not interrupt a DOM assertion.
+				...(args[0] === 'dev' ? { NODE_ENV: 'test' } : {}),
+			},
 		});
 	} catch (error) {
 		const failure = error as Error & { stdout?: string; stderr?: string };

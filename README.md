@@ -32,7 +32,7 @@ npm run check:repo
 
 `npm run dev` ejecuta `astro dev --background`, tanto desde la terminal como desde VS Code. Usa la URL y el puerto que indique Astro. Los comandos de estado, logs y parada gestionan ese servidor; no detengas servidores que esté utilizando otra persona.
 
-Las pruebas **no requieren un servidor editorial activo ni un build previo**. Construyen copias temporales del proyecto, arrancan sus propios servidores de desarrollo y preview en segundo plano con puertos asignados automáticamente y los detienen al terminar. No utilizan `TEST_BASE_URL`. `CHROME_PATH` es opcional: si no tienes Chrome, instala Chromium de Playwright (`npx playwright install chromium`) y omite esa variable.
+Las pruebas **no requieren un servidor editorial activo ni un build previo**. Construyen copias temporales del proyecto, arrancan sus propios servidores de desarrollo y preview en segundo plano con puertos asignados automáticamente y los detienen al terminar. Solo sus servidores de desarrollo usan `NODE_ENV=test`, que desactiva HMR en Astro para que una recarga automática no interrumpa las comprobaciones de DOM sobre copias inmutables; el servidor editorial y los builds de producción conservan su entorno habitual. No utilizan `TEST_BASE_URL`. `CHROME_PATH` es opcional: si no tienes Chrome, instala Chromium de Playwright (`npx playwright install chromium`) y omite esa variable.
 
 `npm run format` aplica Prettier a código, helpers de pruebas, scripts y README. La salida estática normal se genera en `dist/`, preparada para GitHub Pages (`https://alfergal.github.io`), con `.nojekyll`, 404, metadatos Open Graph, RSS y sitemap.
 

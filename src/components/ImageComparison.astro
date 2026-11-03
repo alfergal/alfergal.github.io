@@ -1,0 +1,169 @@
+---
+interface Props {
+	before: string;
+	after: string;
+	beforeAlt: string;
+	afterAlt: string;
+	beforeLabel: string;
+	afterLabel: string;
+	caption: string;
+	width?: number;
+	height?: number;
+}
+const {
+	before,
+	after,
+	beforeAlt,
+	afterAlt,
+	beforeLabel,
+	afterLabel,
+	caption,
+	width = 192,
+	height = 192,
+} = Astro.props;
+const id = `comparison-${crypto.randomUUID()}`;
+---
+
+<image-comparison>
+	<figure aria-labelledby={`${id}-caption`}>
+		<div class="comparison-labels" aria-hidden="true">
+			<span>{beforeLabel}</span>
+			<span>{afterLabel}</span>
+		</div>
+		<div class="comparison-images" data-comparison-images>
+			<img
+				src={before}
+				alt={beforeAlt}
+				width={width}
+				height={height}
+				loading="lazy"
+				decoding="async"
+			/>
+			<img
+				src={after}
+				alt={afterAlt}
+				width={width}
+				height={height}
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+		<div class="comparison-control">
+			<label for={`${id}-slider`}>Porción visible: {beforeLabel}</label>
+			<output for={`${id}-slider`} data-comparison-value>
+				50 %
+			</output>
+		</div>
+		<input
+			id={`${id}-slider`}
+			type="range"
+			min="0"
+			max="100"
+			value="50"
+			step="1"
+			disabled
+			aria-describedby={`${id}-help`}
+		/>
+		<p id={`${id}-help`} class="comparison-help">
+			Mueve el control o utiliza las flechas del teclado para comparar ambas
+			imágenes.
+		</p>
+		<p data-comparison-static class="comparison-help">
+			Sin JavaScript se muestran las dos versiones por separado.
+		</p>
+		<figcaption id={`${id}-caption`}>{caption}</figcaption>
+	</figure>
+</image-comparison>
+
+<script>
+	import '../scripts/image-comparison';
+</script>
+
+<style>
+	image-comparison {
+		display: block;
+		min-width: 0;
+		margin-block: 1.8rem;
+	}
+	figure {
+		margin: 0;
+	}
+	.comparison-labels,
+	.comparison-control {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		font-size: 1rem;
+	}
+	.comparison-labels {
+		margin-bottom: 0.5rem;
+	}
+	.comparison-labels span {
+		flex: 1;
+	}
+	.comparison-labels span:last-child {
+		text-align: right;
+	}
+	.comparison-images {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem;
+	}
+	.comparison-images img {
+		display: block;
+		width: 100%;
+		height: auto;
+		margin: 0;
+		border-radius: 0;
+	}
+	image-comparison[data-ready] .comparison-images {
+		position: relative;
+		grid-template-columns: 1fr;
+		gap: 0;
+		--split: 50%;
+	}
+	image-comparison[data-ready] .comparison-images img {
+		grid-area: 1 / 1;
+	}
+	image-comparison[data-ready] .comparison-images img:last-child {
+		clip-path: inset(0 0 0 var(--split));
+	}
+	image-comparison[data-ready] .comparison-images::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: var(--split);
+		width: 2px;
+		background: var(--palette-white);
+		pointer-events: none;
+		transform: translateX(-1px);
+	}
+	.comparison-control {
+		margin-top: 0.8rem;
+		align-items: baseline;
+	}
+	output {
+		white-space: nowrap;
+		color: var(--palette-pink);
+		font-variant-numeric: tabular-nums;
+	}
+	input {
+		width: 100%;
+		display: block;
+		min-height: 44px;
+		accent-color: var(--palette-pink);
+	}
+	.comparison-help {
+		font-size: 14px;
+		color: var(--muted);
+		line-height: 1.5;
+		margin: 0.3rem 0;
+	}
+	figcaption {
+		font-size: 14px;
+		color: var(--muted);
+		line-height: 1.6;
+		margin-top: 0.8rem;
+	}
+</style>

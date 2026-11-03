@@ -1,0 +1,4 @@
+# Optional local execution paths. Prefer --data/--output outside the repository.
+/data/
+/output/
+*.pt

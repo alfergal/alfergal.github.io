@@ -1,0 +1,8 @@
+# Python 3.11; CPU-only PyTorch (no CUDA download).
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.10.0+cpu
+numpy==2.3.5
+scipy==1.17.0
+Pillow==13.0.0
+scikit-image==0.26.0
+matplotlib==3.10.8

@@ -10,6 +10,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { palette, syntaxTheme } from './src/data/theme';
 import { profile } from './src/data/profile';
 import remarkCallouts from './src/lib/remark-callouts.mjs';
+import rehypeScrollRegions from './src/lib/rehype-scroll-regions.mjs';
 import { readFile } from 'node:fs/promises';
 
 let buildDirectory = new URL('./dist/', import.meta.url);
@@ -40,6 +41,7 @@ export default defineConfig({
 			remarkPlugins: [remarkMath, remarkCallouts],
 			rehypePlugins: [
 				[rehypeKatex, { throwOnError: true, errorColor: palette.pink }],
+				rehypeScrollRegions,
 			],
 		}),
 	},

@@ -16,6 +16,7 @@ export default defineConfig({
 				'security.spec.ts',
 				'visual.spec.ts',
 				'temperature.spec.ts',
+				'painting.spec.ts',
 			],
 		},
 		{
@@ -24,6 +25,7 @@ export default defineConfig({
 				'content.spec.ts',
 				'reader.spec.ts',
 				'temperature-fixture.spec.ts',
+				'comparison-fixture.spec.ts',
 			],
 		},
 	],

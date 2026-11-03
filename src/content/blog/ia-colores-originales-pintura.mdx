@@ -1,0 +1,299 @@
+---
+title: "¿Puede la inteligencia artificial recuperar los colores originales de una pintura?"
+description: "Del barniz envejecido al Deep Learning: una investigación sobre restauración virtual y reconstrucción cromática."
+pubDate: 2026-11-03
+category: Artificial Intelligence
+tags: [Computer Vision, Deep Learning, Image Restoration, Cultural Heritage, Python]
+lang: es
+draft: true
+---
+
+import Figure from '../../components/Figure.astro';
+import Callout from '../../components/Callout.astro';
+import ImageComparison from '../../components/ImageComparison.astro';
+
+## 1. Una visita al Thyssen
+
+Hace poco visité el Museo Nacional Thyssen-Bornemisza de Madrid. Allí contemplé *Santa Catalina de Alejandría*, de Caravaggio, pintada hacia 1598–1599. Me impresionó la belleza de la pintura y descubrí que había sido restaurada en 2018. Esa combinación, una obra que podía observar y una intervención que había cambiado su apariencia, despertó mi curiosidad: ¿podría una inteligencia artificial estimar los colores que el deterioro nos impide ver?
+
+La pregunta parecía sencilla hasta que empecé a distinguir sus posibles significados. Una cosa es aproximar el aspecto sin un barniz amarillento; otra, reconstruir un pigmento que ha sufrido una transformación química. Y otra muy distinta es completar una zona donde ya no queda pintura. Las tres pueden producir imágenes convincentes, pero no permiten las mismas conclusiones.
+
+La [documentación del Thyssen](https://www.museothyssen.org/restauracion/descubriendo-caravaggio-santa-catalina-alejandria) describe radiografías, reflectografía infrarroja, análisis de materiales y fotografía. Su [vídeo técnico de 2018](https://www.museothyssen.org/thyssenmultimedia/restauracion-estudio-tecnico-santa-catalina-alejandria-caravaggio) sitúa el trabajo entre marzo y noviembre. La eliminación de capas protectoras alteradas permitió apreciar matices ocultos; el estudio de estratos y rectificaciones aportó información sobre el proceso creativo. Ninguna de esas páginas atribuye la intervención a una IA.
+
+Santa Catalina es el origen de esta investigación, no su dataset. Aquí enlazo al museo sin reproducir ni modificar sus fotografías. El experimento utiliza otras imágenes con derechos de reutilización documentados.
+
+**La pregunta central es hasta qué punto el aprendizaje automático puede recuperar apariencia cromática alterada y qué evidencias necesitamos para confiar en la reconstrucción.** Para responderla, primero revisaré investigaciones con distintos tipos de evidencia y después presentaré una prueba pequeña, ejecutada en Python, cuyos límites son deliberadamente explícitos.
+
+## 2. ¿Qué significa recuperar los colores originales?
+
+### Tres problemas y tres niveles de incertidumbre
+
+**Eliminación virtual de barnices.** Un recubrimiento envejecido modifica cómo llega y sale la luz de la capa pictórica. Si conocemos sus propiedades ópticas o disponemos de pequeñas regiones limpiadas, podemos estimar una transformación. Sigue habiendo incertidumbre: el espesor, la suciedad, la rugosidad y la limpieza pueden variar espacialmente.
+
+**Reconstrucción de pigmentos degradados.** El colorante que producía un rojo puede haber perdido parte de su absorción característica. Quitar el barniz no revierte esa química. Hacen falta indicios adicionales: análisis de materiales, mezclas históricas reconstruidas, zonas protegidas, documentación o correspondencia del artista.
+
+**Reconstrucción de información desaparecida.** Cuando falta una región completa, varios contenidos pueden ser compatibles con lo que queda. Un modelo generativo puede proponer uno, pero la continuidad visual no demuestra que corresponda a lo pintado. La incertidumbre incluye tanto el color como el contenido.
+
+También importa qué momento llamamos «original». ¿La obra recién pintada, seca, barnizada por el artista o posterior a una intervención documentada? Sin definir el estado buscado, una comparación puede mezclar objetivos incompatibles.
+
+<Callout type="important" title="Una referencia digital no es un original histórico">
+En nuestro experimento, «referencia» significa una reproducción actual del museo, antes de añadirle deterioro sintético. Esa reproducción ya contiene la historia material de la obra y las decisiones de captura y procesado. No representa automáticamente su apariencia al salir del taller.
+</Callout>
+
+Una restauración virtual debe describirse como una estimación condicionada por datos y supuestos. La imagen final por sí sola no permite saber cuánto procede de una medición, cuánto de un modelo físico y cuánto de un patrón aprendido.
+
+## 3. Qué dice la investigación científica
+
+### De las propiedades ópticas a la reconstrucción material
+
+[Trumpy et al. (2015)](https://doi.org/10.1364/OE.23.033836) construyeron un modelo físico y lo contrastaron con imágenes de reflectancia de tres pinturas durante su tratamiento. La comparación con la limpieza real es una evidencia especialmente útil. Los autores identifican como fuentes de discrepancia la variación del barniz y de la superficie expuesta. Su aportación no es «mejorar» una foto RGB: vincula la predicción a absorción, dispersión y mediciones espectrales.
+
+La serie de Kirchner et al., publicada en volúmenes de 2018 aunque con primeras versiones en línea de 2017, separa pasos que a menudo se confunden. La [parte 1](https://doi.org/10.1002/col.22162) caracteriza el barniz de *Field with Irises near Arles* mediante Kubelka–Munk y datos hiperespectrales. Contrasta el resultado con una reproducción posterior a la limpieza; la ausencia de una segunda captura hiperespectral y el registro entre imágenes limitan esa comparación.
+
+La [parte 2](https://doi.org/10.1002/col.22164) estima mapas de concentración de trece pigmentos a partir de datos de reflectancia multiespectral. Los confronta con XRF y otros indicios materiales y documentales. La [parte 3](https://doi.org/10.1002/col.22197) incorpora reconstrucciones físicas de pinturas históricas para estimar colores anteriores a la degradación. Los propios autores explican que los datos técnicos no resolvían todas las decisiones. La reconstrucción necesita interpretación interdisciplinar, además de cálculo.
+
+### Aprender una transformación cromática
+
+[Maali Amiri y Messinger (2021)](https://doi.org/10.1186/s40494-021-00567-4) entrenan una CNN de once capas con imágenes y cartas de color amarilleadas artificialmente. Evalúan una carta en el dominio espectral y realizan aplicaciones RGB a obras de Leonardo. Conviene distinguir sus referencias: la comparación de la Mona Lisa utiliza una limpieza virtual anterior, no una limpieza física observada. El éxito sobre filtros simulados no demuestra por sí solo fidelidad histórica. Este trabajo inspira nuestro uso de pares sintéticos, no una reproducción de su arquitectura.
+
+En [2023](https://doi.org/10.1186/s40494-023-00859-x), los mismos autores estudian una red generativa en reflectancia espectral, con una carta simulada y datos reales de *Haymakers at Montfermeil*. Usan una zona previamente limpiada y comparan la predicción del resto con la captura posterior a la limpieza, mediante distancia euclídea y ángulo espectral. La representatividad cromática de la zona disponible condiciona el resultado. No es equivalente a generar colores sin observaciones de referencia.
+
+[Parvathaneni et al. (2024)](https://doi.org/10.1007/s42979-024-02823-3) exploran pares no alineados de zonas bajo el marco y zonas expuestas mediante CycleGAN, con aprendizaje en RGB y Lab. Contrastan escenarios sintéticos basados en reconstrucciones y aplicaciones a pinturas reales; añaden incertidumbre relativa con Monte Carlo dropout. Los márgenes protegidos aportan evidencia, aunque no garantizan contener toda la paleta ni estar intactos. La consistencia entre dominios sigue sin ser una prueba histórica independiente.
+
+[Narag, Baumgartner y Soriano (2024)](https://proceedings.spp-online.org/article/view/SPP-2024-PB-17) utilizan imágenes anteriores y posteriores a tratamientos reales, registradas geométricamente. Aprenden con fragmentos de 8 × 8 píxeles y separan luminosidad y cromaticidad en Lab. La evaluación sobre diez muestras del retrato estudiado favorece esa separación frente a sus variantes. Son resultados de adaptación dentro de una obra; el reparto de parches solapados y las diferencias de captura exigen cautela al extrapolar a pinturas nuevas.
+
+[Monteiro et al. (2025)](https://doi.org/10.1016/j.culher.2025.06.015) comparan tres procedimientos de eliminación virtual con imágenes hiperespectrales antes y después de una intervención. Su red, entrenada con una pequeña zona limpiada, ofrece la mejor simulación cromática entre los métodos evaluados en ese estudio. La evaluación usa CIECAM16-UCS; sus cifras no pueden equipararse directamente a nuestro ΔE₀₀. Las capas reales son heterogéneas y pueden contener suciedad además del recubrimiento.
+
+### Comparación de evidencias
+
+Para las partes 2–3 de Kirchner, la síntesis se limita a los resúmenes editoriales verificables. No se atribuyen detalles de evaluación que no estén disponibles.
+
+| Estudio | Datos | Método | Objetivo | Validación | Limitaciones |
+|---|---|---|---|---|---|
+| Trumpy, 2015 | Reflectancia espectral, tres pinturas | Modelo físico de absorción y dispersión | Barniz | Limpieza física | Heterogeneidad de capas y rugosidad |
+| Kirchner, 2018, partes 1–3 | Reflectancia, XRF y reconstrucciones materiales | Kubelka–Munk y mapas de pigmentos | Barniz y pigmentos | Mediciones, documentación y comparación tras limpieza | Supuestos materiales e interpretación |
+| Maali Amiri, 2021 | RGB y cartas espectrales simuladas | CNN supervisada | Amarilleamiento | Carta y referencias de obras | Cambio de dominio; referencias de distinta naturaleza |
+| Maali Amiri, 2023 | Carta y pintura hiperespectral | Red generativa | Limpieza espectral | Captura tras tratamiento | Dependencia de la zona limpiada |
+| Parvathaneni, 2024 | RGB, márgenes protegidos | CycleGAN RGB/Lab | Reconstrucción cromática | Escenarios sintéticos y evidencia local | Paleta incompleta, incertidumbre relativa |
+| Narag, 2024 | RGB antes/después, convertido a Lab | CNN separadas L y ab | Limpieza virtual | Muestras de imagen limpiada | Registro, parches correlacionados, adaptación local |
+| Monteiro, 2025 | Capturas hiperespectrales | Red y dos alternativas | Recubrimiento | Intervención real, CIECAM16-UCS | Capas no uniformes; referencia posterior al tratamiento |
+
+La revisión de [Van Vijle, Hacıgüzeller y Van der Snickt (2025)](https://doi.org/10.1038/s40494-025-01924-3) amplía el contexto a imagen científica, pigmentos, daños y restauración. Señala la escasez de datos históricos de calidad y los problemas de generalización desde datos sintéticos o probetas. Es una revisión del estado del arte, no un metaanálisis que permita ordenar redes por una métrica común.
+
+La evolución no consiste simplemente en sustituir física por redes más grandes. Los métodos cambian según la información disponible. Nuestro experimento se sitúa en el caso más controlado: pares RGB sintéticos y una referencia conocida. No reproduce los protocolos materiales o espectrales de los museos.
+
+## 4. De la física del color al Deep Learning
+
+### Lo que mide una imagen
+
+El color registrado depende de la iluminación, la reflectancia de la superficie y la sensibilidad del sensor. Una expresión simplificada de un canal lineal es:
+
+$$
+c_k = \int E(\lambda)\,R(\lambda)\,S_k(\lambda)\,d\lambda.
+$$
+
+Aquí $E$ representa el iluminante, $R$ la reflectancia y $S_k$ la sensibilidad del canal. Una fotografía procesada añade balance de blancos, curvas tonales, compresión y codificación. Por eso modificar sus canales no equivale necesariamente a invertir una transformación óptica.
+
+Tres canales integran mucha información espectral en pocos números. Distintas reflectancias pueden producir colores RGB similares bajo una iluminación: es el problema del metamerismo. Las imágenes hiperespectrales muestrean muchas bandas y permiten contrastar hipótesis sobre materiales; tampoco identifican de forma infalible cada mezcla, estrato o proceso químico.
+
+El amarilleamiento puede reducir especialmente la contribución de longitudes de onda cortas. Un barniz también modifica dispersión y reflexión superficial. Kubelka–Munk modela absorción y dispersión bajo supuestos concretos; aplicarlo a una pintura exige estimar parámetros y considerar interfaces. Un filtro azul reducido en sRGB no contiene esa física. La degradación de un pigmento cambia la propia reflectancia de la capa pictórica y necesita otro modelo.
+
+### Qué aprende una red
+
+Una CNN compone convoluciones y funciones no lineales. Puede aprender que ciertos patrones de entrada suelen corresponder a otros colores. En un problema supervisado con pares $(y_i,x_i)$, buscamos parámetros que reduzcan una pérdida:
+
+$$
+\theta^\star = \arg\min_\theta \frac{1}{N}
+\sum_{i=1}^{N}\lVert f_\theta(y_i)-x_i\rVert_1.
+$$
+
+La función objetivo expresa semejanza con las referencias disponibles. No contiene una garantía sobre un pasado desconocido. Una red entrenada con un único tipo de filtro puede aprender a invertirlo y fallar ante suciedad, iluminación distinta o decoloración selectiva.
+
+Cuando no hay pares alineados, [CycleGAN](https://arxiv.org/abs/1703.10593) aprende transformaciones entre dominios. Su consistencia de ciclo penaliza que transformar y regresar cambie demasiado la entrada:
+
+$$
+\mathcal L_{\mathrm{ciclo}}
+=\mathbb E_y\lVert F(G(y))-y\rVert_1
++\mathbb E_x\lVert G(F(x))-x\rVert_1.
+$$
+
+Es una restricción útil, pero una correspondencia reversible puede seguir siendo históricamente incorrecta. La incertidumbre de un modelo tampoco cubre automáticamente sus supuestos erróneos: varias predicciones muy parecidas pueden compartir el mismo sesgo.
+
+## 5. Nuestro experimento en Python
+
+### Datos, derechos y partición
+
+Utilizamos veinte reproducciones del [Open Access del Metropolitan Museum](https://www.metmuseum.org/hubs/open-access). Cada registro fue comprobado individualmente mediante su API: dominio público, imagen disponible y licencia CC0. El manifiesto incluye título, autor, enlace, URL descargada, fecha de consulta y SHA-256. No hay imágenes del Thyssen ni datasets o pesos grandes dentro del repositorio.
+
+La selección es pequeña y de conveniencia, no una muestra representativa del patrimonio pictórico. Con semilla **20261103**, asignamos doce pinturas a entrenamiento, cuatro a validación y cuatro a test. Una pintura pertenece a una sola partición. Sí aparecen autores compartidos: evaluamos generalización a obras distintas, no a artistas desconocidos.
+
+Los perfiles ICC presentes se convierten a sRGB; si faltan, asumimos sRGB para el JPEG web. Un recorte central cuadrado, sin deformación geométrica, se reduce a **192 × 192 píxeles**. Se pierde el exterior de la obra y detalle fino. Ese preprocesado se mantiene idéntico para todos los métodos.
+
+### Deterioro controlado
+
+La intensidad $s$ controla contraste, atenuación por canal y un velo aditivo. Operamos sobre sRGB **codificado**, no radiancia lineal:
+
+$$
+y_s=\operatorname{clip}\left(
+\left[(1-0{,}25s)(x-0{,}5)+0{,}5\right]
+\odot(1-sa)+sv,\;0,\;1
+\right),
+$$
+
+con $a=(0{,}04,0{,}12,0{,}28)$ y $v=(0{,}07,0{,}05,0{,}015)$. El símbolo $\odot$ indica multiplicación por canal. Esta transformación combina pérdida de contraste y desplazamiento cromático. **No es una simulación validada de envejecimiento químico ni de un barniz histórico.**
+
+~~~python title="experimento.py"
+def degrade(image, intensity):
+    contrast = 1 - .25 * intensity
+    attenuation = 1 - intensity * np.array([.04, .12, .28], dtype=np.float32)
+    veil = intensity * np.array([.07, .05, .015], dtype=np.float32)
+    return np.clip(
+        (contrast * (image - .5) + .5) * attenuation + veil, 0, 1
+    ).astype(np.float32)
+~~~
+
+Entrenamos con intensidades aleatorias uniformes entre 0,25 y 1. Validación y test utilizan los cuatro valores prefijados: 0,25, 0,50, 0,75 y 1. No evaluamos otra familia de alteración.
+
+### Métodos y selección
+
+Comparamos la entrada sin corregir, una corrección **gray-world con expansión de contraste**, una **regresión afín supervisada** y una **CNN pequeña**.
+
+Gray-world iguala las medias por canal; después se estiran los percentiles 1 y 99 por canal. Mezclamos la corrección con la entrada usando una fuerza elegida entre 0, 0,25, 0,50, 0,75 y 1. La validación seleccionó **0,25**. Una pintura dominada por un color puede vulnerar la hipótesis de gris medio.
+
+La regresión afín aprende doce coeficientes por mínimos cuadrados con píxeles de entrenamiento muestreados cada cuatro posiciones y las cuatro intensidades. Su forma es $\hat x=[y_R,y_G,y_B,1]W$. Añadimos este comparador porque superar un balance de blancos sencillo no demostraría que una red es necesaria.
+
+La CNN contiene **1.683 parámetros**: convoluciones 3→12 y 12→12 de 3 × 3 con padding reflectante y ReLU, seguidas por una convolución 12→3 de 1 × 1. Predice una corrección residual limitada por $\tanh$, con amplitud 0,35, y salida acotada a [0,1]. No recibe la intensidad como entrada.
+
+Entrenamos en CPU sobre 768 pares de parches de 48 × 48, con volteo horizontal aleatorio. Usamos Adam, tasa 0,002, lotes de 32 y cuarenta épocas; la menor MAE de validación seleccionó la **época 39**. Arquitectura y presupuesto se fijaron antes del test. Las imágenes de test no se cargan hasta terminar la selección.
+
+### Métricas comparables
+
+La **MAE** promedia diferencias absolutas en los tres canales sRGB normalizados. **SSIM** se calcula por canales, con ventana 7 × 7 y rango explícito 1 mediante scikit-image; no es una evaluación de pigmentos. Para **CIEDE2000**, convertimos sRGB a CIELAB con blanco D65 y observador de 2°, y promediamos ΔE₀₀ por píxel.
+
+Los tres criterios utilizan exactamente los mismos recortes de referencia y las predicciones flotantes, antes de exportarlas a WebP. Las pruebas incluyen identidad de métricas y un par de referencia publicado por Sharma et al. para CIEDE2000. No aplicamos un umbral universal de «restauración aceptable»: la percepción y el uso conservativo dependen del contexto.
+
+## 6. Resultados y comparativas
+
+### Medias y variabilidad
+
+Cada método produce dieciséis evaluaciones: cuatro pinturas por cuatro intensidades. Primero promediamos por pintura y después entre pinturas, con el mismo peso para cada una.
+
+| Método | MAE ↓ | SSIM ↑ | ΔE₀₀ ↓ |
+|---|---|---|---|
+| Imagen deteriorada | 0,048946 | 0,927952 | 6,297869 |
+| Gray-world + contraste | 0,043633 | 0,958264 | 5,075808 |
+| Regresión afín | 0,023694 | 0,961671 | 3,184903 |
+| CNN | 0,022834 | 0,971458 | 3,475057 |
+
+La CNN obtiene las mejores medias de MAE y SSIM, pero **la regresión afín tiene menor ΔE₀₀**. Por tanto, no hay una superioridad uniforme de la red. Una función de pérdida RGB y una medida perceptual pueden preferir soluciones distintas.
+
+Los intervalos de la figura 4 proceden de 2.000 remuestreos de pinturas, conservando juntas sus intensidades. Para ΔE₀₀, los IC percentiles del 95 % son 5,5148–6,8800 en la entrada, 4,3224–6,0568 en gray-world, 2,8613–3,3802 en la regresión y 3,1453–3,6902 en la CNN. Con **solo cuatro unidades independientes**, son descripciones exploratorias de esta muestra, no garantías poblacionales. No hemos hecho una prueba de significación ni repetido el entrenamiento con múltiples semillas.
+
+### Imágenes y errores
+
+Para las figuras 1–3 fijamos la primera pintura de test del manifiesto, *Roses* de Vincent van Gogh (Met, objeto 436534), con intensidad 1. No seleccionamos el caso con menor error. Las imágenes son recortes derivados de una reproducción CC0; no reconstrucciones de los colores históricos de las rosas.
+
+<Figure caption="Figura 1. Referencia digital actual, deterioro sintético, gray-world con contraste y CNN. Recorte de Roses, Vincent van Gogh, 1890. The Metropolitan Museum of Art, objeto 436534, Open Access / CC0. Transformaciones experimentales propias.">
+  <img src="/figures/restauracion-cromatica/01-comparacion.webp" alt="Cuatro versiones alineadas del mismo recorte de Roses: referencia, deterioro sintético, corrección tradicional y predicción CNN." width="1440" height="420" loading="lazy" decoding="async" />
+</Figure>
+
+<ImageComparison
+  before="/figures/restauracion-cromatica/deteriorada.webp"
+  after="/figures/restauracion-cromatica/cnn.webp"
+  beforeAlt="Recorte de Roses con deterioro cromático sintético de intensidad 1."
+  afterAlt="El mismo recorte de Roses después de aplicar la CNN experimental."
+  beforeLabel="Deteriorada sintética"
+  afterLabel="CNN"
+  caption="Figura 2. Comparador del mismo caso de test. El control revela dos archivos precalculados; no ejecuta IA ni modifica la intensidad. Fuente: Met, Roses, objeto 436534, CC0; modificaciones propias."
+/>
+
+<Figure caption="Figura 3. Error cromático ΔE₀₀ respecto a la referencia digital del mismo caso, con una escala compartida entre los tres métodos. Las zonas claras indican mayor diferencia, no menor certeza estadística.">
+  <img src="/figures/restauracion-cromatica/03-errores.webp" alt="Tres mapas de error CIEDE2000 para entrada deteriorada, corrección tradicional y CNN, comparados con la misma referencia y escala." width="882" height="274" loading="lazy" decoding="async" />
+</Figure>
+
+Un mapa de error necesita una referencia conocida. No podríamos calcular este mismo mapa para los colores originales desconocidos de una obra real. Tampoco es un mapa de incertidumbre de la CNN.
+
+<Figure caption="Figura 4. MAE, SSIM y ΔE₀₀ en ejes separados. Barras: medias; intervalos: bootstrap por pintura. No representan variabilidad entre entrenamientos.">
+  <img src="/figures/restauracion-cromatica/04-metricas.svg" alt="Tres paneles de métricas con cuatro métodos e intervalos: la CNN tiene mejores MAE y SSIM medias y la regresión afín menor ΔE₀₀." width="1080" height="432" loading="lazy" decoding="async" />
+</Figure>
+
+### Sensibilidad a la intensidad
+
+| Intensidad | ΔE₀₀ deteriorada | ΔE₀₀ tradicional | ΔE₀₀ afín | ΔE₀₀ CNN |
+|---|---|---|---|---|
+| 0,25 | 2,5556 | 2,9439 | 4,4602 | 4,0335 |
+| 0,50 | 5,0724 | 4,1527 | 1,5833 | 1,7604 |
+| 0,75 | 7,5619 | 5,7408 | 1,8978 | 2,6583 |
+| 1,00 | 10,0016 | 7,4658 | 4,7983 | 5,4480 |
+
+La media global oculta un fallo importante: **con deterioro leve, corregir empeora el color respecto a dejar la entrada intacta**, para los tres métodos. La regresión y la CNN no reciben $s$ y pueden aplicar una compensación excesiva. Entrenar sobre una distribución de intensidades no equivale a identificar sin ambigüedad la degradación de cada imagen.
+
+<Figure caption="Figura 5. Rendimiento según intensidad sintética, promediado sobre las cuatro pinturas de test. Cada métrica conserva su propio eje. La degradación más leve revela sobrecorrección.">
+  <img src="/figures/restauracion-cromatica/05-intensidad.svg" alt="Curvas de MAE, SSIM y ΔE₀₀ frente a cuatro intensidades; el error de las correcciones no mejora uniformemente a la entrada." width="1080" height="333" loading="lazy" decoding="async" />
+</Figure>
+
+### Figura 6. Qué información aporta cada enfoque
+
+| Enfoque | Información que necesita | Qué puede respaldar | Qué no demuestra por sí solo |
+|---|---|---|---|
+| Modelo físico | Propiedades ópticas y mediciones | Predicción condicionada de una capa | Que sus supuestos describan toda la obra |
+| CNN supervisada | Pares y distribución de entrenamiento | Transformación aprendida con referencia | Fidelidad fuera de esa distribución |
+| Generativo no pareado | Dominios e indicios locales | Hipótesis compatible con restricciones | Identidad con un estado histórico |
+| Imagen hiperespectral | Captura calibrada en muchas bandas | Evidencia espectral para distintos modelos | Una inversión única de todos los estratos |
+
+La imagen hiperespectral es una modalidad de adquisición, no una arquitectura rival de las CNN. Esta tabla compara requisitos y alcance de evidencia; no establece una clasificación cuantitativa entre papers.
+
+## 7. ¿Podemos confiar en una restauración generada por IA?
+
+El experimento demuestra aprendizaje dentro de una familia artificial conocida. No incluye envejecimiento localizado, craquelado, polvo, reflejos, pérdidas de pintura o reacciones químicas. Tampoco evalúa cámaras desconocidas, otras iluminaciones ni una colección independiente. Aunque los test estén separados por pintura, esas limitaciones de dominio permanecen.
+
+La regresión afín es especialmente pertinente porque nuestra degradación también tiene estructura afín a intensidad fija. Su buen resultado reduce el argumento a favor de una red compleja. No hemos medido qué aportan por separado las convoluciones espaciales; para eso haría falta una ablación, por ejemplo frente a convoluciones de 1 × 1, antes de atribuir la mejora estructural al contexto.
+
+Para confiar en una aplicación conservativa pediría trazabilidad de capturas, perfil de color e iluminante, registro entre estados, zonas de referencia independientes y contraste con análisis materiales. La evaluación debería reservar regiones que no participen en selección y comprobar sesgos por pigmento, profundidad o posición.
+
+También convendría mostrar alternativas compatibles, sensibilidad a los supuestos y límites de validez, en lugar de una única imagen con apariencia definitiva. Un intervalo estrecho del modelo no compensa un barniz mal caracterizado. La confianza requiere evidencia externa a la propia red.
+
+<Callout type="warning" title="No confundir simulación con intervención">
+Las imágenes de este artículo son resultados digitales de una prueba sintética. No son una propuesta de tratamiento ni una recuperación verificada de colores históricos. Una simulación puede apoyar preguntas y documentación; las decisiones sobre una obra requieren profesionales de conservación y estudio material.
+</Callout>
+
+## 8. Conclusiones y referencias
+
+La revisión muestra que existen estimaciones útiles cuando las reconstrucciones se apoyan en mediciones espectrales, pequeñas zonas limpiadas, pigmentos reconstruidos o márgenes protegidos. También muestra que retirar virtualmente un barniz y reconstruir colores anteriores a una reacción química son preguntas diferentes.
+
+Nuestro experimento aporta una conclusión más limitada: una CNN de 1.683 parámetros puede mejorar ciertas métricas de alteraciones sintéticas en pinturas no usadas para entrenar. No gana en todos los criterios, una regresión afín obtiene menor error cromático medio y los tres métodos sobrecorrigen el deterioro leve. Eso impide resumir el resultado como «la IA recupera los colores».
+
+La visita al Thyssen dejó una pregunta abierta. La respuesta razonable es que podemos estimar algunas transformaciones y proponer hipótesis cromáticas, pero afirmar que hemos recuperado un original exige conocer qué información se ha conservado y contrastar la estimación con evidencia independiente.
+
+### Código y reproducción
+
+El [directorio del experimento](https://github.com/alfergal/alfergal.github.io/tree/main/experiments/restauracion-cromatica) contiene código, versiones, manifiesto de derechos, particiones, resultados por pintura, selección de validación y verificador. Las imágenes originales se descargan por sus URL verificadas a una carpeta externa; se comprueba su SHA-256. Los pesos se regeneran y no se incluyen en Git.
+
+~~~bash title="Reproducción local con Python 3.11"
+python3.11 -m venv /tmp/pintura-venv
+/tmp/pintura-venv/bin/pip install -r experiments/restauracion-cromatica/requirements.txt
+/tmp/pintura-venv/bin/python experiments/restauracion-cromatica/verificar.py \
+  --data /tmp/pintura-datos
+~~~
+
+El verificador repite entrenamiento, selección, evaluación y figuras en un directorio temporal y compara los números con tolerancia absoluta de $10^{-7}$. Los recursos web se comprueban también por hash en el entorno fijado. Cambios de bibliotecas o plataforma pueden requerir investigar diferencias de redondeo; no deben sustituirse resultados silenciosamente.
+
+### Referencias
+
+1. Museo Nacional Thyssen-Bornemisza. [Descubriendo a Caravaggio: restauración y estudio técnico](https://www.museothyssen.org/restauracion/descubriendo-caravaggio-santa-catalina-alejandria), y [vídeo de noviembre de 2018](https://www.museothyssen.org/thyssenmultimedia/restauracion-estudio-tecnico-santa-catalina-alejandria-caravaggio).
+2. Trumpy, G.; Conover, D.; Simonot, L.; Thoury, M.; Picollo, M.; Delaney, J. K. (2015). *Experimental study on merits of virtual cleaning of paintings with aged varnish*. Optics Express, 23, 33836–33848. [DOI](https://doi.org/10.1364/OE.23.033836).
+3. Kirchner, E. et al. (2018). *Digitally reconstructing Van Gogh's Field with Irises near Arles. Part 1: Varnish*. Color Research & Application, 43. [DOI](https://doi.org/10.1002/col.22162).
+4. Kirchner, E. et al. (2018). *Digitally reconstructing Van Gogh's Field with Irises near Arles. Part 2: Pigment concentration maps*. Color Research & Application, 43, 158–176. [DOI](https://doi.org/10.1002/col.22164).
+5. Kirchner, E. et al. (2018). *Digitally reconstructing Van Gogh's Field with Irises near Arles part 3: Determining the original colors*. Color Research & Application, 43, 311–327. [DOI](https://doi.org/10.1002/col.22197).
+6. Maali Amiri, M.; Messinger, D. W. (2021). *Virtual cleaning of works of art using deep convolutional neural networks*. Heritage Science, 9, 94. [DOI](https://doi.org/10.1186/s40494-021-00567-4).
+7. Maali Amiri, M.; Messinger, D. W. (2023). *Virtual cleaning of works of art using a deep generative network: spectral reflectance estimation*. Heritage Science, 11, 19. [DOI](https://doi.org/10.1186/s40494-023-00859-x).
+8. Parvathaneni, T. S. R.; Pisarenco, M.; Onvlee, H. (2024). *A Deep Learning Approach for Digital Color Reconstruction of Van Gogh's Paintings Using Unpaired Areas Under the Frame*. SN Computer Science. [DOI](https://doi.org/10.1007/s42979-024-02823-3).
+9. Narag, M. J. G.; Baumgartner, J.; Soriano, M. N. (2024). *Digitally restoring paintings using convolutional neural networks*. 42nd Samahang Pisika ng Pilipinas Physics Conference, SPP-2024-PB-17. [Actas y PDF](https://proceedings.spp-online.org/article/view/SPP-2024-PB-17).
+10. Monteiro, J. A. R.; Cardeira, L.; Bailão, A.; Nascimento, S. M. C.; Linhares, J. M. M. (2025). *Reviving the colors of paintings by removing the protective coating: a physical and virtual intervention*. Journal of Cultural Heritage, 74, 322–331. [DOI](https://doi.org/10.1016/j.culher.2025.06.015).
+11. Van Vijle, A.; Hacıgüzeller, P.; Van der Snickt, G. (2025). *Machine learning for painting conservation: a state-of-the-art review*. npj Heritage Science, 13, 437. [DOI](https://doi.org/10.1038/s40494-025-01924-3).
+12. Zhu, J.-Y.; Park, T.; Isola, P.; Efros, A. A. (2017). *Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks*. ICCV. [Artículo](https://arxiv.org/abs/1703.10593).
+13. Sharma, G.; Wu, W.; Dalal, E. N. (2005). *The CIEDE2000 color-difference formula: Implementation notes, supplementary test data, and mathematical observations*. Color Research & Application, 30, 21–30. [DOI](https://doi.org/10.1002/col.20070).
+14. The Metropolitan Museum of Art. [Open Access y CC0](https://www.metmuseum.org/hubs/open-access), [API y documentación](https://metmuseum.github.io/) y [Roses, objeto 436534](https://www.metmuseum.org/art/collection/search/436534). Procedencia individual de las veinte reproducciones en el manifiesto.
+15. scikit-image. [Métricas de imagen](https://scikit-image.org/docs/0.26.x/api/skimage.metrics.html) y [conversiones de color](https://scikit-image.org/docs/0.26.x/api/skimage.color.html).
+
+[Volver al inicio](/)

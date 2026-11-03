@@ -119,14 +119,16 @@ a:hover {
 	gap: 24px;
 }
 .wordmark {
-	font-size: 34px;
-	font-weight: 700;
-	line-height: 1;
-	letter-spacing: -3px;
-	padding-right: 20px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	flex: 0 0 44px;
+	color: var(--ink);
 }
-.wordmark span {
-	color: var(--highlight);
+.af-monogram {
+	display: block;
 }
 .hero {
 	padding-block: 48px 28px;
@@ -834,9 +836,6 @@ post-feed {
 		flex-wrap: wrap;
 		gap: 4px 12px;
 		padding-block: 10px;
-	}
-	.wordmark {
-		padding-right: 8px;
 	}
 	.primary-nav {
 		gap: 14px;

@@ -23,7 +23,11 @@ test('one personal homepage preserves identity, metadata and bilingual navigatio
 	await expect(page.locator('.hero-role')).toHaveText(
 		'Data Scientist | Machine Learning | Applied Statistics',
 	);
-	await expect(page.locator('.wordmark')).toHaveText('af.');
+	await expect(page.locator('.wordmark')).toHaveAttribute(
+		'aria-label',
+		'AF — Alberto Fernández Gálvez, inicio',
+	);
+	await expect(page.locator('.wordmark svg')).toHaveCount(1);
 	await expect(page.locator('.graph-network')).toBeVisible();
 	await expect(
 		page.locator(

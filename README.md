@@ -2,7 +2,7 @@
 
 Portfolio profesional bilingüe con **Inicio | Blog | Contacto**. Español predeterminado y HTML estático en inglés, con internacionalización nativa de Astro. Los artículos españoles conservan sus URLs y su estado editorial.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. Se mantienen el logotipo «af.», favicons, motor del grafo optimizado y herramientas de lectura. GitHub y LinkedIn aparecen en Contacto y en el footer.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. El monograma geométrico AF, los favicons, el motor del grafo optimizado y las herramientas de lectura comparten la identidad existente. GitHub y LinkedIn aparecen en Contacto y en el footer.
 
 ## Identidad visual
 
@@ -255,3 +255,11 @@ El selector enlaza la página equivalente. Si un artículo no tiene traducción,
 **src/data/newsletter.ts** está vacío y Newsletter.astro no muestra nada. Para una futura integración RSS→email, elegir un proveedor con feeds/listas independientes para ES y EN, configurar y probar su formulario alojado, consentimiento, privacidad y cancelación. Después añadir hostedFormUrl y privacyUrl HTTPS para el idioma operativo. El componente ofrece un enlace al formulario real del proveedor, sin almacenar correos, introducir scripts externos o construir un backend. No se ha contratado ni activado ningún servicio.
 
 Las pruebas nuevas utilizan traducciones sintéticas exclusivamente en copias temporales y comprueban navegación, idiomas, fechas compartidas, slugs distintos, fallback, SEO, feeds, sitemap, interfaz de lectura, responsive, teclado y accesibilidad. Se mantienen las pruebas de geometría/física del grafo y la integridad de recursos y resultados científicos.
+
+## Monograma geométrico AF
+
+La única fuente vectorial está en **src/lib/monogram.ts**. Monogram.astro, favicon.ts y social-image.ts reutilizan sus mismos trazados. No hay letras tipográficas, fuentes externas, animaciones, filtros ni degradados en el símbolo.
+
+Plano 64×64 y módulo de 2 unidades; trazo uniforme de 4 unidades. La A une (6,50), (18,14) y (30,50): sus diagonales tienen pendiente ±3, aproximadamente 71,565° respecto a la horizontal. La F tiene eje vertical x=38, coronación y=14 y brazo superior hasta x=58. Comparten un travesaño y=34 que comienza en la intersección de la diagonal izquierda de la A, x=34/3 (redondeada a 11,333 en el SVG), y termina en x=54. Los pies y la cima de los ejes están alineados. Los extremos cuadrados y las uniones biseladas evitan una punta aguda excesivamente larga.
+
+El símbolo es monocromo blanco sobre azul oscuro; no necesita un acento de color. El espacio entre las piernas de la A y el eje de la F conserva la separación de las letras, mientras el travesaño las une. No se utiliza ni se atribuye una proporción áurea. La cabecera usa un área de enlace de 44×44 px; el favicon PNG de 32×32 procede del SVG de 64×64 y la imagen social incorpora el mismo grupo a escala uniforme 1,5, sin cambiar el nombre o la información profesional. Las pruebas rasterizan la geometría a 16, 32 y 64 px sin capturas de pantalla.

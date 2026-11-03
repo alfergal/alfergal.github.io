@@ -1,5 +1,6 @@
 import { palette } from '../data/theme';
 import { profile } from '../data/profile';
+import { monogramMarkup } from './monogram';
 const xml = (value: string) =>
 	value
 		.replace(/&/g, '&amp;')
@@ -9,6 +10,7 @@ const xml = (value: string) =>
 // The static social image shares the interface palette and public profile.
 export const socialImage = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 <rect width="1200" height="630" fill="${palette.background}"/>
+<g transform="translate(1026 96) scale(1.5)" color="${palette.white}">${monogramMarkup}</g>
 <path d="M70 80h1060M70 550h1060" stroke="${palette.blue}"/>
 <text x="65" y="265" font-family="Cambria,Caladea,Georgia,serif" font-size="90" letter-spacing="-4" fill="${palette.white}">${xml(profile.givenName)}</text>
 <text x="65" y="360" font-family="Cambria,Caladea,Georgia,serif" font-size="76" letter-spacing="-3" fill="${palette.white}">${xml(profile.familyName)}</text>

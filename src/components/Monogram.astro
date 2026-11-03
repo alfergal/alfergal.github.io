@@ -1,0 +1,18 @@
+---
+import { monogram, monogramMarkup } from '../lib/monogram';
+interface Props {
+	size?: number;
+}
+const { size = 44 } = Astro.props;
+---
+
+<svg
+	class="af-monogram"
+	xmlns="http://www.w3.org/2000/svg"
+	viewBox={monogram.viewBox}
+	width={size}
+	height={size}
+	aria-hidden="true"
+	focusable="false"
+	set:html={monogramMarkup}
+/>

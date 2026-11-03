@@ -1,4 +1,5 @@
 ---
+import Monogram from './Monogram.astro';
 import { profile } from '../data/profile';
 import { ui, homePath, blogPath, contactPath, type Locale } from '../i18n';
 interface Props {
@@ -20,9 +21,9 @@ const current = Astro.url.pathname;
 		<a
 			class="wordmark"
 			href={homePath(lang)}
-			aria-label={'af. — ' + profile.name + ', ' + t.homeLink}
+			aria-label={'AF — ' + profile.name + ', ' + t.homeLink}
 		>
-			af<span>.</span>
+			<Monogram />
 		</a>
 		<nav class="primary-nav" aria-label={t.navigation}>
 			{items.map(({ href, label }) => (

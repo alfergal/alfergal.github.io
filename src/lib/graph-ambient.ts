@@ -1,140 +1,130 @@
 import type { GraphLink, GraphNode } from './graph-physics';
 
-// Bounded, deterministic low-frequency motion; no D3 ticks while physics is idle.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Ambient motion never rewrites node/edge geometry or starts a JS frame loop.
+// The entire SVG drifts by less than a pixel; only two nodes pulse in opacity.
 export function createGraphAmbient(
 	svg: SVGSVGElement,
 	nodes: GraphNode[],
 	links: GraphLink[],
-	render: () => void,
-	manual: () => boolean,
 ) {
-	const offsets = nodes.map(() => ({ x: 0, y: 0 }));
 	const dots = [...svg.querySelectorAll<SVGCircleElement>('.graph-dot')];
-	const edges = [...svg.querySelectorAll<SVGLineElement>('.graph-edge')];
-	const illuminated = new Set<SVGLineElement>();
-	const layer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-	layer.classList.add('graph-ambient');
-	layer.setAttribute('aria-hidden', 'true');
-	const signals = Array.from({ length: 2 }, () => {
-		const dot = document.createElementNS(layer.namespaceURI, 'circle');
-		dot.setAttribute('r', '1.5');
-		dot.setAttribute('fill', 'var(--accent)');
-		dot.setAttribute('opacity', '0');
-		layer.append(dot);
-		return dot;
-	});
-	svg.append(layer);
-	let frame = 0,
-		previous = 0,
-		elapsed = 0,
-		strength = 1;
-	const draw = (time: number) => {
-		frame = 0;
-		if (previous && time - previous < 32) {
-			frame = requestAnimationFrame(draw);
-			return;
-		}
-		const delta = previous ? Math.min(time - previous, 64) : 0;
-		previous = time;
-		elapsed += delta;
-		const t = elapsed / 1000;
-		strength += ((manual() ? 0 : 1) - strength) * 0.045;
-		offsets.forEach((offset, i) => {
-			const phase = i * 2.399963;
-			// Ramp in at mount/resume. Different incommensurate frequencies prevent lockstep.
-			const ramp = Math.min(1, elapsed / 2400) * strength;
-			offset.x =
-				(Math.sin(t * (0.21 + (i % 7) * 0.009) + phase) +
-					Math.sin(t * 0.137 + phase * 0.7) * 0.35) *
-				1.45 *
-				ramp;
-			offset.y =
-				Math.cos(t * (0.18 + (i % 5) * 0.011) + phase * 1.13) * 1.7 * ramp;
-			if (i % 4 === 0) {
-				const glow = (1 + Math.sin(t * (0.33 + (i % 9) * 0.017) + phase)) / 2;
-				dots[i].style.setProperty(
-					'--ambient-opacity',
-					String(Number(dots[i].getAttribute('opacity')) + glow * 0.1),
-				);
-				dots[i].style.setProperty('--ambient-glow', `${glow * 1.6}px`);
-			}
-		});
-		illuminated.forEach((edge) => edge.style.removeProperty('opacity'));
-		illuminated.clear();
-		signals.forEach((signal, i) => {
-			const period = 7 + i * 2.37;
-			const cycle = Math.floor((t + i * 3.9) / period);
-			const fraction = ((t + i * 3.9) % period) / (2.8 + (cycle % 3) * 0.3);
-			const index = (cycle * 47 + i * 139) % links.length;
-			const link = links[index];
-			if (fraction < 1 && !edges[index].hasAttribute('data-active')) {
-				edges[index].style.opacity = String(
-					Number(edges[index].getAttribute('opacity')) +
-						Math.sin(fraction * Math.PI) * 0.1 * strength,
-				);
-				illuminated.add(edges[index]);
-			}
-			const source = offsets[link.source.id],
-				target = offsets[link.target.id];
-			const amount = Math.min(1, fraction);
-			signal.setAttribute(
-				'cx',
-				String(
-					link.source.x +
-						source.x +
-						(link.target.x + target.x - link.source.x - source.x) * amount,
-				),
+	const animations: Animation[] = [];
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let signal: SVGLineElement | undefined;
+	let signalAnimation: Animation | undefined;
+	let layer: SVGGElement | undefined;
+	let active = false;
+	let cycle = 0;
+	const cancelSignal = () => {
+		clearTimeout(timer);
+		timer = undefined;
+		signalAnimation?.cancel();
+		signalAnimation = undefined;
+		signal?.remove();
+		signal = undefined;
+	};
+	const scheduleSignal = (delay: number) => {
+		timer = setTimeout(() => {
+			timer = undefined;
+			if (!active) return;
+			const link = links[(cycle * 37) % links.length];
+			cycle++;
+			layer ??= document.createElementNS(SVG_NS, 'g');
+			layer.classList.add('graph-ambient');
+			layer.setAttribute('aria-hidden', 'true');
+			if (!layer.isConnected) svg.append(layer);
+			const line = document.createElementNS(SVG_NS, 'line');
+			const length = Math.hypot(
+				link.source.homeX - link.target.homeX,
+				link.source.homeY - link.target.homeY,
 			);
-			signal.setAttribute(
-				'cy',
-				String(
-					link.source.y +
-						source.y +
-						(link.target.y + target.y - link.source.y - source.y) * amount,
-				),
+			for (const [name, value] of Object.entries({
+				x1: link.source.homeX,
+				y1: link.source.homeY,
+				x2: link.target.homeX,
+				y2: link.target.homeY,
+				stroke: 'var(--accent)',
+				'stroke-width': 1.1,
+				'stroke-dasharray': `6 ${length + 6}`,
+			}))
+				line.setAttribute(name, String(value));
+			layer.append(line);
+			signal = line;
+			const animation = line.animate(
+				[
+					{ strokeDashoffset: '6', opacity: 0 },
+					{ opacity: 0.35, offset: 0.35 },
+					{ strokeDashoffset: String(-length), opacity: 0 },
+				],
+				{ duration: 1800, easing: 'linear' },
 			);
-			signal.setAttribute(
-				'opacity',
-				String(
-					fraction < 1 ? Math.sin(fraction * Math.PI) * 0.5 * strength : 0,
-				),
-			);
-		});
-		render();
-		frame = requestAnimationFrame(draw);
+			signalAnimation = animation;
+			void animation.finished
+				.catch(() => {})
+				.then(() => {
+					line.remove();
+					if (signal === line) {
+						signal = undefined;
+						signalAnimation = undefined;
+					}
+				});
+			if (active) scheduleSignal(8500 + (cycle % 3) * 1700);
+		}, delay);
+	};
+	const pause = () => {
+		active = false;
+		animations.forEach((animation) => animation.pause());
+		cancelSignal();
+		if (svg.dataset.ambient !== 'paused') svg.dataset.ambient = 'paused';
+	};
+	const clear = () => {
+		pause();
+		animations.forEach((animation) => animation.cancel());
+		animations.length = 0;
+		layer?.remove();
+		layer = undefined;
 	};
 	return {
-		offsets,
 		start() {
-			if (!frame) {
-				previous = 0;
-				svg.dataset.ambient = 'running';
-				frame = requestAnimationFrame(draw);
-			}
+			if (active) return;
+			active = true;
+			if (!animations.length) {
+				animations.push(
+					svg.animate(
+						[
+							{ transform: 'translate(0px, 0px)' },
+							{ transform: 'translate(0.65px, -0.8px)', offset: 0.4 },
+							{ transform: 'translate(-0.5px, 0.45px)', offset: 0.75 },
+							{ transform: 'translate(0px, 0px)' },
+						],
+						{ duration: 20000, iterations: Infinity, easing: 'ease-in-out' },
+					),
+				);
+				for (const [index, duration] of [
+					[0, 11000],
+					[Math.floor(nodes.length / 2), 13700],
+				]) {
+					const opacity = Number(dots[index].getAttribute('opacity'));
+					animations.push(
+						dots[index].animate(
+							[
+								{ opacity },
+								{ opacity, offset: 0.45 },
+								{ opacity: Math.min(1, opacity + 0.14), offset: 0.65 },
+								{ opacity },
+							],
+							{ duration, iterations: Infinity, easing: 'ease-in-out' },
+						),
+					);
+				}
+			} else animations.forEach((animation) => animation.play());
+			svg.dataset.ambient = 'running';
+			scheduleSignal(1200);
 		},
-		pause() {
-			cancelAnimationFrame(frame);
-			frame = 0;
-			previous = 0;
-			svg.dataset.ambient = 'paused';
-		},
-		clear() {
-			elapsed = 0;
-			strength = 1;
-			illuminated.forEach((edge) => edge.style.removeProperty('opacity'));
-			illuminated.clear();
-			offsets.forEach((offset) => {
-				offset.x = offset.y = 0;
-			});
-			dots.forEach((dot) => {
-				dot.style.removeProperty('--ambient-opacity');
-				dot.style.removeProperty('--ambient-glow');
-			});
-			signals.forEach((signal) => signal.setAttribute('opacity', '0'));
-		},
-		destroy() {
-			cancelAnimationFrame(frame);
-			layer.remove();
-		},
+		pause,
+		clear,
+		destroy: clear,
 	};
 }

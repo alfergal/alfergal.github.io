@@ -1,39 +1,5 @@
 ---
-const nodes = Array.from({ length: 92 }, (_, i) => {
-	const group = i % 5;
-	const angle = i * 2.399963;
-	const radius = 16 + Math.sqrt(Math.floor(i / 5)) * 15;
-	const centers = [
-		[188, 122],
-		[318, 148],
-		[266, 270],
-		[132, 278],
-		[385, 279],
-	];
-	return {
-		id: i,
-		x: centers[group][0] + Math.cos(angle) * radius,
-		y: centers[group][1] + Math.sin(angle) * radius * 0.8,
-		r: i % 13 === 0 ? 5 : i % 4 === 0 ? 3.4 : 2.1,
-		accent: group === 1 || group === 4,
-	};
-});
-const edges = nodes.flatMap((node, i) =>
-	nodes
-		.slice(i + 1)
-		.map((other, j) => ({
-			a: node,
-			b: other,
-			distance: Math.hypot(node.x - other.x, node.y - other.y),
-			key: i + j,
-		}))
-		.filter((edge) => edge.distance < 66 && edge.key % 3 !== 0),
-);
-// Spread the original layout without changing its 92 nodes or 322 connections.
-nodes.forEach((node) => {
-	node.x = 260 + (node.x - 260) * 1.1;
-	node.y = 200 + (node.y - 200) * 1.1;
-});
+import { graphNodes as nodes, graphEdges as edges } from '../data/graph';
 ---
 
 <elastic-graph>
@@ -43,12 +9,6 @@ nodes.forEach((node) => {
 		fill="none"
 		aria-hidden="true"
 	>
-		<g class="graph-grid" stroke="currentColor" stroke-width=".6" opacity=".12">
-			<path
-				d="M40 100h440M40 200h440M40 300h440M100 40v320M200 40v320M300 40v320M400 40v320"
-				stroke-dasharray="2 6"
-			/>
-		</g>
 		<g stroke="currentColor" stroke-width=".7">
 			{edges.map(({ a, b, distance }) => (
 				<line
@@ -59,17 +19,10 @@ nodes.forEach((node) => {
 					y1={a.y}
 					x2={b.x}
 					y2={b.y}
-					opacity={0.1 + (1 - distance / 66) * 0.23}
+					opacity={0.12 + Math.max(0, 1 - distance / 100) * 0.17}
 				/>
 			))}
 		</g>
-		<path
-			data-graph-skeleton
-			d="M180.8 114.2 323.8 142.8 397.5 286.9 266.6 277 119.2 285.8 180.8 114.2 266.6 277 323.8 142.8"
-			stroke="var(--graph-accent)"
-			stroke-width="1"
-			opacity=".5"
-		/>
 		{nodes.map((node) => (
 			<g
 				data-node={node.id}
@@ -98,10 +51,6 @@ nodes.forEach((node) => {
 				/>
 			</g>
 		))}
-		<g data-graph-halo stroke="var(--graph-accent)" opacity=".4">
-			<circle cx="323.8" cy="142.8" r="13" />
-			<circle cx="323.8" cy="142.8" r="21" stroke-dasharray="2 5" />
-		</g>
 		<g class="graph-effects" aria-hidden="true" />
 	</svg>
 </elastic-graph>
@@ -135,19 +84,16 @@ nodes.forEach((node) => {
 	}
 	.graph-dot {
 		r: var(--node-radius);
-		opacity: var(--ambient-opacity, var(--node-opacity));
-		filter: drop-shadow(0 0 var(--ambient-glow, 0px) currentColor);
+		opacity: var(--node-opacity);
 		transition:
 			r 160ms ease,
-			opacity 160ms ease,
-			filter 160ms ease;
+			opacity 160ms ease;
 		pointer-events: none;
 	}
 	[data-active] .graph-dot,
 	[data-pressed] .graph-dot {
 		r: calc(var(--node-radius) * 1.25);
-		opacity: 1;
-		filter: drop-shadow(0 0 3px currentColor);
+		opacity: 1 !important;
 	}
 	.graph-edge {
 		transition:

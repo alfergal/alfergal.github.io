@@ -47,7 +47,7 @@ export function createGraphPhysics(nodes: GraphNode[], links: GraphLink[]) {
 			forceLink<GraphNode, GraphLink>(links)
 				.distance((link) => link.distance)
 				.strength(0.22)
-				.iterations(2),
+				.iterations(1),
 		)
 		.force('home-x', forceX<GraphNode>((node) => node.homeX).strength(0.055))
 		.force('home-y', forceY<GraphNode>((node) => node.homeY).strength(0.055))
@@ -69,14 +69,11 @@ export function createGraphPhysics(nodes: GraphNode[], links: GraphLink[]) {
 			let settled = true;
 			for (const node of nodes) {
 				const speed = Math.hypot(node.vx, node.vy);
-				if (speed > 5.5) {
-					node.vx *= 5.5 / speed;
-					node.vy *= 5.5 / speed;
-				}
 				const position = boundedPosition(node, node.x, node.y);
 				if (position.x !== node.x) node.vx = 0;
 				if (position.y !== node.y) node.vy = 0;
-				Object.assign(node, position);
+				node.x = position.x;
+				node.y = position.y;
 				if (
 					Math.hypot(node.x - node.homeX, node.y - node.homeY) > 0.06 ||
 					speed > 0.03

@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
-// Captured from the expanded static SVG: all 92 nodes and 322 edges (color is intentionally excluded).
+// Captured from the expanded static SVG: 48 nodes and 108 edges (color is intentionally excluded).
 const originalFingerprint =
-	'2a4008bcdc3c5aae2cfd9525c5d7f55458aed0d7f6a2ec0addd373b85fe51636';
+	'770d982ef1545fe36e341378c9e6c4142ee52c1b6c251bfb1ecb646e71bfdb52';
 const geometry = (page: Page) =>
 	page.locator('.graph-network').evaluate((svg) => ({
 		nodes: [...svg.querySelectorAll('.graph-dot')].map((el) =>
@@ -77,13 +77,13 @@ async function idleMutations(page: Page) {
 	return changes;
 }
 
-test('spread preserves topology and stops all motion with reduced preference', async ({
+test('sparse geometry preserves its static fingerprint and stops with reduced motion', async ({
 	page,
 	site,
 }) => {
 	await start(page);
-	await expect(page.locator('.graph-dot')).toHaveCount(92);
-	await expect(page.locator('.graph-edge')).toHaveCount(322);
+	await expect(page.locator('.graph-dot')).toHaveCount(48);
+	await expect(page.locator('.graph-edge')).toHaveCount(108);
 	expect(await fingerprint(page)).toBe(originalFingerprint);
 	await atRest(page);
 	expect(await idleMutations(page)).toBe(0);
@@ -198,7 +198,7 @@ test('consecutive drags and interrupted capture leave no persistent distortion',
 	page,
 }) => {
 	await start(page);
-	for (const id of [0, 15, 59]) {
+	for (const id of [0, 15, 39]) {
 		const point = await center(page, id);
 		await page.mouse.move(point.x, point.y);
 		await page.mouse.down();
@@ -224,9 +224,9 @@ test('keyboard can select, pulse, displace and restore every node with a single 
 	await start(page);
 	await graph(page).focus();
 	await page.keyboard.press('End');
-	await expect(graph(page)).toHaveAttribute('aria-label', /Nodo 92 de 92/);
+	await expect(graph(page)).toHaveAttribute('aria-label', /Nodo 48 de 48/);
 	await page.keyboard.press('ArrowRight');
-	await expect(graph(page)).toHaveAttribute('aria-label', /Nodo 1 de 92/);
+	await expect(graph(page)).toHaveAttribute('aria-label', /Nodo 1 de 48/);
 	await page.keyboard.press('Enter');
 	await expect(page.locator('.graph-effects > g')).toHaveCount(1);
 	await expect(page.locator('.graph-effects > g')).toHaveCount(0, {
@@ -269,7 +269,7 @@ test('reduced motion avoids physics and expanding pulses, including a live prefe
 	expect(await fingerprint(page)).toBe(originalFingerprint);
 });
 
-test('without JavaScript the original SVG remains static and decorative', async ({
+test('without JavaScript the SVG remains static and decorative', async ({
 	browser,
 	baseURL,
 }) => {
@@ -300,6 +300,7 @@ test('touch can drag nodes while empty SVG space still allows page scrolling', a
 		await expect(graph(page)).toHaveAttribute('data-ready', '');
 		await graph(page).scrollIntoViewIfNeeded();
 		const session = await context.newCDPSession(page);
+		await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 		const point = await center(page, 0);
 		const touch = async (
 			type: 'touchStart' | 'touchMove' | 'touchEnd',
@@ -392,56 +393,43 @@ test('sync and build cannot invalidate graph dependencies in a running dev serve
 	expect(errors).toEqual([]);
 });
 
-test('ambient motion is bounded, softly lights nodes and sends only two signals while D3 stays idle', async ({
+test('desktop ambient uses bounded browser animations without rewriting geometry or filters', async ({
 	page,
 }) => {
 	await start(page);
 	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
-	const before = (await geometry(page)).nodes;
-	const opacity = await page
+	const before = await geometry(page);
+	await page.waitForTimeout(1400);
+	expect(await geometry(page)).toEqual(before);
+	await expect(page.locator('.graph-ambient line')).toHaveCount(1);
+	await expect(page.locator('.graph-ambient circle')).toHaveCount(0);
+	const motion = await graph(page).evaluate((svg) => ({
+		transform: getComputedStyle(svg).transform,
+		animations: svg
+			.getAnimations({ subtree: true })
+			.filter((animation) => animation.playState === 'running').length,
+		filtered: [...svg.querySelectorAll('.graph-dot')].filter(
+			(dot) => getComputedStyle(dot).filter !== 'none',
+		).length,
+	}));
+	expect(motion.transform).not.toBe('none');
+	expect(motion.animations).toBeLessThanOrEqual(4);
+	expect(motion.filtered).toBe(0);
+	await page
 		.locator('.graph-dot')
 		.first()
-		.evaluate((dot) => getComputedStyle(dot).opacity);
-	await page.waitForTimeout(1200);
-	const after = (await geometry(page)).nodes;
-	const distances = after.map((node, i) =>
-		Math.hypot(
-			Number(node[0]) - Number(before[i][0]),
-			Number(node[1]) - Number(before[i][1]),
-		),
-	);
-	expect(Math.max(...distances)).toBeGreaterThan(0.2);
-	expect(Math.max(...distances)).toBeLessThan(5);
-	expect(
-		await page
-			.locator('.graph-dot')
-			.first()
-			.evaluate((dot) => getComputedStyle(dot).opacity),
-	).not.toBe(opacity);
-	await expect(page.locator('.graph-ambient circle')).toHaveCount(2);
-	expect(
-		await page
-			.locator('.graph-ambient circle')
-			.evaluateAll((dots) =>
-				dots.some((dot) => Number(dot.getAttribute('opacity')) > 0),
-			),
-	).toBe(true);
+		.evaluate((dot) => {
+			dot.getAnimations()[0].currentTime = 7150;
+		});
+	await expect
+		.poll(() =>
+			page
+				.locator('.graph-dot')
+				.first()
+				.evaluate((dot) => Number(getComputedStyle(dot).opacity)),
+		)
+		.toBeGreaterThan(0.9);
 	await atRest(page);
-	const disconnected = await graph(page).evaluate((svg) =>
-		[...svg.querySelectorAll('.graph-edge')].some((line) => {
-			const source = svg.querySelector(
-				`[data-node="${line.getAttribute('data-source')}"] .graph-dot`,
-			)!;
-			const target = svg.querySelector(
-				`[data-node="${line.getAttribute('data-target')}"] .graph-dot`,
-			)!;
-			return (
-				line.getAttribute('x1') !== source.getAttribute('cx') ||
-				line.getAttribute('y2') !== target.getAttribute('cy')
-			);
-		}),
-	);
-	expect(disconnected).toBe(false);
 });
 
 test('ambient pauses offscreen, on hidden tabs and reduced motion, then resumes without rebuilding topology', async ({
@@ -481,7 +469,7 @@ test('ambient pauses offscreen, on hidden tabs and reduced motion, then resumes 
 	expect(await idleMutations(page)).toBe(0);
 	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
-	await expect(page.locator('.graph-edge')).toHaveCount(322);
+	await expect(page.locator('.graph-edge')).toHaveCount(108);
 });
 
 test('compact typography preserves readable body sizes and graph occupies its own wider column', async ({
@@ -497,4 +485,163 @@ test('compact typography preserves readable body sizes and graph occupies its ow
 	const art = await page.locator('.hero-art').boundingBox();
 	expect(art!.x).toBeGreaterThan(copy!.x + copy!.width);
 	expect(art!.width).toBeGreaterThan(450);
+});
+
+test('mobile stays static at rest and releases all ambient work while preserving touch input', async ({
+	browser,
+	baseURL,
+}) => {
+	const context = await browser.newContext({
+		hasTouch: true,
+		isMobile: true,
+		viewport: { width: 375, height: 812 },
+	});
+	try {
+		const page = await context.newPage();
+		const session = await context.newCDPSession(page);
+		await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+		await page.goto(baseURL!);
+		await expect(graph(page)).toHaveAttribute('data-ready', '');
+		await graph(page).scrollIntoViewIfNeeded();
+		await expect(graph(page)).toHaveAttribute('data-ambient-policy', 'static');
+		await expect(graph(page)).toHaveAttribute('data-ambient', 'paused');
+		const initial = await geometry(page);
+		await page.waitForTimeout(600);
+		expect(await geometry(page)).toEqual(initial);
+		expect(
+			await graph(page).evaluate(
+				(svg) => svg.getAnimations({ subtree: true }).length,
+			),
+		).toBe(0);
+		await expect(page.locator('.graph-ambient')).toHaveCount(0);
+		expect(
+			await graph(page).evaluate(
+				(svg) =>
+					new Promise<number>((resolve) => {
+						let count = 0;
+						const observer = new MutationObserver((records) => {
+							count += records.length;
+						});
+						observer.observe(svg, {
+							subtree: true,
+							attributes: true,
+							childList: true,
+						});
+						setTimeout(() => {
+							observer.disconnect();
+							resolve(count);
+						}, 500);
+					}),
+			),
+		).toBe(0);
+	} finally {
+		await context.close();
+	}
+});
+
+test('sparse topology is connected, has bounded degree and idle pointer movement causes no redundant writes', async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await start(page);
+	const topology = await graph(page).evaluate((svg) => {
+		const nodes = [...svg.querySelectorAll('[data-node]')];
+		const links = [...svg.querySelectorAll('.graph-edge')].map((line) => [
+			Number(line.getAttribute('data-source')),
+			Number(line.getAttribute('data-target')),
+		]);
+		const visited = new Set([0]);
+		for (let i = 0; i < nodes.length; i++)
+			for (const [a, b] of links) {
+				if (visited.has(a)) visited.add(b);
+				if (visited.has(b)) visited.add(a);
+			}
+		return {
+			connected: visited.size,
+			maxDegree: Math.max(
+				...nodes.map(
+					(_, i) => links.filter(([a, b]) => a === i || b === i).length,
+				),
+			),
+			unique: new Set(links.map(([a, b]) => `${a}:${b}`)).size,
+		};
+	});
+	expect(topology).toEqual({ connected: 48, maxDegree: 6, unique: 108 });
+	const point = await center(page, 0);
+	await page.mouse.move(point.x, point.y);
+	await page.waitForTimeout(200);
+	const mutations = await graph(page).evaluate(
+		(svg, point) =>
+			new Promise<number>((resolve) => {
+				let count = 0;
+				const observer = new MutationObserver((records) => {
+					count += records.length;
+				});
+				observer.observe(svg, { subtree: true, attributes: true });
+				const hit = svg.querySelector('.graph-hit')!;
+				for (let i = 0; i < 20; i++)
+					hit.dispatchEvent(
+						new PointerEvent('pointermove', {
+							bubbles: true,
+							clientX: point.x,
+							clientY: point.y,
+						}),
+					);
+				setTimeout(() => {
+					observer.disconnect();
+					resolve(count);
+				}, 50);
+			}),
+		point,
+	);
+	expect(mutations).toBe(0);
+});
+
+test('offscreen and disconnected graphs leave no running browser animations or accumulating signal layers', async ({
+	page,
+}) => {
+	await start(page);
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	await page.locator('elastic-graph').evaluate((element) => {
+		const parent = element.parentNode!;
+		for (let i = 0; i < 10; i++) {
+			element.remove();
+			parent.append(element);
+		}
+	});
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'running');
+	expect(
+		await graph(page).evaluate(
+			(svg) =>
+				svg
+					.getAnimations({ subtree: true })
+					.filter((animation) => animation.playState === 'running').length,
+		),
+	).toBe(3);
+	await page.evaluate(() => {
+		document.body.style.minHeight = '4000px';
+		window.scrollTo({ top: 3000, behavior: 'instant' });
+	});
+	await expect(graph(page)).toHaveAttribute('data-ambient', 'paused');
+	await expect
+		.poll(() =>
+			graph(page).evaluate(
+				(svg) =>
+					svg
+						.getAnimations({ subtree: true })
+						.filter((animation) => animation.playState === 'running').length,
+			),
+		)
+		.toBe(0);
+	await expect(page.locator('.graph-ambient line')).toHaveCount(0);
+	const detached = await page.locator('elastic-graph').evaluate((element) => {
+		const svg = element.querySelector('svg')!;
+		element.remove();
+		return {
+			animations: svg.getAnimations({ subtree: true }).length,
+			signalLayers: svg.querySelectorAll('.graph-ambient').length,
+			ready: svg.hasAttribute('data-ready'),
+		};
+	});
+	expect(detached).toEqual({ animations: 0, signalLayers: 0, ready: false });
 });

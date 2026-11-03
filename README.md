@@ -2,7 +2,7 @@
 
 Web personal con presentación y blog técnico integrados en `/`. Los artículos individuales conservan `/blog/[slug]/`. No hay menú global, página «Sobre mí» ni índice separado del blog. La navegación de lectura aparece únicamente dentro de los artículos.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema exclusivamente oscuro, tipografía de sistema Cambria/Caladea/Georgia y paleta provisional azul oscuro, azul claro, rosa y blanco. Se conservan el logotipo «af.», los favicons y el grafo SVG original. Los enlaces profesionales aparecen solo en la presentación; el pie contiene únicamente copyright, autor y enlace RSS.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema exclusivamente oscuro, tipografía de sistema Cambria/Caladea/Georgia y paleta provisional azul oscuro, azul claro, rosa y blanco. Se conservan el logotipo «af.», los favicons y la identidad del grafo SVG interactivo. Los enlaces profesionales aparecen solo en la presentación; el pie contiene únicamente copyright, autor y enlace RSS.
 
 ## Identidad visual
 
@@ -111,15 +111,19 @@ Se mantienen en `src/data/blog.ts` y se validan con el esquema de la colección;
 
 ## Grafo interactivo
 
-`GraphNetwork.astro` conserva los 92 nodos y las 322 conexiones originales, con una distribución extendida un 10 % desde el centro, dentro del mismo SVG. Se mantiene la paleta y la red estática sin JavaScript. La portada reduce aproximadamente un 20 % titulares y espaciados, conservando cuerpo legible de 16 px, metadatos de 14 px y Cambria. La columna del grafo dispone de más espacio relativo sin invadir el texto. La mejora progresiva se carga solo en Inicio; las páginas de artículos no importan el módulo del grafo.
+`GraphNetwork.astro` muestra 48 nodos y 108 conexiones, muestreados desde la distribución original de cinco grupos, dentro del mismo SVG. `src/data/graph.ts` genera una red conectada con un árbol de expansión y enlaces locales adicionales, sin duplicados ni grados mayores que seis. Se han retirado la cuadrícula, el polígono superpuesto y los halos redundantes. Se mantiene la paleta y la red estática sin JavaScript. La portada reduce aproximadamente un 20 % titulares y espaciados, conservando cuerpo legible de 16 px, metadatos de 14 px y Cambria. La columna del grafo dispone de más espacio relativo sin invadir el texto. La mejora progresiva se carga solo en Inicio; las páginas de artículos no importan el módulo del grafo.
 
 La interacción reside en `src/scripts/graph-network.ts` y la física en `src/lib/graph-physics.ts`. Se utiliza únicamente `d3-force`, con eventos de puntero nativos y captura del puntero para ratón y tacto. Los enlaces conservan su longitud de reposo y cada nodo tiene un anclaje elástico a su posición original. Se limitan velocidades, desplazamiento y límites del SVG.
 
-La física D3 solo se activa al desplazar un nodo y se detiene al recuperar el equilibrio, con pasos de 60 Hz independientes de la pantalla. `src/lib/graph-ambient.ts` añade desplazamientos analíticos acotados de unos dos puntos SVG por eje, variación luminosa de una cuarta parte de los nodos y hasta dos señales que recorren aristas. No ejecuta D3 en reposo y actualiza la presentación como máximo a 30 Hz. La influencia ambiental se atenúa gradualmente durante el arrastre y la recuperación. IntersectionObserver, visibilidad de pestaña y foco pausan la actividad; al desmontar se limpian eventos, frames, animaciones y observadores.
+La física D3 solo se activa al desplazar un nodo y se detiene al recuperar el equilibrio, con pasos de 60 Hz independientes de la pantalla y una iteración de enlaces por paso. El render actualiza únicamente los nodos desplazados y los extremos de sus aristas incidentes, con caché de atributos y precisión visual de 0,01 puntos SVG. Al recuperar el equilibrio se restauran las coordenadas originales completas. El hover solo cambia el nodo activo y sus enlaces, sin reescribir el resto de la red.
+
+`src/lib/graph-ambient.ts` no tiene bucle JavaScript de frames ni modifica la geometría: utiliza Web Animations para desplazar suavemente el SVG completo menos de un píxel y pulsar la opacidad de dos nodos. Una única señal ocasional recorre una arista. No hay filtros ni sombras. El ambiente se pausa durante el arrastre y la recuperación; después continúa desde su posición congelada. En pantallas de hasta 760 px o con puntero grueso, el ambiente está desactivado y no se crean animaciones ni temporizadores ambientales; se conserva la física táctil bajo demanda. Los destellos manuales móviles omiten los anillos vecinos y limitan las propagaciones a tres conexiones. Solo se permite un destello manual simultáneo.
+
+IntersectionObserver, visibilidad de pestaña y foco pausan las animaciones, cancelan las señales y detienen la simulación. Al desmontar se cancelan también eventos, animaciones, timers y observadores. Se prueban las reconexiones del componente para evitar duplicar trabajo.
 
 El SVG tiene un único punto de entrada por teclado: flechas para recorrer nodos, Intro o espacio para activar un destello, Mayúsculas y flechas para desplazar, y Escape para restablecer. Las instrucciones se exponen a tecnologías de asistencia sin añadir controles visibles. En pantallas táctiles se arrastra desde un nodo; el espacio vacío permite desplazar la página. Se admite un arrastre a la vez.
 
-Con `prefers-reduced-motion` no hay movimiento ambiental, iluminación automática, simulación ni ondas expansivas: el arrastre es directo y la restauración inmediata. Sin JavaScript se conserva el grafo decorativo original. Las pruebas de `tests/graph.spec.ts` verifican una huella de la nueva geometría estática independiente del color, topología conservada, interacción, enlaces unidos, vecinos, recuperación, actividad ambiental acotada, pausas, teclado, tacto y ausencia de mutaciones con movimiento reducido.
+Con `prefers-reduced-motion` no hay movimiento ambiental, iluminación automática, simulación ni ondas expansivas: el arrastre es directo y la restauración inmediata. Sin JavaScript se conserva el grafo decorativo estático. Las pruebas de `tests/graph.spec.ts` verifican una huella de la nueva geometría estática independiente del color, topología dispersa conectada, interacción, enlaces unidos, vecinos, recuperación, actividad ambiental acotada, pausas, teclado, tacto y ausencia de mutaciones con movimiento reducido.
 
 ## Pruebas
 
@@ -173,3 +177,31 @@ Las pruebas sintéticas de destacados, filtros, series, relacionados, metadatos 
 `TemperatureExplorer.astro` usa los 51 resultados precalculados de `src/data/roc_auc_temperature.json`: solo dibuja la transformación analítica en el navegador. Tiene control de rango nativo, anuncio accesible de resultados, identificadores por instancia y limpieza de eventos. Sin JavaScript muestra la referencia real T=1 y desactiva el control. Su código se carga exclusivamente en los artículos que lo incorporen.
 
 El experimento y sus instrucciones de verificación sin sobrescritura se encuentran en [experiments/roc-auc-calibracion/README.md](experiments/roc-auc-calibracion/README.md). Las dependencias Python se instalan en un entorno separado de npm. Los SVG de `public/` y las fuentes del repositorio son accesibles por URL: el estado de borrador no los convierte en archivos privados. El ZIP original se conserva localmente, excluido de Git.
+
+## Medición del grafo
+
+`scripts/measure-graph.mjs` compara un directorio de producción antes y después, sin capturas ni dependencias nuevas:
+
+```sh
+CHROME_PATH=/usr/bin/google-chrome node scripts/measure-graph.mjs /tmp/build-anterior before .qa/graph-before.json
+CHROME_PATH=/usr/bin/google-chrome node scripts/measure-graph.mjs dist after .qa/graph-after.json
+```
+
+Ejecutar cada medición sin tests o builds simultáneos. Se utilizan tres repeticiones por perfil (1440×1000 sin limitación y móvil emulado 375×812, tacto y CPU 4×). Las fases son ambiente visible, arrastre, recuperación, scroll programado y veinte reconexiones. Los JSON locales, excluidos de Git, guardan mutaciones, tiempo JavaScript, ocupación del hilo principal, cadencia rAF, tareas largas y heap JS después de GC. La instrumentación añade coste a ambas versiones. La cadencia rAF no equivale a FPS renderizados por la GPU; el heap JS no mide toda la memoria del navegador ni GPU. La emulación no sustituye mediciones en teléfonos físicos.
+
+Comparación local en Chromium headless 146.0.7680.164, Linux, Node 22.23.1 (medianas de tres repeticiones; build anterior `7aa93fa`):
+
+| Perfil y fase                      | Mutaciones de atributos/s, antes → después | JS ms/s, antes → después | Hilo principal %, antes → después | Cadencia rAF Hz, antes → después |
+| ---------------------------------- | -----------------------------------------: | -----------------------: | --------------------------------: | -------------------------------: |
+| Escritorio, ambiente               |                                 51.607 → 0 |               76,9 → 2,0 |                        34,8 → 3,5 |                      60,0 → 60,0 |
+| Escritorio, arrastre               |                           116.440 → 21.033 |             173,2 → 53,2 |                       55,5 → 23,3 |                      60,0 → 60,0 |
+| Escritorio, recuperación           |                             61.849 → 5.617 |             101,1 → 17,1 |                        40,2 → 9,6 |                      60,0 → 60,0 |
+| Escritorio, scroll                 |                               14.468 → 1,5 |               32,2 → 6,7 |                        14,0 → 5,0 |                      60,0 → 60,0 |
+| Móvil emulado CPU 4×, ambiente     |                                 44.766 → 0 |              171,0 → 3,8 |                        91,2 → 3,6 |                      40,9 → 60,0 |
+| Móvil emulado CPU 4×, arrastre     |                            71.571 → 25.759 |            273,3 → 135,4 |                      100,4 → 56,9 |                      31,8 → 60,0 |
+| Móvil emulado CPU 4×, recuperación |                             46.214 → 6.011 |             190,9 → 39,3 |                       92,6 → 16,2 |                      37,5 → 60,0 |
+| Móvil emulado CPU 4×, scroll       |                               14.278 → 0,5 |              81,4 → 18,4 |                        34,9 → 8,2 |                      54,1 → 60,0 |
+
+La ocupación se calcula con `Performance.TaskDuration / tiempo de pared` de CDP, no con un medidor de CPU del sistema; bajo emulación y ventanas cortas puede superar ligeramente el 100 %. El P95 del intervalo rAF móvil durante arrastre pasó de 50 a 16,7 ms. Se observó una tarea larga aislada en una repetición de arrastre de escritorio optimizado (cadencia media de esa repetición: 32,3 Hz); se conserva en los datos y no se infiere su causa sin una traza específica. Las otras dos repeticiones de escritorio estuvieron cerca de 60 Hz.
+
+El heap JS al terminar la fase ambiental pasó de 2,55 a 2,28 MiB en escritorio y de 3,08 a 2,25 MiB en móvil emulado. Durante el arrastre de escritorio, la mediana al cerrar la fase subió de 2,94 a 3,62 MiB: las cachés y el momento del GC afectan esta lectura, por lo que no se afirma que toda fase consuma menos memoria. Tras veinte reconexiones y GC, la variación mediana optimizada fue de −20,7 KiB (escritorio) y −17,4 KiB (móvil), sin crecimiento retenido en esa comprobación limitada. Los resultados dependen del equipo y no acreditan rendimiento en teléfonos físicos.

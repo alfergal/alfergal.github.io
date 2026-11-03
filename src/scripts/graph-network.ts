@@ -13,6 +13,7 @@ function mountGraph(svg: SVGSVGElement) {
 	const abort = new AbortController();
 	const { signal } = abort;
 	const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+	const mobile = matchMedia('(max-width: 760px), (pointer: coarse)');
 	const groups = [...svg.querySelectorAll<SVGGElement>('[data-node]')];
 	const dots = groups.map((group) =>
 		group.querySelector<SVGCircleElement>('.graph-dot')!,
@@ -40,22 +41,14 @@ function mountGraph(svg: SVGSVGElement) {
 			distance: Math.hypot(source.x - target.x, source.y - target.y),
 		};
 	});
-	const skeleton = svg.querySelector<SVGPathElement>('[data-graph-skeleton]')!;
-	const skeletonPath = skeleton.getAttribute('d')!;
-	const halo = svg.querySelector<SVGGElement>('[data-graph-halo]')!;
 	const effects = svg.querySelector<SVGGElement>('.graph-effects')!;
-	const nearest = (x: number, y: number) =>
-		nodes.reduce((best, node) =>
-			Math.hypot(node.x - x, node.y - y) < Math.hypot(best.x - x, best.y - y)
-				? node
-				: best,
-		);
-	const landmark = (x: number, y: number) => ({ x, y, node: nearest(x, y) });
-	const coordinates = skeletonPath.match(/\d+(?:\.\d+)?/g)!.map(Number);
-	const landmarks = coordinates.flatMap((x, i) =>
-		i % 2 === 0 ? [landmark(x, coordinates[i + 1])] : [],
+	const adjacency = nodes.map(
+		() => [] as { line: SVGLineElement; x: string; y: string }[],
 	);
-	const haloAnchor = landmark(323.8, 142.8);
+	links.forEach(({ source, target }, i) => {
+		adjacency[source.id].push({ line: lines[i], x: 'x1', y: 'y1' });
+		adjacency[target.id].push({ line: lines[i], x: 'x2', y: 'y2' });
+	});
 	let physics: ReturnType<typeof createGraphPhysics> | undefined;
 	let frame = 0;
 	let previousTime = 0;
@@ -86,43 +79,42 @@ function mountGraph(svg: SVGSVGElement) {
 	let visible = false;
 	let focused = true;
 
+	const attributes = new WeakMap<SVGElement, Map<string, string>>();
+	const setAttribute = (element: SVGElement, name: string, value: string) => {
+		let cache = attributes.get(element);
+		if (!cache) {
+			cache = new Map();
+			attributes.set(element, cache);
+		}
+		if ((cache.get(name) ?? element.getAttribute(name)) !== value)
+			element.setAttribute(name, value);
+		cache.set(name, value);
+	};
+	const coordinate = (value: number, home: number) =>
+		value === home ? value : Math.round(value * 100) / 100;
 	const setPosition = (
 		element: SVGElement,
 		node: GraphNode,
 		x = 'cx',
 		y = 'cy',
 	) => {
-		element.setAttribute(
-			x,
-			String(node.x + (ambient?.offsets[node.id].x ?? 0)),
-		);
-		element.setAttribute(
-			y,
-			String(node.y + (ambient?.offsets[node.id].y ?? 0)),
-		);
+		setAttribute(element, x, String(coordinate(node.x, node.homeX)));
+		setAttribute(element, y, String(coordinate(node.y, node.homeY)));
 	};
+	const previousPositions = nodes.map((node) => ({ x: node.x, y: node.y }));
 	const render = () => {
-		nodes.forEach((node, i) => {
-			setPosition(dots[i], node);
-			setPosition(hits[i], node);
-		});
-		links.forEach(({ source, target }, i) => {
-			setPosition(lines[i], source, 'x1', 'y1');
-			setPosition(lines[i], target, 'x2', 'y2');
-		});
-		skeleton.setAttribute(
-			'd',
-			landmarks
-				.map(
-					({ x, y, node }, i) =>
-						`${i ? ' ' : 'M'}${x + node.x - node.homeX + (ambient?.offsets[node.id].x ?? 0)} ${y + node.y - node.homeY + (ambient?.offsets[node.id].y ?? 0)}`,
-				)
-				.join(''),
-		);
-		halo.setAttribute(
-			'transform',
-			`translate(${haloAnchor.node.x - haloAnchor.node.homeX + (ambient?.offsets[haloAnchor.node.id].x ?? 0)} ${haloAnchor.node.y - haloAnchor.node.homeY + (ambient?.offsets[haloAnchor.node.id].y ?? 0)})`,
-		);
+		for (const node of nodes) {
+			const x = coordinate(node.x, node.homeX),
+				y = coordinate(node.y, node.homeY);
+			const previous = previousPositions[node.id];
+			if (x === previous.x && y === previous.y) continue;
+			previous.x = x;
+			previous.y = y;
+			setPosition(dots[node.id], node);
+			setPosition(hits[node.id], node);
+			for (const edge of adjacency[node.id])
+				setPosition(edge.line, node, edge.x, edge.y);
+		}
 		pulseLines.forEach(({ source, target }, line) => {
 			setPosition(line, source, 'x1', 'y1');
 			setPosition(line, target, 'x2', 'y2');
@@ -144,10 +136,7 @@ function mountGraph(svg: SVGSVGElement) {
 				fy: null,
 			});
 		render();
-		if (!ambient || reduced.matches) {
-			skeleton.setAttribute('d', skeletonPath);
-			halo.removeAttribute('transform');
-		}
+
 		svg.dataset.simulation = 'idle';
 	};
 	const step = (time: number) => {
@@ -167,6 +156,7 @@ function mountGraph(svg: SVGSVGElement) {
 		// The guard also bounds recovery if future force tuning introduces a slow tail.
 		if (quietFrames >= 6 || (!drag && !keyboardNode && time - started > 8000)) {
 			reset();
+			resume();
 			return;
 		}
 		frame = requestAnimationFrame(step);
@@ -174,6 +164,7 @@ function mountGraph(svg: SVGSVGElement) {
 	const wake = () => {
 		if (reduced.matches || frame || document.hidden || !visible || !focused)
 			return;
+		ambient?.pause();
 		physics ??= createGraphPhysics(nodes, links);
 		previousTime = 0;
 		quietFrames = 0;
@@ -181,27 +172,41 @@ function mountGraph(svg: SVGSVGElement) {
 		svg.dataset.simulation = 'running';
 		frame = requestAnimationFrame(step);
 	};
+	let highlighted: number | undefined;
+	let near = false;
 	const highlight = () => {
 		const active =
 			drag?.node.id ??
 			hover ??
 			(svg.hasAttribute('data-keyboard') ? selected : undefined);
-		groups.forEach((group, i) =>
-			group.toggleAttribute('data-active', i === active),
-		);
-		links.forEach(({ source, target }, i) =>
-			lines[i].toggleAttribute(
-				'data-active',
-				source.id === active || target.id === active,
-			),
-		);
-		svg.toggleAttribute('data-near-node', hover !== undefined);
+		if (active !== highlighted) {
+			if (highlighted !== undefined) {
+				groups[highlighted].removeAttribute('data-active');
+				adjacency[highlighted].forEach(({ line }) =>
+					line.removeAttribute('data-active'),
+				);
+			}
+			if (active !== undefined) {
+				groups[active].setAttribute('data-active', '');
+				adjacency[active].forEach(({ line }) =>
+					line.setAttribute('data-active', ''),
+				);
+			}
+			highlighted = active;
+		}
+		if (near !== (hover !== undefined)) {
+			near = hover !== undefined;
+			svg.toggleAttribute('data-near-node', near);
+		}
 	};
+	let lastSelected: number | undefined;
 	const select = (id: number) => {
 		selected = id;
-		groups.forEach((group, i) =>
-			group.toggleAttribute('data-selected', i === id),
-		);
+		if (lastSelected === id) return;
+		if (lastSelected !== undefined)
+			groups[lastSelected].removeAttribute('data-selected');
+		groups[id].setAttribute('data-selected', '');
+		lastSelected = id;
 		svg.setAttribute(
 			'aria-label',
 			`Grafo interactivo. Nodo ${id + 1} de ${nodes.length}.`,
@@ -214,6 +219,20 @@ function mountGraph(svg: SVGSVGElement) {
 					matrix.inverse(),
 				)
 			: null;
+	};
+	// Hit areas overlap on small screens: choose the visible point nearest to the input.
+	// Squared distances avoid the repeated square roots of the old implementation.
+	const nearest = (x: number, y: number) => {
+		let best = nodes[0],
+			distance = Infinity;
+		for (const node of nodes) {
+			const value = (node.x - x) ** 2 + (node.y - y) ** 2;
+			if (value < distance) {
+				best = node;
+				distance = value;
+			}
+		}
+		return best;
 	};
 	const timeout = (fn: () => void, delay: number) => {
 		const timer = setTimeout(() => {
@@ -229,7 +248,9 @@ function mountGraph(svg: SVGSVGElement) {
 			return;
 		}
 		// Keep rapid repeated clicks bounded; every temporary element is removed on completion.
-		if (effects.childElementCount >= 3) return;
+		if (effects.childElementCount >= 1) return;
+		ambient?.pause();
+		timeout(resume, 600);
 		const group = document.createElementNS(SVG_NS, 'g');
 		effects.append(group);
 		const pending: Promise<unknown>[] = [];
@@ -270,9 +291,9 @@ function mountGraph(svg: SVGSVGElement) {
 			);
 		};
 		ring(node, 19);
-		for (const link of links.filter(
-			(link) => link.source === node || link.target === node,
-		)) {
+		for (const link of links
+			.filter((link) => link.source === node || link.target === node)
+			.slice(0, mobile.matches ? 3 : 6)) {
 			const target = link.source === node ? link.target : link.source;
 			const line = document.createElementNS(SVG_NS, 'line');
 			const length = Math.hypot(target.x - node.x, target.y - node.y);
@@ -292,7 +313,7 @@ function mountGraph(svg: SVGSVGElement) {
 				340,
 				40,
 			);
-			ring(target, 7, 190);
+			if (!mobile.matches) ring(target, 7, 190);
 		}
 		void Promise.all(pending).then(() => {
 			group.querySelectorAll('line').forEach((line) => pulseLines.delete(line));
@@ -323,6 +344,7 @@ function mountGraph(svg: SVGSVGElement) {
 				wake();
 			}
 		} else if (!cancelled) pulse(node);
+		else resume();
 		highlight();
 	};
 	const moveNode = (node: GraphNode, x: number, y: number) => {
@@ -353,6 +375,7 @@ function mountGraph(svg: SVGSVGElement) {
 			if (!location) return;
 			releaseKeyboard();
 			const node = nearest(location.x, location.y);
+			ambient?.pause();
 			select(node.id);
 			svg.removeAttribute('data-keyboard');
 			svg.focus({ preventScroll: true });
@@ -374,6 +397,16 @@ function mountGraph(svg: SVGSVGElement) {
 	svg.addEventListener(
 		'pointermove',
 		(event) => {
+			if (!drag) {
+				const group =
+					event.target instanceof Element
+						? event.target.closest<SVGGElement>('[data-node]')
+						: null;
+				const location = group ? point(event) : null;
+				hover = location ? nearest(location.x, location.y).id : undefined;
+				highlight();
+				return;
+			}
 			const location = point(event);
 			if (!location) return;
 			if (drag) {
@@ -383,8 +416,8 @@ function mountGraph(svg: SVGSVGElement) {
 					Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 4
 				)
 					return;
+				if (!drag.moved) svg.setAttribute('data-dragging', '');
 				drag.moved = true;
-				svg.setAttribute('data-dragging', '');
 				moveNode(
 					drag.node,
 					location.x + drag.offsetX,
@@ -392,14 +425,6 @@ function mountGraph(svg: SVGSVGElement) {
 				);
 				return;
 			}
-			const node = nearest(location.x, location.y);
-			const matrix = svg.getScreenCTM();
-			const scale = matrix ? Math.hypot(matrix.a, matrix.b) : 1;
-			hover =
-				Math.hypot(node.x - location.x, node.y - location.y) * scale <= 14
-					? node.id
-					: undefined;
-			highlight();
 		},
 		{ signal },
 	);
@@ -441,6 +466,7 @@ function mountGraph(svg: SVGSVGElement) {
 				finishDrag(true);
 				releaseKeyboard();
 				reset();
+				resume();
 			} else if (event.key === 'Enter' || event.key === ' ') {
 				if (!event.repeat) pulse(nodes[selected]);
 			} else if (event.shiftKey && arrows.includes(event.key)) {
@@ -523,21 +549,33 @@ function mountGraph(svg: SVGSVGElement) {
 		highlight();
 	};
 	const resume = () => {
-		if (!reduced.matches && visible && focused && !document.hidden)
+		if (
+			!reduced.matches &&
+			!mobile.matches &&
+			!frame &&
+			!drag &&
+			!keyboardNode &&
+			visible &&
+			focused &&
+			!document.hidden
+		)
 			ambient?.start();
 	};
-	reduced.addEventListener(
-		'change',
-		() => {
-			suspend();
-			if (reduced.matches) {
-				ambient?.clear();
-				reset();
-			}
-			resume();
-		},
-		{ signal },
-	);
+	const policy = () => {
+		suspend();
+		svg.dataset.ambientPolicy = reduced.matches
+			? 'reduced'
+			: mobile.matches
+				? 'static'
+				: 'animated';
+		if (reduced.matches || mobile.matches) {
+			ambient?.clear();
+			reset();
+		}
+		resume();
+	};
+	reduced.addEventListener('change', policy, { signal });
+	mobile.addEventListener('change', policy, { signal });
 	document.addEventListener(
 		'visibilitychange',
 		() => {
@@ -590,20 +628,17 @@ function mountGraph(svg: SVGSVGElement) {
 	svg.dataset.ready = '';
 	svg.dataset.simulation = 'idle';
 	select(0);
-	ambient = createGraphAmbient(
-		svg,
-		nodes,
-		links,
-		() => {
-			if (!frame) render();
-		},
-		() => !!drag || !!keyboardNode || !!frame,
-	);
+	ambient = createGraphAmbient(svg, nodes, links);
+	svg.dataset.ambient = 'paused';
+	svg.dataset.ambientPolicy = reduced.matches
+		? 'reduced'
+		: mobile.matches
+			? 'static'
+			: 'animated';
+
 	return () => {
 		abort.abort();
 		intersection.disconnect();
-		ambient?.pause();
-		ambient?.clear();
 		ambient?.destroy();
 		resize.disconnect();
 		cancelAnimationFrame(frame);

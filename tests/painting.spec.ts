@@ -217,6 +217,18 @@ test('comparison uses native keyboard controls, aligned images, no requests or i
 			() => (window as unknown as { mutations: number }).mutations,
 		),
 	).toBe(0);
+	// Focus scrolling can trigger unrelated lazy figures elsewhere in the article.
+	// Finish those loads before measuring requests caused by the slider itself.
+	await page.locator('.prose img').evaluateAll((images) =>
+		Promise.all(
+			images.map(async (element) => {
+				const image = element as HTMLImageElement;
+				image.loading = 'eager';
+				await image.decode();
+			}),
+		),
+	);
+	await page.waitForLoadState('networkidle');
 	const requests: string[] = [];
 	page.on('request', (request) => requests.push(request.url()));
 	await page.keyboard.press('ArrowRight');

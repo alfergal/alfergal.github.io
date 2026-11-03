@@ -38,26 +38,50 @@ test('featured posts and useful filters exclude drafts and never duplicate an ar
 	expect(a11y.violations).toEqual([]);
 });
 
-test('article headings generate an accessible desktop index and mobile disclosure with active anchors', async ({
-	page,
-	site,
-}) => {
-	await page.goto(`${site.productionURL}${article}`);
-	const toc = page.locator('.article-toc');
-	const links = toc.locator('a');
-	await expect(links).toHaveCount(4);
-	await expect(toc.locator('details')).toHaveAttribute('open', '');
-	await links.last().click();
-	await expect(page).toHaveURL(/#referencias$/);
-	await expect(links.last()).toHaveAttribute('aria-current', 'location');
-	await page.setViewportSize({ width: 375, height: 812 });
-	await expect(toc.locator('details')).not.toHaveAttribute('open');
-	await toc.locator('summary').focus();
-	await page.keyboard.press('Enter');
-	await expect(links.first()).toBeVisible();
-	await page.goto(`${site.productionURL}/blog/qa-verification-old/`);
-	await expect(page.locator('.article-toc')).toHaveCount(0);
-});
+for (const width of [1440, 375]) {
+	test(`article index starts closed and toggles natively at ${width}px without automatic reopening`, async ({
+		page,
+		site,
+	}) => {
+		await page.setViewportSize({ width, height: 1000 });
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto(`${site.productionURL}${article}`);
+		const toc = page.locator('.article-toc');
+		const details = toc.locator('details');
+		const summary = toc.locator('summary');
+		const links = toc.locator('a');
+		await expect(links).toHaveCount(4);
+		await expect(details).not.toHaveAttribute('open');
+		await expect(summary).toHaveText('En este artículo');
+		await expect(toc.locator('nav')).toBeHidden();
+		await summary.click();
+		await expect(details).toHaveAttribute('open', '');
+		await links.last().click();
+		await expect(page).toHaveURL(/#referencias$/);
+		await expect(links.last()).toHaveAttribute('aria-current', 'location');
+		await summary.click();
+		await expect(details).not.toHaveAttribute('open');
+		await page
+			.locator('.prose #referencias')
+			.evaluate((heading) =>
+				heading.scrollIntoView({ block: 'start', behavior: 'instant' }),
+			);
+		await expect(links.last()).toHaveAttribute('aria-current', 'location');
+		await expect(details).not.toHaveAttribute('open');
+		await page.setViewportSize({
+			width: width === 375 ? 1440 : 375,
+			height: 1000,
+		});
+		await expect(details).not.toHaveAttribute('open');
+		await summary.focus();
+		await page.keyboard.press('Enter');
+		await expect(details).toHaveAttribute('open', '');
+		await page.keyboard.press('Space');
+		await expect(details).not.toHaveAttribute('open');
+		await page.goto(`${site.productionURL}/blog/qa-verification-old/`);
+		await expect(page.locator('.article-toc')).toHaveCount(0);
+	});
+}
 
 test('code toolbar copies exact text, announces success and survives clipboard failure', async ({
 	page,
@@ -208,6 +232,14 @@ test('article features degrade gracefully without JavaScript and do not load the
 		const noJS = await context.newPage();
 		await noJS.goto(`${site.productionURL}${article}`);
 		await expect(noJS.locator('.article-toc a')).toHaveCount(4);
+		const details = noJS.locator('.article-toc details');
+		await expect(details).not.toHaveAttribute('open');
+		await noJS.locator('.article-toc summary').click();
+		await expect(details).toHaveAttribute('open', '');
+		await noJS.locator('.article-toc a').last().click();
+		await expect(noJS).toHaveURL(/#referencias$/);
+		await noJS.locator('.article-toc summary').click();
+		await expect(details).not.toHaveAttribute('open');
 		await expect(noJS.locator('pre code')).toBeVisible();
 		await expect(noJS.locator('.series-navigation')).toBeVisible();
 		await expect(noJS.locator('button')).toHaveCount(0);

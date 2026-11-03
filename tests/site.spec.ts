@@ -41,7 +41,9 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 	await expect(page.locator('footer')).toContainText(
 		'Alberto Fernández Gálvez',
 	);
-	await expect(page.locator('footer a')).toHaveText('RSS');
+	await expect(page.locator('footer a')).toHaveText('RSS (XML)');
+	await expect(page.locator('footer a')).toHaveAttribute('href', '/rss.xml');
+	await expect(page.locator('footer a')).toHaveAttribute('title', /lector RSS/);
 	await expect(page.locator('#blog-title')).toHaveText('Blog');
 	if (site.entries.filter((entry) => !entry.draft).length < 3)
 		await expect(page.locator('.blog-filters, .featured-posts')).toHaveCount(0);

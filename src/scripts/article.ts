@@ -57,15 +57,6 @@ function mountArticle() {
 			);
 		}
 	});
-	const toc = document.querySelector<HTMLDetailsElement>(
-		'.article-toc details',
-	);
-	const narrow = matchMedia('(max-width: 1099px)');
-	const adapt = () => {
-		if (toc) toc.open = !narrow.matches;
-	};
-	adapt();
-	narrow.addEventListener('change', adapt, { signal });
 	const links = [
 		...document.querySelectorAll<HTMLAnchorElement>('.article-toc a'),
 	];

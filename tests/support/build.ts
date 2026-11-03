@@ -2,6 +2,7 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { profile } from '../../src/data/profile';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../src/consts';
 import type { TestSite } from './site';
 import { listedEntries } from './site';
 
@@ -124,6 +125,27 @@ export async function verifyBuild(
 	const rssResponse = await request.get(`${site.productionURL}/rss.xml`);
 	expect(rssResponse.status()).toBe(200);
 	const rss = await rssResponse.text();
+	expect(rssResponse.headers()['content-type']).toMatch(
+		/(?:application|text)\/(?:rss\+)?xml/,
+	);
+	expect(
+		await page.evaluate((source) => {
+			const xml = new DOMParser().parseFromString(source, 'application/xml');
+			return {
+				root: xml.documentElement.localName,
+				version: xml.documentElement.getAttribute('version'),
+				invalid: !!xml.querySelector('parsererror'),
+			};
+		}, rss),
+	).toEqual({ root: 'rss', version: '2.0', invalid: false });
+	expect(await xmlValues(page, rss, 'channel > title')).toEqual([SITE_TITLE]);
+	expect(await xmlValues(page, rss, 'channel > description')).toEqual([
+		SITE_DESCRIPTION,
+	]);
+	expect(await xmlValues(page, rss, 'channel > link')).toEqual([
+		`${profile.site}/`,
+	]);
+	expect(await xmlValues(page, rss, 'channel > language')).toEqual(['es-es']);
 	expect(await xmlValues(page, rss, 'item link')).toEqual(
 		published.map((entry) => `${profile.site}/blog/${entry.id}/`),
 	);

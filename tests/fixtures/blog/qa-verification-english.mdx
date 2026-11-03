@@ -1,0 +1,37 @@
+---
+title: "Test article: English translation"
+description: "Synthetic English fixture, never editorial content."
+pubDate: 2021-01-01
+updatedDate: 2021-02-01
+lang: en
+translationKey: qa-verification-new
+category: Machine Learning
+tags: [Python, Statistics]
+draft: false
+featured: true
+---
+import TemperatureExplorer from '../../components/TemperatureExplorer.astro';
+import ImageComparison from '../../components/ImageComparison.astro';
+
+## Synthetic data
+This is a test, not scientific evidence. The expression is $x^2$.
+
+~~~python title="example.py"
+values = [1, 2, 3]
+assert sum(values) == 6
+~~~
+
+> [!NOTE]
+> Synthetic content for interface tests.
+
+## Evaluation
+No real experiment is reported.
+
+### Limitations
+Test content only.
+
+## References
+[Python documentation](https://docs.python.org/3/).
+
+<TemperatureExplorer />
+<ImageComparison before="/figures/restauracion-cromatica/deteriorada.webp" after="/figures/restauracion-cromatica/cnn.webp" beforeAlt="Test image before synthetic colour correction." afterAlt="Test image after synthetic colour correction." beforeLabel="Synthetic input" afterLabel="CNN output" caption="Isolated test fixture using the same precomputed resources." />

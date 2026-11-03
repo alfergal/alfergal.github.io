@@ -1,18 +1,21 @@
 ---
 import type { MarkdownHeading } from 'astro';
+import { ui, type Locale } from '../i18n';
 interface Props {
 	headings: MarkdownHeading[];
+	lang: Locale;
 }
+const t = ui[Astro.props.lang];
 const headings = Astro.props.headings.filter(
 	({ depth }) => depth === 2 || depth === 3,
 );
 ---
 
 {headings.length >= 3 && (
-	<aside class="article-toc" aria-label="Índice del artículo">
+	<aside class="article-toc" aria-label={t.articleIndex}>
 		<details>
-			<summary>En este artículo</summary>
-			<nav aria-label="Índice de contenidos">
+			<summary>{t.toc}</summary>
+			<nav aria-label={t.contents}>
 				<ol>
 					{headings.map(({ slug, text, depth }) => (
 						<li class:list={{ 'toc-subheading': depth === 3 }}>

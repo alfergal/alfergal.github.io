@@ -1,16 +1,24 @@
 ---
-import { profile } from '../data/profile';
+import { profile, getProfessionalLinks } from '../data/profile';
+import { ui, feedPath, type Locale } from '../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
 ---
 
 <footer class="site-footer container">
 	<span>
 		© {new Date().getFullYear()} {profile.name}
 	</span>
-	<a
-		href="/rss.xml"
-		class="footer-rss"
-		title="Copia este enlace en tu lector RSS para seguir los artículos del blog."
-	>
-		RSS (XML)
-	</a>
+	<div class="footer-links">
+		{getProfessionalLinks().map((link) => (
+			<a href={link.href} rel="noopener noreferrer">
+				{link.label === 'Email' && lang === 'es' ? 'Correo' : link.label}
+			</a>
+		))}
+		<a href={feedPath(lang)} class="footer-rss" title={ui[lang].rssHint}>
+			RSS (XML)
+		</a>
+	</div>
 </footer>

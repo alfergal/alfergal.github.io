@@ -1,4 +1,7 @@
 ---
+import { localeFromPath } from '../i18n';
+import { experimentUI } from '../i18n/experiments';
+const t = experimentUI[localeFromPath(Astro.url.pathname)];
 interface Props {
 	before: string;
 	after: string;
@@ -49,7 +52,9 @@ const id = `comparison-${crypto.randomUUID()}`;
 			/>
 		</div>
 		<div class="comparison-control">
-			<label for={`${id}-slider`}>Porción visible: {beforeLabel}</label>
+			<label for={`${id}-slider`}>
+				{t.comparisonLabel} {beforeLabel}
+			</label>
 			<output for={`${id}-slider`} data-comparison-value>
 				50 %
 			</output>
@@ -65,11 +70,10 @@ const id = `comparison-${crypto.randomUUID()}`;
 			aria-describedby={`${id}-help`}
 		/>
 		<p id={`${id}-help`} class="comparison-help">
-			Mueve el control o utiliza las flechas del teclado para comparar ambas
-			imágenes.
+			{t.comparisonHelp}
 		</p>
 		<p data-comparison-static class="comparison-help">
-			Sin JavaScript se muestran las dos versiones por separado.
+			{t.comparisonStatic}
 		</p>
 		<figcaption id={`${id}-caption`}>{caption}</figcaption>
 	</figure>

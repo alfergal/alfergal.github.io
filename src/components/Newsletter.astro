@@ -1,0 +1,32 @@
+---
+import { newsletter } from '../data/newsletter';
+import { ui, type Locale } from '../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const config = newsletter[lang];
+const t = ui[lang];
+const secure = (value: string) => {
+	try {
+		return new URL(value).protocol === 'https:';
+	} catch {
+		return false;
+	}
+};
+if (config && (!secure(config.hostedFormUrl) || !secure(config.privacyUrl)))
+	throw new Error('Newsletter requires valid HTTPS form and privacy URLs.');
+---
+
+{config && (
+	<section class="newsletter" aria-label={t.newsletter}>
+		<h2>{t.newsletter}</h2>
+		<p>{t.newsletterHint}</p>
+		<a class="text-link" href={config.hostedFormUrl} rel="noopener noreferrer">
+			{t.subscribe} →
+		</a>
+		<a class="text-link" href={config.privacyUrl}>
+			{t.privacy}
+		</a>
+	</section>
+)}

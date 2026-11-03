@@ -7,6 +7,8 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Icon from '../components/Icon.astro';
 import { getPosts, readingTime } from '../lib/content';
 import { profile } from '../data/profile';
+import { ui, homePath, blogPath, categoryLabel } from '../i18n';
+import { postPath, articleAlternates } from '../lib/article-routes';
 import type { MarkdownHeading } from 'astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import PostCard from '../components/PostCard.astro';
@@ -20,7 +22,13 @@ interface Props {
 	headings: MarkdownHeading[];
 }
 const { post, headings } = Astro.props;
-const publishedPosts = await getPosts();
+const lang = post.data.lang;
+const t = ui[lang];
+const allPublished = await getPosts();
+const publishedPosts = allPublished.filter((entry) => entry.data.lang === lang);
+const previewPosts = import.meta.env.DEV
+	? await getPosts({ includeDrafts: true })
+	: allPublished;
 const related = relatedPosts(post, publishedPosts);
 const series = seriesPosts(post, publishedPosts);
 const position = series.findIndex((entry) => entry.id === post.id);
@@ -39,7 +47,6 @@ const {
 	heroImage,
 	category,
 	tags,
-	lang,
 	draft,
 } = post.data;
 const schema = {
@@ -52,7 +59,7 @@ const schema = {
 	author: {
 		'@type': 'Person',
 		name: profile.name,
-		url: new URL('/', Astro.site).href,
+		url: new URL(homePath(lang), Astro.site).href,
 	},
 	mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
 	image: new URL(heroImage?.src ?? '/og-image.png', Astro.site).href,
@@ -69,6 +76,8 @@ const schema = {
 	updated={draft ? undefined : updatedDate}
 	lang={lang}
 	noindex={draft}
+	alternates={draft ? {} : articleAlternates(post, allPublished)}
+	switchLinks={articleAlternates(post, previewPosts, import.meta.env.DEV)}
 >
 	<div class="reading-progress" aria-hidden="true">
 		<span />
@@ -82,19 +91,22 @@ const schema = {
 	<div class="container">
 		<div class="article-reading">
 			<header class="article-header">
-				<a class="back-link" href="/">
+				<a class="back-link" href={homePath(lang)}>
 					<Icon name="arrow" size={16} />
-					Volver al inicio
+					{t.back}
 				</a>
-				{draft && (
-					<p class="draft-notice">
-						Borrador · vista previa solo en desarrollo. Sin publicar.
-					</p>
-				)}
+				{draft && <p class="draft-notice">{t.draftNotice}</p>}
 				<p class="article-category">
 					{categoryNavigation ? (
-						<a href={`/?category=${encodeURIComponent(category)}#blog`}>
-							{category}
+						<a
+							href={
+								blogPath(lang) +
+								'?category=' +
+								encodeURIComponent(category) +
+								'#blog'
+							}
+						>
+							{categoryLabel(category, lang)}
 						</a>
 					) : (
 						category
@@ -103,20 +115,31 @@ const schema = {
 				<h1>{title}</h1>
 				<p class="description">{description}</p>
 				<div class="article-meta">
-					<FormattedDate date={pubDate} />
-					<span>{readingTime(post.body)} min de lectura</span>
+					<FormattedDate lang={lang} date={pubDate} />
+					<span>
+						{readingTime(post.body)} {t.reading}
+					</span>
 					{updatedDate && updatedDate > pubDate && (
 						<span>
-							Actualizado: <FormattedDate date={updatedDate} />
+							{t.updated} <FormattedDate lang={lang} date={updatedDate} />
 						</span>
 					)}
 				</div>
 				{tags.length > 0 && (
-					<ul class="tags" aria-label="Etiquetas">
+					<ul class="tags" aria-label={t.tags}>
 						{tags.map((tag) => (
 							<li>
 								{tagNavigation ? (
-									<a href={`/?tag=${encodeURIComponent(tag)}#blog`}>{tag}</a>
+									<a
+										href={
+											blogPath(lang) +
+											'?tag=' +
+											encodeURIComponent(tag) +
+											'#blog'
+										}
+									>
+										{tag}
+									</a>
 								) : (
 									tag
 								)}
@@ -127,8 +150,20 @@ const schema = {
 			</header>
 		</div>
 		<div class="article-layout">
-			<TableOfContents headings={headings} />
-			<article class="prose" data-reading-content aria-label={title}>
+			<TableOfContents headings={headings} lang={lang} />
+			<article
+				class="prose"
+				data-reading-content
+				aria-label={title}
+				data-reader-labels={JSON.stringify({
+					code: t.code,
+					copy: t.copy,
+					copyCode: t.copyCode,
+					copied: t.copied,
+					copiedStatus: t.copiedStatus,
+					copyError: t.copyError,
+				})}
+			>
 				{heroImage && (
 					<Image
 						class="article-hero"
@@ -143,13 +178,13 @@ const schema = {
 		</div>
 		<div class="article-reading article-end">
 			{series.length > 1 && (
-				<nav class="series-navigation" aria-label="Serie de artículos">
+				<nav class="series-navigation" aria-label={t.series}>
 					<h2 class="section-label">{post.data.series!.name}</h2>
 					<ol>
 						{series.map((entry) => (
 							<li value={entry.data.series!.order}>
 								<a
-									href={`/blog/${entry.id}/`}
+									href={postPath(entry)}
 									aria-current={entry.id === post.id ? 'page' : undefined}
 								>
 									{entry.data.title}
@@ -160,13 +195,13 @@ const schema = {
 					{position >= 0 && (
 						<div class="series-directions">
 							{position > 0 && (
-								<a rel="prev" href={`/blog/${series[position - 1].id}/`}>
-									Anterior: {series[position - 1].data.title}
+								<a rel="prev" href={postPath(series[position - 1])}>
+									{t.previous} {series[position - 1].data.title}
 								</a>
 							)}
 							{position < series.length - 1 && (
-								<a rel="next" href={`/blog/${series[position + 1].id}/`}>
-									Siguiente: {series[position + 1].data.title}
+								<a rel="next" href={postPath(series[position + 1])}>
+									{t.next} {series[position + 1].data.title}
 								</a>
 							)}
 						</div>
@@ -176,15 +211,15 @@ const schema = {
 			{related.length > 0 && (
 				<section class="related-posts" aria-labelledby="related-title">
 					<h2 id="related-title" class="section-label">
-						Artículos relacionados
+						{t.related}
 					</h2>
 					{related.map((entry) => (
 						<PostCard post={entry} />
 					))}
 				</section>
 			)}
-			<a class="back-link article-return" href="/">
-				<Icon name="arrow" size={16} /> Volver al inicio
+			<a class="back-link article-return" href={homePath(lang)}>
+				<Icon name="arrow" size={16} /> {t.back}
 			</a>
 		</div>
 	</div>

@@ -9,9 +9,11 @@ test('isolated collections preview all entries in date order and expose publicat
 	site,
 }) => {
 	expect(site.fixtureOnly).toBe(true);
-	await page.goto('/');
+	await page.goto('/blog/');
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		listedEntries(site.entries).map((entry) => entry.title),
+		listedEntries(site.entries.filter((entry) => entry.lang === 'es')).map(
+			(entry) => entry.title,
+		),
 	);
 	await page.goto(article);
 	const entry = site.entries.find((item) => item.id === 'qa-verification-new')!;
@@ -24,7 +26,7 @@ test('isolated collections preview all entries in date order and expose publicat
 	expect(schema.author.url).toBe('https://alfergal.github.io/');
 	await expect(page.locator('.draft-notice, meta[name=robots]')).toHaveCount(0);
 	for (const entry of site.entries.filter((entry) => entry.draft)) {
-		await page.goto(`/blog/${entry.id}/`);
+		await page.goto(entry.path);
 		await expect(page.locator('.draft-notice')).toBeVisible();
 		await expect(page.locator('meta[name=robots]')).toHaveAttribute(
 			'content',
@@ -41,7 +43,7 @@ test('published Markdown and MDX build correctly while explicit and default draf
 	await verifyBuild(site, page, request);
 	const rss = await (await request.get(`${site.baseURL}/rss.xml`)).text();
 	expect(await xmlValues(page, rss, 'item link')).toHaveLength(
-		site.entries.filter((entry) => !entry.draft).length,
+		site.entries.filter((entry) => !entry.draft && entry.lang === 'es').length,
 	);
 	for (const marker of [
 		'BORRADOR_EXPLICITO_SOLO_TEST',

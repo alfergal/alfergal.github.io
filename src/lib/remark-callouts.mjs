@@ -1,14 +1,14 @@
+import { ui } from '../i18n/ui.ts';
 // Markdown blockquotes beginning with [!NOTE], etc.; MDX can also use Callout.astro.
 export default function remarkCallouts() {
-	const labels = {
-		NOTE: 'Nota',
-		IMPORTANT: 'Información importante',
-		WARNING: 'Advertencia',
-		TIP: 'Consejo',
-		RESULT: 'Resultado experimental',
-		LIMITATION: 'Limitación metodológica',
-	};
-	return (tree) => {
+	return (tree, file) => {
+		const lang = file.data?.astro?.frontmatter?.lang === 'en' ? 'en' : 'es';
+		const labels = Object.fromEntries(
+			Object.entries(ui[lang].callouts).map(([key, value]) => [
+				key.toUpperCase(),
+				value,
+			]),
+		);
 		const visit = (node) => {
 			const first =
 				node.type === 'blockquote' && node.children?.[0]?.children?.[0];

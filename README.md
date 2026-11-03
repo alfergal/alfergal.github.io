@@ -1,12 +1,12 @@
 # Alberto Fernández Gálvez
 
-Web personal con presentación y blog técnico integrados en `/`. Los artículos individuales conservan `/blog/[slug]/`. No hay menú global, página «Sobre mí» ni índice separado del blog. La navegación de lectura aparece únicamente dentro de los artículos.
+Portfolio profesional bilingüe con **Inicio | Blog | Contacto**. Español predeterminado y HTML estático en inglés, con internacionalización nativa de Astro. Los artículos españoles conservan sus URLs y su estado editorial.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema exclusivamente oscuro, tipografía de sistema Cambria/Caladea/Georgia y paleta provisional azul oscuro, azul claro, rosa y blanco. Se conservan el logotipo «af.», los favicons y la identidad del grafo SVG interactivo. Los enlaces profesionales aparecen solo en la presentación; el pie contiene únicamente copyright, autor y enlace RSS.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. Se mantienen el logotipo «af.», favicons, motor del grafo optimizado y herramientas de lectura. GitHub y LinkedIn aparecen en Contacto y en el footer.
 
 ## Identidad visual
 
-La paleta provisional se define una sola vez en `src/data/theme.ts`: fondo azul oscuro, azul claro, rosa y blanco. `BaseHead.astro` expone sus valores mediante variables CSS `--palette-*`; `global.css` define los usos semánticos (`--bg`, `--ink`, `--accent`, `--highlight`, `--muted`, `--line`, `--soft`) y sus mezclas. Cambiar los cuatro valores centrales cuando se reciban los Pantone actualizará también Shiki, la imagen social y los favicons.
+La paleta se define una sola vez en `src/data/theme.ts`: fondo azul oscuro, azul claro, rosa y blanco. `BaseHead.astro` expone sus valores mediante variables CSS `--palette-*`; `global.css` define los usos semánticos (`--bg`, `--ink`, `--accent`, `--highlight`, `--muted`, `--line`, `--soft`) y sus mezclas. Los cuatro valores centrales se comparten con Shiki, la imagen social y los favicons.
 
 La pila de interfaz y lectura es `Cambria, Caladea, Georgia, serif`. La fuente concreta depende del sistema de la persona que visita la web. No se descargan ni distribuyen fuentes propietarias; se han retirado los archivos y la precarga de Atkinson. El código conserva una pila monoespaciada y las fórmulas conservan la tipografía matemática de KaTeX.
 
@@ -46,13 +46,19 @@ En Settings → Pages, Source debe ser **GitHub Actions**, sin compilación Jeky
 
 ```text
 src/
-  data/profile.ts          Nombre, presentación y enlaces profesionales
+  data/profile.ts          Identidad, formación y perfiles confirmados
+  data/newsletter.ts       Configuración opcional por idioma
+  i18n/                    Interfaz, rutas y etiquetas ES/EN
   lib/content.ts           Selección, orden de artículos y lectura estimada
   lib/social-image.ts      Imagen social generada desde el perfil
   components/              Marca, grafo, listado, figuras y gráficos accesibles
   layouts/SiteLayout.astro Documento, SEO, encabezado y pie
   layouts/BlogPost.astro   Plantilla técnica con índice contextual
-  pages/index.astro        Presentación y listado integrado del blog
+  components/pages/        Páginas compartidas parametrizadas por idioma
+  pages/index.astro        Presentación y tres últimos artículos
+  pages/blog/index.astro   Listado principal
+  pages/contacto.astro     Contacto
+  pages/en/                Rutas inglesas y RSS independiente
   pages/blog/[...slug].astro Artículos individuales
   pages/rss.xml.ts         Feed de publicaciones reales
   content/blog/            Markdown y MDX
@@ -61,17 +67,17 @@ public/                    .nojekyll; los favicons se generan como recursos est�
 tests/                     Integración, producción, accesibilidad y responsive
 ```
 
-El perfil conserva la descripción ya existente basada en la información facilitada. No se añaden trayectorias, formación, certificaciones ni datos privados. Se han eliminado rutas, componentes, datos y estilos de navegación obsoletos. No se incorporan buscadores, modo claro, analítica, cookies propias ni almacenamiento del navegador. Los filtros temáticos solo aparecen a partir de tres publicaciones reales y cuando ofrecen más de una opción. La interfaz funciona sin JavaScript.
+La presentación utiliza únicamente los datos facilitados: especialización en Machine Learning y estadística aplicada, más de seis años en ingeniería de software, trabajo con millones de registros y Grado en Ciencia de Datos Aplicada de la UOC en curso. No se indican empresas, fechas o certificaciones no confirmadas. No se incorporan buscadores, modo claro, analítica, cookies propias ni almacenamiento del navegador. Los filtros temáticos solo aparecen a partir de tres publicaciones reales y cuando ofrecen más de una opción. La interfaz funciona sin JavaScript.
 
 ## Artículo de demostración
 
-Con el servidor de desarrollo activo, abre Inicio o visita:
+Con el servidor de desarrollo activo, abre el Blog o visita:
 
 `http://localhost:4321/blog/demostracion-articulo-tecnico/`
 
 El archivo `src/content/blog/demostracion-articulo-tecnico.mdx` está marcado con `draft: true`. Se identifica explícitamente como prueba y solo contiene datos ficticios. Incluye encabezados, metadatos, enlaces, listas, código Python con Shiki, fórmulas, tabla, figura accesible, cita, conclusiones y referencias. La plantilla proporciona enlaces de vuelta al inicio.
 
-Los borradores se incluyen en Inicio y en las rutas individuales **solo cuando `import.meta.env.DEV` es verdadero**. La vista previa del borrador y el Inicio de desarrollo llevan `noindex`. `getPosts()` excluye borradores por defecto; RSS mantiene siempre ese comportamiento, incluso en desarrollo. El build de producción no genera la página del borrador ni lo incluye en Inicio, sitemap o RSS. Actualmente no hay publicaciones reales, por lo que producción muestra un estado vacío sencillo.
+Los borradores se incluyen en el Blog, en los tres últimos artículos de Inicio y en las rutas individuales **solo cuando `import.meta.env.DEV` es verdadero**. La vista previa del borrador, Inicio y Blog de desarrollo llevan `noindex`. `getPosts()` excluye borradores por defecto; RSS mantiene siempre ese comportamiento, incluso en desarrollo. El build de producción no genera la página del borrador ni lo incluye en Inicio, Blog, sitemap o RSS de ningún idioma. Actualmente no hay publicaciones reales, por lo que producción muestra un estado vacío sencillo.
 
 Los borradores siguen siendo archivos del repositorio: no guardes material confidencial en ellos ni expongas el servidor de desarrollo como sitio público. `noindex` no es un control de acceso.
 
@@ -107,7 +113,7 @@ Cada artículo tiene título, descripción, fecha, categoría principal, etiquet
 - Data Engineering & MLOps.
 - Software Engineering.
 
-Se mantienen en `src/data/blog.ts` y se validan con el esquema de la colección; no se generan páginas por categoría, buscadores ni nubes de etiquetas. Con tres publicaciones reales, los filtros útiles de categoría y etiqueta permiten navegación temática mediante parámetros en Inicio; sin JavaScript se muestran todas las publicaciones. Las etiquetas son términos técnicos libres, como Python, Statistics, Deep Learning, Graph ML, LLMs, RAG, MLOps y SQL. El dummy se clasifica como Data Science y sigue identificado como contenido de prueba, con `draft: true`.
+Se mantienen en `src/data/blog.ts` y se validan con el esquema de la colección; no se generan páginas por categoría, buscadores ni nubes de etiquetas. Con tres publicaciones reales, los filtros útiles de categoría y etiqueta permiten navegación temática mediante parámetros en la página Blog de cada idioma; sin JavaScript se muestran todas las publicaciones. Las etiquetas son términos técnicos libres, como Python, Statistics, Deep Learning, Graph ML, LLMs, RAG, MLOps y SQL. El dummy se clasifica como Data Science y sigue identificado como contenido de prueba, con `draft: true`.
 
 ## Grafo interactivo
 
@@ -160,7 +166,7 @@ series:
   order: 1
 ```
 
-La serie del ejemplo es solo documentación de formato; no se crea contenido editorial. `featured: true` destaca publicaciones únicamente cuando existen al menos tres artículos publicados, sin duplicarlas en el listado reciente. Los borradores nunca son destacados. Las series usan posiciones enteras positivas: se rechazan posiciones publicadas duplicadas en una misma serie. Su navegación ordenada omite borradores y solo aparece con varias entregas publicadas. Las recomendaciones muestran hasta tres artículos reales, priorizando número de etiquetas compartidas, después categoría y después serie; no se muestran sin coincidencias.
+La serie del ejemplo es solo documentación de formato; no se crea contenido editorial. `featured: true` destaca publicaciones únicamente cuando existen al menos tres artículos publicados, sin duplicarlas en el listado reciente. Los borradores nunca son destacados. Las series usan posiciones enteras positivas: se rechazan posiciones publicadas duplicadas en una misma serie e idioma. Su navegación ordenada omite borradores y solo aparece con varias entregas publicadas. Las recomendaciones muestran hasta tres artículos reales, priorizando número de etiquetas compartidas, después categoría y después serie; no se muestran sin coincidencias.
 
 `updatedDate` debe ser posterior o igual a `pubDate`; la fecha de actualización visible solo aparece si es posterior. El sitemap toma `lastmod` del JSON-LD del HTML publicado, con las mismas fechas que la cabecera y Open Graph, sin utilizar la fecha del build. Search Console se puede conectar más adelante con el sitemap público `/sitemap-index.xml`; no se ha accedido ni modificado ninguna cuenta externa ni añadido identificadores ficticios.
 
@@ -213,3 +219,39 @@ El footer identifica el enlace como «RSS (XML)» y explica en su título cómo 
 El borrador `src/content/blog/ia-colores-originales-pintura.mdx` se revisa en desarrollo en `/blog/ia-colores-originales-pintura/`. Permanece excluido de producción, RSS y sitemap. Incluye revisión científica, un experimento sintético ejecutado, cuatro gráficos, un comparador nativo antes/después y una tabla de enfoques. Las tablas y fórmulas desplazables reciben foco en el HTML generado para poder recorrerlas con teclado, también sin JavaScript. El comparador conserva imágenes estáticas sin JavaScript, teclado y estilos locales; su script no se carga en Inicio ni modifica el grafo.
 
 [Protocolo, datos CC0 y reproducción](experiments/restauracion-cromatica/README.md): veinte pinturas, partición 12/4/4 por obra, CNN CPU, gray-world y regresión afín, métricas por pintura e intensidad, resultados y hashes. Los originales y pesos se regeneran fuera del repositorio. Las imágenes derivadas en `public/` son accesibles aunque el artículo siga en borrador. Ningún resultado representa una reconstrucción histórica validada.
+
+## Internacionalización y páginas
+
+| Página   | Español     | Inglés                 |
+| -------- | ----------- | ---------------------- |
+| Inicio   | /           | /en/                   |
+| Blog     | /blog/      | /en/blog/              |
+| Contacto | /contacto/  | /en/contact/           |
+| Artículo | /blog/slug/ | /en/blog/english-slug/ |
+| RSS      | /rss.xml    | /en/rss.xml            |
+
+Astro declara es y en, con prefixDefaultLocale desactivado. No hay detección de ubicación, redirección automática de idioma ni traducción en el navegador. **src/i18n/ui.ts** centraliza el texto de interfaz; **experiments.ts** contiene etiquetas de componentes científicos. Las páginas reutilizan components/pages/ y layouts. No se añaden frameworks ni dependencias.
+
+Inicio presenta especialización, cuatro áreas, experiencia general, stack, estudios en curso y tres artículos recientes por fecha del idioma activo. Blog conserva destacados, categorías y filtros útiles, separados por idioma. Los artículos relacionados y las series tampoco mezclan idiomas.
+
+### Traducciones de artículos
+
+El campo **lang** determina idioma, feed y ruta. El campo opcional **translationKey** vincula versiones con slugs diferentes:
+
+    lang: en
+    translationKey: roc-auc-calibracion-probabilidades
+    draft: true
+
+En los artículos heredados, la clave se deriva del identificador existente para no modificar su contenido. Una traducción puede utilizar esa clave sin editar el original. Si se prefiere una clave nueva, añadirla a ambas versiones como cambio editorial deliberado. Los archivos ingleses pueden estar en src/content/blog/en/; ese prefijo no se repite en la URL. Las fechas de publicación de las traducciones deben corresponder al mismo evento editorial. No se han traducido ni reescrito los artículos científicos existentes.
+
+No puede haber dos versiones de una clave en un mismo idioma, rutas duplicadas o posiciones de serie publicadas duplicadas por idioma. Cada versión se publica solo después de su propia revisión; una traducción en borrador nunca aparece como alternativa pública.
+
+El selector enlaza la página equivalente. Si un artículo no tiene traducción, enlaza al Blog de destino y lo indica en el título y texto accesible del enlace. No se crean páginas ficticias. Canonical, HTML lang, Open Graph, RSS y JSON-LD usan el idioma de la página; hreflang solo apunta a versiones reales publicadas. El sitemap reutiliza esos enlaces y conserva las fechas originales de artículos. GitHub Pages sirve un único 404.html; incluye mensajes y retorno al inicio en español e inglés.
+
+### Contacto, formación y newsletter
+
+**src/data/profile.ts** centraliza identidad, enlaces, formación y certificaciones. Se puede añadir un correo público confirmado y perfiles reales de Hugging Face, Kaggle u ORCID. Mientras falten, no se renderizan. La lista de certificaciones empieza vacía y no produce entradas de relleno; los estudios de la UOC están expresamente en curso.
+
+**src/data/newsletter.ts** está vacío y Newsletter.astro no muestra nada. Para una futura integración RSS→email, elegir un proveedor con feeds/listas independientes para ES y EN, configurar y probar su formulario alojado, consentimiento, privacidad y cancelación. Después añadir hostedFormUrl y privacyUrl HTTPS para el idioma operativo. El componente ofrece un enlace al formulario real del proveedor, sin almacenar correos, introducir scripts externos o construir un backend. No se ha contratado ni activado ningún servicio.
+
+Las pruebas nuevas utilizan traducciones sintéticas exclusivamente en copias temporales y comprueban navegación, idiomas, fechas compartidas, slugs distintos, fallback, SEO, feeds, sitemap, interfaz de lectura, responsive, teclado y accesibilidad. Se mantienen las pruebas de geometría/física del grafo y la integridad de recursos y resultados científicos.

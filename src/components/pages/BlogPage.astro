@@ -1,0 +1,37 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import PostFeed from '../PostFeed.astro';
+import Newsletter from '../Newsletter.astro';
+import { getPosts } from '../../lib/content';
+import { ui, type Locale } from '../../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const posts = await getPosts({ lang, includeDrafts: import.meta.env.DEV });
+---
+
+<SiteLayout
+	title={t.blog}
+	description={t.blogIntro}
+	lang={lang}
+	noindex={import.meta.env.DEV}
+>
+	<section
+		id="blog"
+		class="blog-section container standalone-page"
+		aria-labelledby="blog-title"
+	>
+		<header class="blog-heading">
+			<h1 id="blog-title">{t.blog}</h1>
+			<p>{t.blogIntro}</p>
+		</header>
+		{posts.length ? (
+			<PostFeed posts={posts} lang={lang} />
+		) : (
+			<p class="blog-empty">{t.empty}</p>
+		)}
+		<Newsletter lang={lang} />
+	</section>
+</SiteLayout>

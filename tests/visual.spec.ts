@@ -29,8 +29,8 @@ test('the new palette and system serif stack apply consistently without font dow
 		'.hero h1',
 		'.hero-role',
 		'.hero-description',
-		'.professional-links a',
-		'.blog-heading',
+		'.footer-links a',
+		'.section-heading',
 		'.article-meta',
 		'.site-footer',
 	]) {
@@ -47,14 +47,7 @@ test('the new palette and system serif stack apply consistently without font dow
 		'background-color',
 		rgb(palette.background),
 	);
-	await expect(page.locator('.hero-links')).toHaveCSS(
-		'border-top-width',
-		'0px',
-	);
-	await expect(page.locator('.blog-section')).toHaveCSS(
-		'border-top-width',
-		'0px',
-	);
+	await expect(page.locator('.hero-links')).toHaveCount(0);
 	await expect(page.locator('.hero-alias')).toHaveCount(0);
 	expect(fontRequests).toEqual([]);
 });

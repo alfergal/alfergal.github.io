@@ -1,16 +1,23 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { ui } from '../i18n';
 ---
 
 <SiteLayout
-	title="Página no encontrada"
-	description="La página solicitada no existe."
+	title={ui.es.notFound}
+	description={ui.es.notFoundDescription}
 	noindex
 >
 	<div class="container error-page">
-		<h1>Página no encontrada</h1>
+		<h1>{ui.es.notFound}</h1>
 		<a class="text-link" href="/">
-			Volver al inicio →
+			{ui.es.back} →
 		</a>
+		<p lang="en">
+			{ui.en.notFound}.{' '}
+			<a class="text-link" href="/en/">
+				{ui.en.back} →
+			</a>
+		</p>
 	</div>
 </SiteLayout>

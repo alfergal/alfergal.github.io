@@ -30,6 +30,8 @@ export interface Entry {
 	draft: boolean;
 	date: number;
 	featured: boolean;
+	lang: 'es' | 'en';
+	path: string;
 }
 export async function readEntries(root: string): Promise<Entry[]> {
 	const directory = join(root, 'src/content/blog');
@@ -42,7 +44,7 @@ export async function readEntries(root: string): Promise<Entry[]> {
 					const { frontmatter: data } = parseFrontmatter(
 						await readFile(join(directory, file), 'utf8'),
 					);
-					return {
+					const entry = {
 						// Match Astro's glob-loader default slug generation, including nested files.
 						id: data.slug
 							? String(data.slug)
@@ -59,6 +61,14 @@ export async function readEntries(root: string): Promise<Entry[]> {
 						draft: data.draft !== false,
 						date: new Date(data.pubDate).valueOf(),
 						featured: data.featured === true,
+						lang: data.lang === 'en' ? ('en' as const) : ('es' as const),
+					};
+					return {
+						...entry,
+						path:
+							(entry.lang === 'en' ? '/en/blog/' : '/blog/') +
+							entry.id.replace(new RegExp('^' + entry.lang + '/'), '') +
+							'/',
 					};
 				}),
 		)

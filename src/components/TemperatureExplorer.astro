@@ -3,24 +3,27 @@ import {
 	temperatureBaseline as baseline,
 	temperatureCurve,
 } from '../lib/temperature';
+import { localeFromPath } from '../i18n';
+import { experimentUI } from '../i18n/experiments';
+import { formatTemperature } from '../lib/temperature';
+const lang = localeFromPath(Astro.url.pathname);
+const t = experimentUI[lang];
 const id = `temperature-${crypto.randomUUID()}`;
 const f = (n: number) => n.toFixed(6);
 ---
 
-<temperature-explorer>
+<temperature-explorer data-locale={lang} data-temperature-label={t.temperature}>
 	<section class="temp-explorer" aria-labelledby={`${id}-title`}>
-		<h3 id={`${id}-title`}>
-			Explora una misma clasificación con distintas probabilidades
-		</h3>
+		<h3 id={`${id}-title`}>{t.temperatureTitle}</h3>
 		<div class="temp-control">
-			<label for={`${id}-slider`}>Temperatura T:</label>
+			<label for={`${id}-slider`}>{t.temperatureLabel}</label>
 			<output
 				data-temp-value
 				id={`${id}-value`}
 				for={`${id}-slider`}
 				aria-live="off"
 			>
-				1,00
+				{formatTemperature(1, lang)}
 			</output>
 		</div>
 		<input
@@ -35,16 +38,15 @@ const f = (n: number) => n.toFixed(6);
 			aria-describedby={`${id}-description`}
 		/>
 		<p id={`${id}-description`} class="help">
-			T menor que 1: probabilidades más extremas. T mayor que 1: probabilidades
-			más cercanas a 0,5.
+			{t.temperatureHelp}
 		</p>
 		<p class="help" data-temp-static>
-			Vista estática: T=1. El control requiere JavaScript.
+			{t.temperatureStatic}
 		</p>
 		<svg
 			viewBox="0 0 420 246"
 			role="img"
-			aria-label="Transformación de probabilidades según la temperatura, comparada con la identidad"
+			aria-label={t.temperatureFigure}
 			class="temp-figure"
 		>
 			<path
@@ -75,7 +77,7 @@ const f = (n: number) => n.toFixed(6);
 				fill="currentColor"
 				font-size="14"
 			>
-				Probabilidad original
+				{t.original}
 			</text>
 			<text
 				x="24"
@@ -85,7 +87,7 @@ const f = (n: number) => n.toFixed(6);
 				fill="currentColor"
 				font-size="14"
 			>
-				Transformada
+				{t.transformed}
 			</text>
 			<text x="39" y="216" fill="currentColor" font-size="12">
 				0
@@ -115,10 +117,7 @@ const f = (n: number) => n.toFixed(6);
 			aria-atomic="true"
 			data-temp-status
 		/>
-		<p class="help">
-			Resultados precalculados sobre las mismas 80.000 observaciones del
-			experimento. Sin datos enviados a ningún servidor.
-		</p>
+		<p class="help">{t.temperatureResults}</p>
 	</section>
 </temperature-explorer>
 

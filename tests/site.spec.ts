@@ -1,5 +1,6 @@
 import { test, expect, listedEntries, type TestSite } from './support/site';
 import { verifyBuild } from './support/build';
+import { categoryLabel } from '../src/i18n';
 import { blogCategories } from '../src/data/blog';
 import AxeBuilder from '@axe-core/playwright';
 
@@ -11,7 +12,7 @@ const routesFor = (site: TestSite) => [
 	...(articleFor(site) ? [`/blog/${articleFor(site)!.id}/`] : []),
 ];
 
-test('one personal homepage preserves identity, metadata and a minimal footer without navigation', async ({
+test('one personal homepage preserves identity, metadata and bilingual navigation and the professional homepage', async ({
 	page,
 	site,
 }) => {
@@ -20,31 +21,29 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 	await expect(page.locator('.hero-alias')).toHaveCount(0);
 	await expect(page.locator('main')).not.toContainText('@alfergal');
 	await expect(page.locator('.hero-role')).toHaveText(
-		'Data Scientist | Machine Learning | Python & SQL',
+		'Data Scientist | Machine Learning | Applied Statistics',
 	);
 	await expect(page.locator('.wordmark')).toHaveText('af.');
 	await expect(page.locator('.graph-network')).toBeVisible();
 	await expect(
 		page.locator(
-			'.graph-network text, .site-header nav, .hero button, .hero input, .hero select, .timeline, .skills-grid',
+			'.graph-network text, .hero button, .hero input, .hero select, .timeline',
 		),
 	).toHaveCount(0);
-	await expect(page.locator('.hero a')).toHaveText(['GitHub', 'LinkedIn']);
-	await expect(page.locator('.hero a').nth(0)).toHaveAttribute(
-		'href',
-		'https://github.com/alfergal',
-	);
-	await expect(page.locator('.hero a').nth(1)).toHaveAttribute(
-		'href',
-		'https://www.linkedin.com/in/alberto-fernandez-galvez',
-	);
+	await expect(page.locator('.hero a')).toHaveCount(0);
 	await expect(page.locator('footer')).toContainText(
 		'Alberto Fernández Gálvez',
 	);
-	await expect(page.locator('footer a')).toHaveText('RSS (XML)');
-	await expect(page.locator('footer a')).toHaveAttribute('href', '/rss.xml');
-	await expect(page.locator('footer a')).toHaveAttribute('title', /lector RSS/);
-	await expect(page.locator('#blog-title')).toHaveText('Blog');
+	await expect(page.locator('footer .footer-rss')).toHaveText('RSS (XML)');
+	await expect(page.locator('footer .footer-rss')).toHaveAttribute(
+		'href',
+		'/rss.xml',
+	);
+	await expect(page.locator('footer .footer-rss')).toHaveAttribute(
+		'title',
+		/lector RSS/,
+	);
+	await expect(page.locator('#latest-title')).toHaveText('Últimos artículos');
 	if (site.entries.filter((entry) => !entry.draft).length < 3)
 		await expect(page.locator('.blog-filters, .featured-posts')).toHaveCount(0);
 	for (const route of routesFor(site)) {
@@ -62,7 +61,11 @@ test('one personal homepage preserves identity, metadata and a minimal footer wi
 			'content',
 			/.+/,
 		);
-		await expect(page.locator('header nav')).toHaveCount(0);
+		await expect(page.locator('.primary-nav a')).toHaveText([
+			'Inicio',
+			'Blog',
+			'Contacto',
+		]);
 	}
 });
 
@@ -98,7 +101,6 @@ test('obsolete pages return 404 unless an article slug has been deliberately reu
 }) => {
 	for (const route of [
 		'/about/',
-		'/blog/',
 		'/cv/',
 		'/research/',
 		'/research/reproducibility/',
@@ -118,11 +120,13 @@ test('the integrated blog lists the collection in date order with readable metad
 	page,
 	site,
 }) => {
-	await page.goto('/');
+	await page.goto('/blog/');
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		listedEntries(site.entries).map((entry) => entry.title),
+		listedEntries(site.entries.filter((entry) => entry.lang === 'es')).map(
+			(entry) => entry.title,
+		),
 	);
-	for (const entry of site.entries) {
+	for (const entry of site.entries.filter((entry) => entry.lang === 'es')) {
 		const link = page.locator(`h3 a[href="/blog/${entry.id}/"]`);
 		const card = page.locator('.post-card').filter({ has: link });
 		await expect(card.locator('time')).toHaveAttribute(
@@ -134,7 +138,9 @@ test('the integrated blog lists the collection in date order with readable metad
 		);
 		await expect(card.locator('.draft-label')).toHaveCount(entry.draft ? 1 : 0);
 		expect(blogCategories).toContain(entry.category);
-		await expect(card.locator('.article-meta')).toContainText(entry.category);
+		await expect(card.locator('.article-meta')).toContainText(
+			categoryLabel(entry.category, entry.lang),
+		);
 	}
 	if (!site.entries.length)
 		await expect(page.locator('.blog-empty')).toBeVisible();
@@ -180,7 +186,7 @@ test('links work without JavaScript and keyboard users can skip to main content'
 		viewport: { width: 375, height: 812 },
 	});
 	const noJS = await context.newPage();
-	await noJS.goto(`${baseURL}/`);
+	await noJS.goto(`${baseURL}/blog/`);
 	const entry = articleFor(site);
 	if (entry) {
 		await noJS.locator(`.post-card a[href="/blog/${entry.id}/"]`).click();

@@ -1,11 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import FormattedDate from './FormattedDate.astro';
+import { ui, categoryLabel } from '../i18n';
+import { postPath } from '../lib/article-routes';
 import { readingTime } from '../lib/content';
 interface Props {
 	post: CollectionEntry<'blog'>;
 }
 const { post } = Astro.props;
+const t = ui[post.data.lang];
 ---
 
 <article
@@ -14,15 +17,15 @@ const { post } = Astro.props;
 	data-post-tags={JSON.stringify(post.data.tags)}
 >
 	<div class="article-meta">
-		<FormattedDate date={post.data.pubDate} />
-		<span>{readingTime(post.body)} min de lectura</span>
-		<span>{post.data.category}</span>
-		{post.data.draft && (
-			<span class="draft-label">Borrador · solo desarrollo</span>
-		)}
+		<FormattedDate lang={post.data.lang} date={post.data.pubDate} />
+		<span>
+			{readingTime(post.body)} {t.reading}
+		</span>
+		<span>{categoryLabel(post.data.category, post.data.lang)}</span>
+		{post.data.draft && <span class="draft-label">{t.draft}</span>}
 	</div>
 	<h3>
-		<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+		<a href={postPath(post)}>{post.data.title}</a>
 	</h3>
 	<p>{post.data.description}</p>
 </article>

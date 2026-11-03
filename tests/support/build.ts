@@ -44,7 +44,12 @@ export async function verifyBuild(
 		[
 			'404.html',
 			'index.html',
-			...published.map((entry) => `blog/${entry.id}/index.html`),
+			'blog/index.html',
+			'contacto/index.html',
+			'en/index.html',
+			'en/blog/index.html',
+			'en/contact/index.html',
+			...published.map((entry) => entry.path.slice(1) + 'index.html'),
 		].sort(),
 	);
 	for (const file of pages) {
@@ -120,7 +125,16 @@ export async function verifyBuild(
 		0,
 	);
 	await expect(page.locator('.post-card h3 a')).toHaveText(
-		listedEntries(published).map((entry) => entry.title),
+		published
+			.filter((entry) => entry.lang === 'es')
+			.slice(0, 3)
+			.map((entry) => entry.title),
+	);
+	await page.goto(site.productionURL + '/blog/');
+	await expect(page.locator('.post-card h3 a')).toHaveText(
+		listedEntries(published.filter((entry) => entry.lang === 'es')).map(
+			(entry) => entry.title,
+		),
 	);
 	const rssResponse = await request.get(`${site.productionURL}/rss.xml`);
 	expect(rssResponse.status()).toBe(200);
@@ -147,7 +161,9 @@ export async function verifyBuild(
 	]);
 	expect(await xmlValues(page, rss, 'channel > language')).toEqual(['es-es']);
 	expect(await xmlValues(page, rss, 'item link')).toEqual(
-		published.map((entry) => `${profile.site}/blog/${entry.id}/`),
+		published
+			.filter((entry) => entry.lang === 'es')
+			.map((entry) => profile.site + entry.path),
 	);
 	const sitemapIndex = await readFile(
 		join(site.output, 'sitemap-index.xml'),
@@ -166,20 +182,21 @@ export async function verifyBuild(
 	expect(locations.sort()).toEqual(
 		[
 			`${profile.site}/`,
-			...published.map((entry) => `${profile.site}/blog/${entry.id}/`),
+			...['/blog/', '/contacto/', '/en/', '/en/blog/', '/en/contact/'].map(
+				(path) => profile.site + path,
+			),
+			...published.map((entry) => profile.site + entry.path),
 		].sort(),
 	);
 	for (const entry of drafts) {
 		expect(
-			(await request.get(`${site.productionURL}/blog/${entry.id}/`)).status(),
+			(await request.get(site.productionURL + entry.path)).status(),
 			entry.id,
 		).toBe(404);
 		for (const file of files.filter((name) =>
 			/\.(html|xml|json|js)$/.test(name),
 		)) {
-			expect(await readFile(file, 'utf8'), file).not.toContain(
-				`/blog/${entry.id}/`,
-			);
+			expect(await readFile(file, 'utf8'), file).not.toContain(entry.path);
 		}
 	}
 	expect(await readFile(join(site.output, 'robots.txt'), 'utf8')).toContain(

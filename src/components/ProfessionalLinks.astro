@@ -1,12 +1,15 @@
 ---
-import { professionalLinks } from '../data/profile';
+import { getProfessionalLinks } from '../data/profile';
+import { localeFromPath } from '../i18n';
 import Icon from './Icon.astro';
+const lang = localeFromPath(Astro.url.pathname);
+const professionalLinks = getProfessionalLinks();
 ---
 
 <div class="professional-links">
 	{professionalLinks.map((link) => (
 		<a class="text-link" href={link.href} rel="noopener noreferrer">
-			{link.label}
+			{link.label === 'Email' && lang === 'es' ? 'Correo' : link.label}
 			<Icon name="external" size={16} />
 		</a>
 	))}

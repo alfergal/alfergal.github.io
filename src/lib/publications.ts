@@ -20,7 +20,9 @@ export function seriesPosts(post: Post, posts: Post[]) {
 	return posts
 		.filter(
 			(entry) =>
-				!entry.data.draft && entry.data.series?.name === post.data.series!.name,
+				!entry.data.draft &&
+				entry.data.lang === post.data.lang &&
+				entry.data.series?.name === post.data.series!.name,
 		)
 		.sort((a, b) => a.data.series!.order - b.data.series!.order);
 }
@@ -36,7 +38,10 @@ export function relatedPosts(post: Post, posts: Post[]) {
 	return posts
 		.filter(
 			(entry) =>
-				entry.id !== post.id && !entry.data.draft && score(entry).some(Boolean),
+				entry.id !== post.id &&
+				entry.data.lang === post.data.lang &&
+				!entry.data.draft &&
+				score(entry).some(Boolean),
 		)
 		.sort((a, b) => {
 			const left = score(a),

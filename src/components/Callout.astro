@@ -1,12 +1,6 @@
 ---
-const labels = {
-	note: 'Nota',
-	important: 'Información importante',
-	warning: 'Advertencia',
-	tip: 'Consejo',
-	result: 'Resultado experimental',
-	limitation: 'Limitación metodológica',
-};
+import { ui, localeFromPath } from '../i18n';
+const labels = ui[localeFromPath(Astro.url.pathname)].callouts;
 interface Props {
 	type?: keyof typeof labels;
 	title?: string;

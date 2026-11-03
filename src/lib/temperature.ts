@@ -14,8 +14,8 @@ export function temperatureCurve(temperature: number) {
 	}).join(' ');
 }
 
-export const formatTemperature = (n: number) =>
-	n.toLocaleString('es-ES', {
+export const formatTemperature = (n: number, lang: 'es' | 'en' = 'es') =>
+	n.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	});

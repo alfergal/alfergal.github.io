@@ -1,0 +1,22 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import ProfessionalLinks from '../ProfessionalLinks.astro';
+import { ui, type Locale } from '../../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+
+<SiteLayout title={t.contact} description={t.contactIntro} lang={lang}>
+	<section
+		class="container standalone-page contact-page"
+		aria-labelledby="contact-title"
+	>
+		<h1 id="contact-title">{t.contact}</h1>
+		<p class="page-intro">{t.contactIntro}</p>
+		<p>{t.contactHint}</p>
+		<ProfessionalLinks />
+	</section>
+</SiteLayout>

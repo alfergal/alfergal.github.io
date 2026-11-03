@@ -1,11 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { ui, categoryLabel, type Locale } from '../i18n';
 import PostCard from './PostCard.astro';
 import { publicationGroups, publicationThreshold } from '../lib/publications';
 interface Props {
 	posts: CollectionEntry<'blog'>[];
+	lang: Locale;
 }
-const { posts } = Astro.props;
+const { posts, lang } = Astro.props;
+const t = ui[lang];
 const published = posts.filter((post) => !post.data.draft);
 const { featured, recent } = publicationGroups(posts);
 const categories = [
@@ -17,25 +20,25 @@ const filterable =
 	(categories.length > 1 || tags.length > 1);
 ---
 
-<post-feed>
+<post-feed data-publications-label={t.publications}>
 	{filterable && (
-		<form class="blog-filters" hidden aria-label="Filtrar publicaciones">
+		<form class="blog-filters" hidden aria-label={t.filter}>
 			{categories.length > 1 && (
 				<label>
-					Categoría{' '}
+					{t.category}{' '}
 					<select name="category">
-						<option value="">Todas</option>
+						<option value="">{t.all}</option>
 						{categories.map((category) => (
-							<option>{category}</option>
+							<option value={category}>{categoryLabel(category, lang)}</option>
 						))}
 					</select>
 				</label>
 			)}
 			{tags.length > 1 && (
 				<label>
-					Etiqueta{' '}
+					{t.tag}{' '}
 					<select name="tag">
-						<option value="">Todas</option>
+						<option value="">{t.all}</option>
 						{tags.map((tag) => (
 							<option>{tag}</option>
 						))}
@@ -48,7 +51,7 @@ const filterable =
 	{featured.length > 0 && (
 		<section class="featured-posts" aria-labelledby="featured-title">
 			<h3 id="featured-title" class="section-label">
-				Destacados
+				{t.featured}
 			</h3>
 			{featured.map((post) => (
 				<PostCard post={post} />
@@ -101,7 +104,7 @@ const filterable =
 					},
 				);
 				form.querySelector('[role=status]')!.textContent =
-					`${visible} publicaciones`;
+					`${visible} ${this.dataset.publicationsLabel}`;
 			};
 			const change = () => {
 				const url = new URL(location.href);

@@ -2,6 +2,14 @@
 function mountArticle() {
 	const content = document.querySelector<HTMLElement>('[data-reading-content]');
 	if (!content) return () => {};
+	const labels = JSON.parse(content.dataset.readerLabels!) as {
+		code: string;
+		copy: string;
+		copyCode: string;
+		copied: string;
+		copiedStatus: string;
+		copyError: string;
+	};
 	const abort = new AbortController();
 	const { signal } = abort;
 	const timers = new Set<ReturnType<typeof setTimeout>>();
@@ -18,14 +26,14 @@ function mountArticle() {
 		pre.before(wrapper);
 		wrapper.append(bar, pre);
 		pre.tabIndex = 0;
-		pre.setAttribute('aria-label', label.textContent || 'Código');
+		pre.setAttribute('aria-label', label.textContent || labels.code);
 		if (navigator.clipboard?.writeText) {
 			const button = document.createElement('button');
 			button.type = 'button';
-			button.textContent = 'Copiar';
+			button.textContent = labels.copy;
 			button.setAttribute(
 				'aria-label',
-				`Copiar código ${label.textContent}`.trim(),
+				`${labels.copyCode} ${label.textContent}`.trim(),
 			);
 			const status = document.createElement('span');
 			status.className = 'sr-only';
@@ -39,15 +47,14 @@ function mountArticle() {
 							pre.querySelector('code')?.textContent ?? '',
 						);
 						if (signal.aborted) return;
-						button.textContent = 'Copiado';
-						status.textContent = 'Código copiado';
+						button.textContent = labels.copied;
+						status.textContent = labels.copiedStatus;
 					} catch {
 						if (signal.aborted) return;
-						status.textContent =
-							'No se pudo copiar. Selecciona el código para copiarlo manualmente.';
+						status.textContent = labels.copyError;
 					}
 					const timer = setTimeout(() => {
-						button.textContent = 'Copiar';
+						button.textContent = labels.copy;
 						status.textContent = '';
 						timers.delete(timer);
 					}, 2400);

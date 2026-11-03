@@ -19,6 +19,11 @@ let buildDirectory = new URL('./dist/', import.meta.url);
 export default defineConfig({
 	site: profile.site,
 	output: 'static',
+	i18n: {
+		defaultLocale: 'es',
+		locales: ['es', 'en'],
+		routing: { prefixDefaultLocale: false },
+	},
 	devToolbar: { enabled: false },
 	trailingSlash: 'always',
 	vite: { cacheDir: './.astro/vite', plugins: [tailwindcss()] },
@@ -62,12 +67,20 @@ export default defineConfig({
 		sitemap({
 			async serialize(item) {
 				const path = new URL(item.url).pathname;
-				if (path.startsWith('/blog/')) {
+				const html = await readFile(
+					new URL(
+						(path === '/' ? '' : path.slice(1)) + 'index.html',
+						buildDirectory,
+					),
+					'utf8',
+				);
+				item.links = [
+					...html.matchAll(
+						/<link\b[^>]*rel="alternate"[^>]*hreflang="([^"]+)"[^>]*href="([^"]+)"[^>]*>/g,
+					),
+				].map((match) => ({ lang: match[1], url: match[2] }));
+				if (/^\/(?:en\/)?blog\/.+/.test(path)) {
 					// Read the generated article's authoritative dates, never the build date.
-					const html = await readFile(
-						new URL(`${path.slice(1)}index.html`, buildDirectory),
-						'utf8',
-					);
 					const blocks = html.matchAll(
 						/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
 					);

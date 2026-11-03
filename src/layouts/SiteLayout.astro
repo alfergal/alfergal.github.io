@@ -3,7 +3,8 @@ import type { ImageMetadata } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE } from '../consts';
+import { ui, localeFromPath, pageAlternates, type Locale } from '../i18n';
 import { profile } from '../data/profile';
 interface Props {
 	title?: string;
@@ -13,14 +14,19 @@ interface Props {
 	image?: ImageMetadata;
 	published?: Date;
 	updated?: Date;
-	lang?: string;
+	lang?: Locale;
+	alternates?: Partial<Record<Locale, string>>;
+	switchLinks?: Partial<Record<Locale, string>>;
 }
 const {
 	title = SITE_TITLE,
-	description = SITE_DESCRIPTION,
-	lang = 'es',
+	description: suppliedDescription,
+	lang = localeFromPath(Astro.url.pathname),
+	alternates = pageAlternates(Astro.url.pathname),
+	switchLinks = alternates,
 	...meta
 } = Astro.props;
+const description = suppliedDescription ?? ui[lang].seo;
 ---
 
 <!doctype html>
@@ -29,17 +35,19 @@ const {
 		<BaseHead
 			title={title === SITE_TITLE ? title : `${title} — ${profile.name}`}
 			description={description}
+			lang={lang}
+			alternates={alternates}
 			{...meta}
 		/>
 	</head>
 	<body>
 		<a class="skip-link" href="#main">
-			Saltar al contenido
+			{ui[lang].skip}
 		</a>
-		<Header />
+		<Header lang={lang} alternates={switchLinks} />
 		<main id="main" tabindex="-1">
 			<slot />
 		</main>
-		<Footer />
+		<Footer lang={lang} />
 	</body>
 </html>

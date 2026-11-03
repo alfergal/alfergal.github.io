@@ -26,6 +26,7 @@ export default defineConfig({
 				'reader.spec.ts',
 				'temperature-fixture.spec.ts',
 				'comparison-fixture.spec.ts',
+				'i18n.spec.ts',
 			],
 		},
 	],

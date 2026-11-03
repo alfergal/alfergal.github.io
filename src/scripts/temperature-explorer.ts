@@ -16,7 +16,10 @@ class TemperatureExplorer extends HTMLElement {
 				(item) => item.temperature === Number(slider.value),
 			);
 			if (!row) return;
-			const value = formatTemperature(row.temperature);
+			const value = formatTemperature(
+				row.temperature,
+				this.dataset.locale === 'en' ? 'en' : 'es',
+			);
 			this.querySelector('[data-temp-value]')!.textContent = value;
 			slider.setAttribute('aria-valuetext', value);
 			this.querySelector('[data-temp-curve]')!.setAttribute(
@@ -31,7 +34,7 @@ class TemperatureExplorer extends HTMLElement {
 				row.log_loss.toFixed(6);
 			if (announce)
 				this.querySelector('[data-temp-status]')!.textContent =
-					`Temperatura ${value}. ROC-AUC ${row.roc_auc.toFixed(6)}. Brier Score ${row.brier.toFixed(6)}. Log-loss ${row.log_loss.toFixed(6)}.`;
+					`${this.dataset.temperatureLabel} ${value}. ROC-AUC ${row.roc_auc.toFixed(6)}. Brier Score ${row.brier.toFixed(6)}. Log-loss ${row.log_loss.toFixed(6)}.`;
 		};
 		this.querySelector<HTMLElement>('[data-temp-static]')!.hidden = true;
 		slider.disabled = false;

@@ -1,0 +1,103 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import GraphNetwork from '../GraphNetwork.astro';
+import PostCard from '../PostCard.astro';
+import { profile, education, certifications } from '../../data/profile';
+import { getPosts } from '../../lib/content';
+import { ui, blogPath, type Locale } from '../../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const posts = (
+	await getPosts({ lang, includeDrafts: import.meta.env.DEV })
+).slice(0, 3);
+---
+
+<SiteLayout
+	title={t.home + ' · ' + t.role}
+	lang={lang}
+	noindex={import.meta.env.DEV}
+>
+	<section class="hero container" aria-labelledby="hero-title">
+		<div class="hero-grid">
+			<div>
+				<h1 id="hero-title" class="text-balance">
+					{profile.name}
+				</h1>
+				<p class="hero-role">{t.role}</p>
+				<p class="hero-description text-pretty">{t.intro}</p>
+				<p class="hero-description text-pretty">{t.introMore}</p>
+			</div>
+			<div class="hero-art">
+				<GraphNetwork />
+			</div>
+		</div>
+	</section>
+	<div class="container professional-content">
+		<section class="profile-section" aria-labelledby="what-title">
+			<h2 id="what-title">{t.what}</h2>
+			<div class="expertise-grid">
+				{t.areas.map(([title, description]) => (
+					<div>
+						<h3>{title}</h3>
+						<p>{description}</p>
+					</div>
+				))}
+			</div>
+		</section>
+		<section class="profile-section" aria-labelledby="experience-title">
+			<h2 id="experience-title">{t.experience}</h2>
+			<p>{t.experienceText}</p>
+		</section>
+		<section class="profile-section" aria-labelledby="skills-title">
+			<h2 id="skills-title">{t.skills}</h2>
+			<dl class="stack-list">
+				{t.stack.map(([title, detail]) => (
+					<div>
+						<dt>{title}</dt>
+						<dd>{detail}</dd>
+					</div>
+				))}
+			</dl>
+		</section>
+		<section class="profile-section" aria-labelledby="education-title">
+			<h2 id="education-title">{t.education}</h2>
+			{education.map((entry) => (
+				<div class="education-entry">
+					<h3>{entry.title[lang]}</h3>
+					<p>
+						{entry.institution}{' '}
+						<span class="education-status">
+							· {entry.status === 'in-progress' ? t.inProgress : t.completed}
+						</span>
+					</p>
+				</div>
+			))}
+			{certifications.map((entry) => (
+				<p>
+					{entry.href ? <a href={entry.href}>{entry.name}</a> : entry.name} ·{' '}
+					{entry.status === 'earned' ? t.earned : t.preparing}
+				</p>
+			))}
+		</section>
+		<section
+			id="blog"
+			class="profile-section latest-articles"
+			aria-labelledby="latest-title"
+		>
+			<div class="section-heading">
+				<h2 id="latest-title">{t.latest}</h2>
+				<a class="text-link" href={blogPath(lang)}>
+					{t.allArticles}
+				</a>
+			</div>
+			{posts.length ? (
+				posts.map((post) => <PostCard post={post} />)
+			) : (
+				<p class="blog-empty">{t.empty}</p>
+			)}
+		</section>
+	</div>
+</SiteLayout>

@@ -1,11 +1,68 @@
 ---
 import { profile } from '../data/profile';
+import { ui, homePath, blogPath, contactPath, type Locale } from '../i18n';
+interface Props {
+	lang: Locale;
+	alternates: Partial<Record<Locale, string>>;
+}
+const { lang, alternates } = Astro.props;
+const t = ui[lang];
+const items = [
+	{ href: homePath(lang), label: t.home },
+	{ href: blogPath(lang), label: t.blog },
+	{ href: contactPath(lang), label: t.contact },
+];
+const current = Astro.url.pathname;
 ---
 
 <header class="site-header">
 	<div class="container header-inner">
-		<a class="wordmark" href="/" aria-label={`af. — ${profile.name}, inicio`}>
+		<a
+			class="wordmark"
+			href={homePath(lang)}
+			aria-label={'af. — ' + profile.name + ', ' + t.homeLink}
+		>
 			af<span>.</span>
 		</a>
+		<nav class="primary-nav" aria-label={t.navigation}>
+			{items.map(({ href, label }) => (
+				<a
+					href={href}
+					aria-current={
+						(
+							href === homePath(lang)
+								? current === href
+								: current.startsWith(href)
+						)
+							? 'page'
+							: undefined
+					}
+				>
+					{label}
+				</a>
+			))}
+		</nav>
+		<nav class="language-nav" aria-label={t.languages}>
+			{(['es', 'en'] as const).map((locale) => (
+				<a
+					href={alternates[locale] ?? blogPath(locale)}
+					lang={locale}
+					hreflang={locale}
+					aria-current={locale === lang ? 'page' : undefined}
+					title={
+						alternates[locale]
+							? locale === 'es'
+								? 'Español'
+								: 'English'
+							: ui[locale].missingTranslation
+					}
+				>
+					{locale.toUpperCase()}
+					{!alternates[locale] && (
+						<span class="sr-only"> — {ui[locale].missingTranslation}</span>
+					)}
+				</a>
+			))}
+		</nav>
 	</div>
 </header>

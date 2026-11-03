@@ -9,9 +9,11 @@ test('featured posts and useful filters exclude drafts and never duplicate an ar
 	page,
 	site,
 }) => {
-	await page.goto(site.productionURL);
+	await page.goto(site.productionURL + '/blog/');
 	await expect(page.locator('.featured-posts .post-card')).toHaveCount(1);
-	const published = site.entries.filter((entry) => !entry.draft);
+	const published = site.entries.filter(
+		(entry) => !entry.draft && entry.lang === 'es',
+	);
 	await expect(page.locator('.post-card')).toHaveCount(published.length);
 	const urls = await page
 		.locator('.post-card h3 a')
@@ -30,7 +32,7 @@ test('featured posts and useful filters exclude drafts and never duplicate an ar
 		.selectOption('Software Engineering');
 	await expect(page.getByRole('status')).toHaveText('0 publicaciones');
 	await expect(page.locator('.featured-posts')).toBeHidden();
-	await page.goto(`${site.productionURL}/?tag=Python#blog`);
+	await page.goto(`${site.productionURL}/blog/?tag=Python#blog`);
 	await expect(page.locator('.post-card:visible')).toHaveCount(2);
 	const a11y = await new AxeBuilder({ page })
 		.withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])

@@ -1,0 +1,124 @@
+{
+  "experiment": "Synthetic non-biological sequence representation demo",
+  "seed": 20261104,
+  "synthetic_only": true,
+  "alphabet": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "observations": 480,
+  "unique_sequences": 480,
+  "exact_duplicates": 0,
+  "symbols_per_sequence": 240,
+  "shared_symbols_within_group": 60,
+  "shared_fraction_within_group": 0.25,
+  "classes": {
+    "Clase A": 160,
+    "Clase B": 160,
+    "Clase C": 160
+  },
+  "groups": 60,
+  "sequences_persisted": false,
+  "versions": {
+    "numpy": "2.2.6",
+    "scikit_learn": "1.7.2"
+  },
+  "metrics": {
+    "random_sample": {
+      "composicion": {
+        "macro_f1": 0.4257726580944237,
+        "balanced_accuracy": 0.4333333333333333,
+        "confusion_matrix": [
+          [
+            12,
+            18,
+            10
+          ],
+          [
+            10,
+            24,
+            6
+          ],
+          [
+            9,
+            15,
+            16
+          ]
+        ]
+      },
+      "kmer3": {
+        "macro_f1": 0.5987029023516043,
+        "balanced_accuracy": 0.6083333333333334,
+        "confusion_matrix": [
+          [
+            16,
+            12,
+            12
+          ],
+          [
+            1,
+            26,
+            13
+          ],
+          [
+            5,
+            4,
+            31
+          ]
+        ]
+      },
+      "n_train": 360,
+      "n_test": 120,
+      "shared_groups": 52
+    },
+    "held_out_groups": {
+      "composicion": {
+        "macro_f1": 0.3239478816005927,
+        "balanced_accuracy": 0.3333333333333333,
+        "confusion_matrix": [
+          [
+            8,
+            15,
+            17
+          ],
+          [
+            7,
+            19,
+            14
+          ],
+          [
+            7,
+            20,
+            13
+          ]
+        ]
+      },
+      "kmer3": {
+        "macro_f1": 0.4728292978846864,
+        "balanced_accuracy": 0.48333333333333334,
+        "confusion_matrix": [
+          [
+            10,
+            17,
+            13
+          ],
+          [
+            11,
+            25,
+            4
+          ],
+          [
+            10,
+            7,
+            23
+          ]
+        ]
+      },
+      "n_train": 360,
+      "n_test": 120,
+      "shared_groups": 0
+    }
+  }
+}

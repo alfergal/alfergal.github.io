@@ -27,11 +27,11 @@ const suppliedCovers = [
 		hash: 'c3b7d2c62e0948e4567123a797c8b9c4be32c6800ace3dab08b7b95eaeb9483a',
 	},
 	{
-		file: 'series-temporales-transformers.webp',
+		file: 'estadistica-vs-transformer-boxeo.webp',
 		article: 'puede-transformer-predecir-mejor-arima-estadistica.mdx',
 		slug: 'puede-transformer-predecir-mejor-arima-estadistica',
-		alt: 'Ilustración conceptual de una serie temporal con una predicción y una banda de incertidumbre; no muestra los resultados del experimento.',
-		hash: '4716f2c8b099cf482f81b17e097a35647f6bda68bda3ab75e9c5daa60787a998',
+		alt: 'Ilustración conceptual de un robot con guantes de boxeo frente a una pantalla de series temporales y gráficos genéricos.',
+		hash: 'aca07301160939ff26531fde474efc69eb8ae942c61bf0a37a4edc9d46eacf0f',
 	},
 	{
 		file: 'grafos-arista.webp',
@@ -39,6 +39,13 @@ const suppliedCovers = [
 		slug: 'una-arista-cambia-red-resistencia-efectiva',
 		alt: 'Ilustración de una red de nodos azules conectados y una arista resaltada en rosa.',
 		hash: 'f84207d3133ef5a28e9efebd081699c5b4d5494a435b352ff974fa6176baf78a',
+	},
+	{
+		file: 'virus-bacteriofago.webp',
+		article: 'ia-lenguaje-de-los-virus.mdx',
+		slug: 'ia-lenguaje-de-los-virus',
+		alt: 'Ilustración conceptual de un bacteriófago estilizado azul y rosa, con cápside geométrica, cola y una hélice central no basada en una estructura concreta.',
+		hash: 'e40589bac82ae5c18b0523426008e654fde615f76cd274ea33b1d1f1025ec634',
 	},
 ];
 
@@ -81,7 +88,7 @@ test('editorial cover sources have consistent, text-free 16:10 WebP exports', as
 			cover.hash,
 		);
 	}
-	expect(new Set(suppliedCovers.map((cover) => cover.file)).size).toBe(4);
+	expect(new Set(suppliedCovers.map((cover) => cover.file)).size).toBe(5);
 
 	const editableSeriesCover = await readFile(
 		'src/assets/blog-covers/series-temporales-transformers.svg',
@@ -140,6 +147,18 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	const dimensions = await image.boundingBox();
 	expect(dimensions).not.toBeNull();
 	expect(dimensions!.width / dimensions!.height).toBeCloseTo(1.6, 1);
+	const virusCard = page.locator(
+		'.post-card:has(a[href="/blog/ia-lenguaje-de-los-virus/"])',
+	);
+	const virusCover = virusCard.locator('.article-card-cover img');
+	await expect(virusCover).toHaveAttribute(
+		'alt',
+		/Ilustración conceptual de un bacteriófago/,
+	);
+	await expect(virusCover).toHaveAttribute('loading', 'lazy');
+	await expect(virusCover).toHaveAttribute('width', '1280');
+	await expect(virusCover).toHaveAttribute('height', '800');
+	await expect(virusCard.locator('figcaption')).toHaveCount(0);
 });
 
 test('each real article has its own accessible cover and the demonstration stays out of editorial listings', async ({
@@ -158,7 +177,7 @@ test('each real article has its own accessible cover and the demonstration stays
 		await expect(card.locator('.article-card-cover figcaption')).toHaveCount(0);
 		sources.push(await image.getAttribute('src'));
 	}
-	expect(new Set(sources).size).toBe(4);
+	expect(new Set(sources).size).toBe(5);
 	for (const source of sources) {
 		expect(source).not.toBeNull();
 		expect(

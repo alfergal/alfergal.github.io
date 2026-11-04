@@ -1,0 +1,106 @@
+---
+title: '¿Está aprendiendo la IA a leer el lenguaje de los virus?'
+description: 'De descubrir secuencias desconocidas a estudiar su evolución: los modelos fundacionales que están transformando la virología.'
+pubDate: '2026-11-04'
+category: 'Artificial Intelligence'
+tags: ['Machine Learning', 'Bioinformatics', 'Foundation Models', 'Deep Learning', 'Python']
+lang: 'es'
+draft: true
+featured: false
+cover: '../../assets/blog-covers/virus-bacteriofago.webp'
+coverAlt:
+  es: 'Ilustración conceptual de un bacteriófago estilizado azul y rosa, con cápside geométrica, cola y una hélice central no basada en una estructura concreta.'
+  en: 'Conceptual illustration of a stylized blue and pink bacteriophage, with a geometric capsid, tail and central helix not based on a specific structure.'
+---
+
+import Figure from '../../components/Figure.astro';
+
+¿Qué significa que una inteligencia artificial sea capaz de reconocer un virus que nunca ha visto? Puede aprender regularidades, construir una representación útil y acertar una tarea sin conocer el mecanismo de infección.
+
+## 1. El universo viral que todavía desconocemos
+
+Los metagenomas y metatranscriptomas contienen fragmentos con poca similitud con referencias catalogadas. Los modelos de lenguaje convierten secuencias en tokens y reutilizan patrones estadísticos en tareas virológicas. «Leer» es una metáfora de modelado, no de comprensión.
+
+## 2. Cuando las secuencias se convierten en lenguaje
+
+Escribimos una secuencia de nucleótidos o aminoácidos como $S=(s_1,s_2,\ldots,s_n)$. El tokenizador la divide en unidades. En aprendizaje autosupervisado se oculta un conjunto $M$ y el modelo estima esos tokens usando el contexto:
+
+$$
+\mathcal{L}_{\mathrm{MLM}}=-\sum_{i\in M}\log P_\theta(s_i\mid S_{\setminus M})
+$$
+
+$M$ contiene las posiciones ocultas; $S_{\setminus M}$ es el contexto visible y $P_\theta$ la distribución del modelo. La tarea aprende regularidades del corpus, no garantiza relaciones causales ni transferencia a nuevos datos.
+
+## 3. Las matemáticas de las representaciones
+
+Un codificador puede resumir una secuencia en un vector:
+
+$$
+z=f_\theta(S),\qquad z\in\mathbb{R}^d.
+$$
+
+La similitud coseno, $\cos(z_a,z_b)=\frac{z_a^\top z_b}{\|z_a\|\,\|z_b\|}$, mide su alineación angular. La cercanía indica rasgos compartidos por el modelo; no prueba parentesco filogenético, función común ni causalidad.
+
+La partición aleatoria puede colocar secuencias casi idénticas en entrenamiento y prueba: el test premia reconocer parentesco ya visto. Separar homólogos o evaluar por tiempo mide una generalización más exigente. Deben distinguirse las clases conocidas de la detección fuera de distribución, donde se reservan familias completas. Kawasaki et al. [6] muestran que una media favorable puede ocultar fallos en linajes concretos.
+
+## 4. ¿Qué está consiguiendo realmente la IA?
+
+Estos trabajos evalúan tareas distintas; no prueban una capacidad general para «entender» virus.
+
+| Estudio | Enfoque | Aplicación | Límite principal |
+| --- | --- | --- | --- |
+| LucaVirus [1] | Transformer unificado de nucleótidos y proteínas | Embeddings y tareas virales | El corpus no elimina sesgos de muestreo |
+| Rider [2] | Lenguaje de proteínas más validación estructural | Búsqueda de virus de ARN | Recuperar virus catalogados no equivale a validar todo candidato nuevo |
+| VirPLM [3] | ESM-2 adaptado y ajuste supervisado | Distancias antigénicas H3N2 | Evaluación retrospectiva, no pronóstico clínico |
+| DeepAVC [4] | Representaciones de moléculas y proteínas | Priorización de candidatos antivirales | Un acierto computacional no prueba eficacia clínica |
+| King et al. [5] | Modelo generativo de genomas de fagos | Viabilidad experimental en laboratorio | No implica eficacia terapéutica ni seguridad general |
+
+LucaVirus es un Transformer encoder-only de 1.000 millones de parámetros, inicializado desde LucaOne y entrenado con tareas semisupervisadas sobre nucleótidos y proteínas. OpenVirus reúne 15,7 millones de secuencias y 25.400 millones de tokens, no parámetros. Sus embeddings se evalúan en detección, anotación funcional y predicción evolutiva. Cobertura, etiquetas y validación experimental siguen limitando la interpretación.
+
+Rider combina representaciones de proteínas con validación estructural de dominios RdRp. En más de 10.000 metatranscriptomas recuperó más del 99 % de los virus de ARN catalogados incluidos en su evaluación, con sensibilidad comparable a LucaProt, y detectó miles de secuencias divergentes. El porcentaje es recuperación de referencias conocidas; los candidatos nuevos requieren validación.
+
+VirPLM adapta ESM-2 a HA1 de influenza H3N2 y ajusta la representación a relaciones antigénicas. En validación cruzada informa AUC 0,898 y AUPRC 0,939 para discriminar variantes; además evalúa 26 temporadas retrospectivas (2012NH–2024SH), con datos previos a cada una. La distancia antigénica no es un pronóstico clínico individual ni sustituye ensayos serológicos. Los cambios de linaje limitan la extrapolación.
+
+## 5. Nuestro experimento
+
+¿Los patrones locales aportan información frente a la composición global? Para comprobarlo sin genomas, generé 480 cadenas sintéticas de dígitos, no biológicas: 240 símbolos, tres clases y 60 grupos con fragmentos compartidos. Comparamos regresión logística sobre composición y frecuencias k-mer de longitud 3. La semilla es 20261104; cada test contiene 120 ejemplos.
+
+| Representación | Macro F1 aleatorio | Macro F1 por grupos | Balanced accuracy por grupos |
+| --- | ---: | ---: | ---: |
+| Composición | 0,426 | 0,324 | 0,333 |
+| Frecuencias k-mer | 0,599 | 0,473 | 0,483 |
+
+La partición aleatoria comparte 52 grupos entre entrenamiento y prueba; la agrupada, ninguno, y mantiene las tres clases a ambos lados. Los k-mers superan la composición, pero pierden rendimiento al reservar grupos. No son métricas virales ni comparamos embeddings fundacionales: no se ejecutó ningún modelo preentrenado. Es una demostración sintética de una sola semilla, sin intervalos de incertidumbre. Consulta el [código, los resultados y el procedimiento reproducible](https://github.com/alfergal/alfergal.github.io/tree/main/experiments/virus-language).
+
+<Figure id="pca-virus-sintetico" caption="Figura 1. PCA de k-mers sintéticos; las cruces son grupos reservados. No muestra embeddings biológicos ni evolución.">
+  <img src="/figures/virus-language/01-pca-sintetico.svg" alt="Proyección PCA de tres clases sintéticas con ejemplos de entrenamiento y grupos reservados señalados con cruces." loading="lazy" />
+</Figure>
+
+<Figure id="comparacion-representaciones" caption="Figura 2. Macro F1 y balanced accuracy de cada método y partición sintética.">
+  <img src="/figures/virus-language/02-comparacion-modelos.svg" alt="Gráfico de barras que compara composición y k-mers bajo partición aleatoria y por grupos para Macro F1 y balanced accuracy." loading="lazy" />
+</Figure>
+
+<Figure id="generalizacion-grupos" caption="Figura 3. Al reservar grupos, Macro F1 baja de 0,599 a 0,473 y balanced accuracy de 0,608 a 0,483.">
+  <img src="/figures/virus-language/03-generalizacion-grupos.svg" alt="Gráfico de líneas que muestra la caída observada del rendimiento de k-mers entre la partición aleatoria y la partición por grupos." loading="lazy" />
+</Figure>
+
+<Figure id="secuencia-a-representacion" caption="Figura 4. Esquema educativo del recorrido de una secuencia a una representación vectorial; no representa la arquitectura de un paper concreto.">
+  <img src="/figures/virus-language/04-secuencia-a-representacion.svg" alt="Esquema de cuatro etapas: secuencia, tokens, modelo y vector de representación." loading="lazy" />
+</Figure>
+
+## 6. Más allá del descubrimiento
+
+DeepAVC combina representaciones de moléculas y proteínas para priorizar candidatos. De 30 seleccionados para evaluación, 28 mostraron actividad frente a al menos un virus *in vitro*. Es una selección filtrada con validación de laboratorio, no eficacia clínica ni seguridad en pacientes.
+
+King et al. informan 16 bacteriófagos viables en un estudio de diseño generativo. La validación de laboratorio distingue generación de una predicción, pero no demuestra comprensión biológica, utilidad clínica ni seguridad general. La investigación generativa requiere controles de bioseguridad y evaluación institucional. Aquí no se reproducen secuencias ni procedimientos.
+
+## 7. Conclusiones y referencias
+
+Los modelos pueden aprender regularidades y producir representaciones útiles; eso no asegura generalización a linajes escasamente muestreados ni comprensión de mecanismos. La evidencia exige particiones realistas, comparadores y validación estructural o experimental. Un embedding ayuda a priorizar hipótesis, pero no es una explicación biológica.
+
+1. Pan et al. “Predicting the evolutionary and functional landscapes of viruses with a unified nucleotide-protein language model: LucaVirus.” *National Science Review*, 2026. [DOI](https://doi.org/10.1093/nsr/nwag376).
+2. Luo et al. “Deep learning coupled with scalable domain-specific structural validation expands RNA virus discovery from metatranscriptomes.” *Nature Communications*, 2026. [DOI](https://doi.org/10.1038/s41467-026-77183-y).
+3. Li et al. “VirPLM: antigenic prediction of influenza A/H3N2 viruses with a fine-tuned protein language model.” *Bioinformatics*, 2026. [DOI](https://doi.org/10.1093/bioinformatics/btag692).
+4. Kang et al. “Bridging antiviral drug discovery with a large language model-powered framework.” *Communications Biology*, 2026. [DOI](https://doi.org/10.1038/s42003-026-10291-z).
+5. King et al. “Generative design of bacteriophages with genome language models.” *Science*, 2026. [DOI](https://doi.org/10.1126/science.aec2657).
+6. Kawasaki et al. “Hidden challenges in evaluating spillover risk of zoonotic viruses using machine learning models.” *Communications Medicine*, 2025. [DOI](https://doi.org/10.1038/s43856-025-00903-w).

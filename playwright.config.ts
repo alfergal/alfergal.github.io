@@ -22,6 +22,7 @@ export default defineConfig({
 				'visual.spec.ts',
 				'temperature.spec.ts',
 				'painting.spec.ts',
+				'virus-article.spec.ts',
 			],
 		},
 		{

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 270" role="img" aria-labelledby="title desc">
+  <title id="title">De una secuencia a una representación</title>
+  <desc id="desc">Esquema conceptual de secuencia, tokens, modelo y vector.</desc>
+  <rect width="1200" height="270" rx="18" fill="#080F26" />
+  <g font-family="Cambria, Georgia, serif" fill="#F8FAFF">
+    <text x="38" y="54" font-size="19" fill="#A9D6F5">Secuencia</text>
+    <text x="326" y="54" font-size="19" fill="#A9D6F5">Tokens</text>
+    <text x="605" y="54" font-size="19" fill="#A9D6F5">Modelo</text>
+    <text x="891" y="54" font-size="19" fill="#A9D6F5">Embedding</text>
+    <text x="43" y="145" font-size="28">S = (s₁, s₂, …, sₙ)</text>
+    <text x="897" y="145" font-size="25">z ∈ ℝᵈ</text>
+  </g>
+  <g fill="#A9D6F5">
+    <rect x="330" y="104" width="52" height="58" rx="7" />
+    <rect x="390" y="104" width="52" height="58" rx="7" fill="#F2A7C6" />
+    <rect x="450" y="104" width="52" height="58" rx="7" />
+  </g>
+  <g font-family="Cambria, Georgia, serif" font-size="22" text-anchor="middle" fill="#080F26">
+    <text x="356" y="141">s₁</text><text x="416" y="141">s₂</text><text x="476" y="141">sₙ</text>
+  </g>
+  <rect x="585" y="92" width="226" height="84" rx="12" fill="#121D3A" stroke="#43516F" stroke-width="2" />
+  <g fill="none" stroke-linecap="round" stroke-width="3">
+    <path d="M510 134H576" stroke="#A9D6F5" />
+    <path d="M820 134H876" stroke="#F2A7C6" />
+  </g>
+  <path d="M561 127 576 134 561 141M861 127 876 134 861 141" stroke="#A9D6F5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M613 118H783M613 134H759M613 150H787" stroke="#F8FAFF" stroke-opacity=".35" stroke-width="3" stroke-linecap="round" />
+  <g fill="#F2A7C6">
+    <circle cx="927" cy="198" r="8" /><circle cx="969" cy="183" r="6" /><circle cx="1012" cy="198" r="10" />
+    <circle cx="1058" cy="180" r="7" /><circle cx="1099" cy="198" r="9" />
+  </g>
+  <g fill="#A9D6F5">
+    <circle cx="927" cy="222" r="5" /><circle cx="969" cy="220" r="8" /><circle cx="1012" cy="225" r="6" />
+    <circle cx="1058" cy="218" r="9" /><circle cx="1099" cy="223" r="5" />
+  </g>
+</svg>

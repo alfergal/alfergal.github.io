@@ -13,6 +13,7 @@
 	--highlight: var(--palette-pink);
 	--muted: color-mix(in srgb, var(--ink) 76%, var(--accent));
 	--line: color-mix(in srgb, var(--accent) 25%, var(--bg));
+	--surface: color-mix(in srgb, var(--accent) 3%, var(--bg));
 	--soft: color-mix(in srgb, var(--accent) 7%, var(--bg));
 	--graph-accent: var(--highlight);
 }
@@ -109,7 +110,7 @@ a:hover {
 	top: 12px;
 }
 .site-header {
-	border-bottom: 1px solid var(--line);
+	background: var(--surface);
 }
 .header-inner {
 	min-height: 64px;
@@ -182,12 +183,15 @@ a:hover {
 }
 
 .site-footer {
+	background: var(--surface);
+	margin-top: 32px;
+}
+.footer-inner {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 16px 32px;
-	border-top: 1px solid var(--line);
 	padding-block: 24px;
 	color: var(--muted);
 	font-size: 14px;
@@ -211,8 +215,10 @@ a:hover {
 	max-width: 880px;
 }
 .post-card {
-	padding: 28px 0;
-	border-top: 1px solid var(--line);
+	padding-block: 20px;
+}
+.post-card + .post-card {
+	margin-top: 28px;
 }
 .post-card h3 {
 	font-size: clamp(22px, 2vw, 26px);
@@ -286,7 +292,7 @@ a:hover {
 }
 .prose h2 {
 	font-size: 26px;
-	margin: 32px 0 16px;
+	margin: 48px 0 20px;
 }
 .prose h3 {
 	font-size: 22px;
@@ -326,7 +332,6 @@ a:hover {
 }
 .prose pre {
 	padding: 20px;
-	border: 1px solid var(--line);
 	border-radius: 4px;
 	overflow-x: auto;
 	font-size: 14px;
@@ -339,7 +344,8 @@ a:hover {
 	font-size: inherit;
 }
 .prose pre[data-language]::before {
-	content: attr(data-language) ' · ' attr(data-filename);
+	content: attr(data-language) '  ' attr(data-filename);
+	white-space: pre-wrap;
 	display: block;
 	color: var(--muted);
 	font-family: var(--font-body);
@@ -374,11 +380,6 @@ a:hover {
 }
 .prose th {
 	background: var(--soft);
-}
-.prose hr {
-	border: 0;
-	border-top: 1px solid var(--line);
-	margin: 32px 0;
 }
 .prose img {
 	border-radius: 4px;
@@ -496,7 +497,9 @@ post-feed {
 	margin: 20px 0 12px;
 }
 .featured-posts {
-	margin-bottom: 24px;
+	background: var(--surface);
+	padding: 20px 24px;
+	margin-bottom: 40px;
 }
 .article-layout {
 	display: grid;
@@ -547,11 +550,11 @@ post-feed {
 	text-underline-offset: 3px;
 }
 .article-end {
-	padding-block: 24px 40px;
+	padding-block: 48px 40px;
 }
 .series-navigation {
-	border-block: 1px solid var(--line);
-	padding-block: 8px 20px;
+	background: var(--surface);
+	padding: 16px 24px;
 	margin-bottom: 28px;
 }
 .series-navigation ol {
@@ -597,11 +600,15 @@ post-feed {
 	align-items: center;
 	gap: 12px;
 	padding: 8px 12px;
-	border: 1px solid var(--line);
-	border-bottom: 0;
+	background: var(--soft);
 	color: var(--muted);
 	font-size: 14px;
 	overflow-wrap: anywhere;
+}
+.code-labels {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
 }
 .code-toolbar button {
 	flex-shrink: 0;
@@ -616,7 +623,6 @@ post-feed {
 	scroll-margin-top: 28px;
 }
 .prose #referencias + ol {
-	border-top: 1px solid var(--line);
 	padding-top: 16px;
 	font-size: 15px;
 }
@@ -649,10 +655,10 @@ post-feed {
 	}
 	.article-toc {
 		position: static;
-		padding: 0;
-		margin: 0 0 24px;
+		padding: 12px 16px;
+		background: var(--surface);
+		margin: 0 0 32px;
 		width: 100%;
-		border-block: 1px solid var(--line);
 	}
 	.article-toc nav {
 		max-height: none;
@@ -748,8 +754,11 @@ post-feed {
 	padding-bottom: 24px;
 }
 .profile-section {
-	padding-block: 36px;
-	border-top: 1px solid var(--line);
+	padding-block: 48px;
+	padding-inline: max(24px, calc((100% - 1100px) / 2));
+}
+.profile-section:nth-of-type(even) {
+	background: var(--surface);
 }
 .profile-section > h2 {
 	margin-bottom: 24px;
@@ -795,6 +804,14 @@ post-feed {
 .education-entry p {
 	color: var(--muted);
 }
+.education-entry + .education-entry {
+	margin-top: 28px;
+}
+.education-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 24px;
+}
 .education-status {
 	color: var(--highlight);
 }
@@ -822,8 +839,9 @@ post-feed {
 	margin-top: 32px;
 }
 .newsletter {
-	border-top: 1px solid var(--line);
-	padding-block: 24px;
+	background: var(--surface);
+	padding: 24px;
+	margin-top: 40px;
 }
 .newsletter p {
 	margin-block: 16px;
@@ -855,7 +873,7 @@ post-feed {
 		gap: 4px;
 	}
 	.profile-section {
-		padding-block: 28px;
+		padding-block: 36px;
 	}
 }
 @media (max-width: 380px) {
@@ -864,5 +882,11 @@ post-feed {
 		justify-content: flex-end;
 		border: 0;
 		padding: 0;
+	}
+}
+
+@media (max-width: 760px) {
+	.profile-section {
+		padding-inline: 20px;
 	}
 }

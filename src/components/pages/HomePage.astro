@@ -16,7 +16,7 @@ const posts = (
 ---
 
 <SiteLayout
-	title={t.home + ' · ' + t.role}
+	title={t.home + ': ' + t.role}
 	lang={lang}
 	noindex={import.meta.env.DEV}
 >
@@ -35,7 +35,7 @@ const posts = (
 			</div>
 		</div>
 	</section>
-	<div class="container professional-content">
+	<div class="professional-content">
 		<section class="profile-section" aria-labelledby="what-title">
 			<h2 id="what-title">{t.what}</h2>
 			<div class="expertise-grid">
@@ -67,18 +67,22 @@ const posts = (
 			{education.map((entry) => (
 				<div class="education-entry">
 					<h3>{entry.title[lang]}</h3>
-					<p>
-						{entry.institution}{' '}
+					<p class="education-meta">
+						<span>{entry.institution}</span>
 						<span class="education-status">
-							· {entry.status === 'in-progress' ? t.inProgress : t.completed}
+							{entry.status === 'in-progress' ? t.inProgress : t.completed}
 						</span>
 					</p>
 				</div>
 			))}
 			{certifications.map((entry) => (
-				<p>
-					{entry.href ? <a href={entry.href}>{entry.name}</a> : entry.name} ·{' '}
-					{entry.status === 'earned' ? t.earned : t.preparing}
+				<p class="education-meta">
+					<span>
+						{entry.href ? <a href={entry.href}>{entry.name}</a> : entry.name}
+					</span>
+					<span class="education-status">
+						{entry.status === 'earned' ? t.earned : t.preparing}
+					</span>
 				</p>
 			))}
 		</section>

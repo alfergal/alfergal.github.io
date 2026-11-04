@@ -92,8 +92,13 @@ test('code toolbar copies exact text, announces success and survives clipboard f
 }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto(`${site.productionURL}${article}`);
-	await expect(page.locator('.code-toolbar')).toContainText(
-		'python · prueba.py',
+	await expect(page.locator('.code-labels > span')).toHaveText([
+		'python',
+		'prueba.py',
+	]);
+	await expect(page.locator('pre')).toHaveAttribute(
+		'aria-label',
+		'python prueba.py',
 	);
 	const code = await page.locator('pre code').textContent();
 	await page.getByRole('button', { name: /Copiar código/ }).click();

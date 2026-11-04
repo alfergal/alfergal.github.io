@@ -7,18 +7,20 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
-<footer class="site-footer container">
-	<span>
-		© {new Date().getFullYear()} {profile.name}
-	</span>
-	<div class="footer-links">
-		{getProfessionalLinks().map((link) => (
-			<a href={link.href} rel="noopener noreferrer">
-				{link.label === 'Email' && lang === 'es' ? 'Correo' : link.label}
+<footer class="site-footer">
+	<div class="container footer-inner">
+		<span>
+			© {new Date().getFullYear()} {profile.name}
+		</span>
+		<div class="footer-links">
+			{getProfessionalLinks().map((link) => (
+				<a href={link.href} rel="noopener noreferrer">
+					{link.label === 'Email' && lang === 'es' ? 'Correo' : link.label}
+				</a>
+			))}
+			<a href={feedPath(lang)} class="footer-rss" title={ui[lang].rssHint}>
+				RSS (XML)
 			</a>
-		))}
-		<a href={feedPath(lang)} class="footer-rss" title={ui[lang].rssHint}>
-			RSS (XML)
-		</a>
+		</div>
 	</div>
 </footer>

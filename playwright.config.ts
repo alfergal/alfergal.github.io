@@ -12,6 +12,7 @@ export default defineConfig({
 			name: 'site',
 			testMatch: [
 				'site.spec.ts',
+				'design-policy.spec.ts',
 				'branding.spec.ts',
 				'graph.spec.ts',
 				'security.spec.ts',
@@ -24,6 +25,7 @@ export default defineConfig({
 			name: 'content',
 			testMatch: [
 				'content.spec.ts',
+				'design-policy.spec.ts',
 				'reader.spec.ts',
 				'temperature-fixture.spec.ts',
 				'comparison-fixture.spec.ts',

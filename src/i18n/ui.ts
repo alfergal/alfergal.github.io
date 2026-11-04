@@ -44,8 +44,9 @@ export const ui = {
 		featured: 'Destacados',
 		publications: 'publicaciones',
 		reading: 'min de lectura',
-		draft: 'Borrador · solo desarrollo',
-		draftNotice: 'Borrador · vista previa solo en desarrollo. Sin publicar.',
+		draft: 'Borrador. Solo visible en desarrollo.',
+		draftNotice:
+			'Borrador. Vista previa disponible únicamente en desarrollo. Sin publicar.',
 		back: 'Volver al inicio',
 		updated: 'Actualizado:',
 		tags: 'Etiquetas',
@@ -100,11 +101,11 @@ export const ui = {
 		],
 		stack: [
 			[
-				'Data Science · herramientas',
+				'Data Science: herramientas',
 				'Python, SQL, NumPy, Pandas, scikit-learn',
 			],
 			[
-				'Machine Learning · competencias',
+				'Machine Learning: competencias',
 				'Modelos predictivos, validación, evaluación y diseño experimental',
 			],
 			[
@@ -157,8 +158,8 @@ export const ui = {
 		featured: 'Featured',
 		publications: 'publications',
 		reading: 'min read',
-		draft: 'Draft · development only',
-		draftNotice: 'Draft · development preview only. Not published.',
+		draft: 'Draft. Development only.',
+		draftNotice: 'Draft. Development preview only. Not published.',
 		back: 'Back to home',
 		updated: 'Updated:',
 		tags: 'Tags',
@@ -211,9 +212,9 @@ export const ui = {
 			],
 		],
 		stack: [
-			['Data Science · tools', 'Python, SQL, NumPy, Pandas, scikit-learn'],
+			['Data Science: tools', 'Python, SQL, NumPy, Pandas, scikit-learn'],
 			[
-				'Machine Learning · skills',
+				'Machine Learning: skills',
 				'Predictive modelling, validation, evaluation and experimental design',
 			],
 			[

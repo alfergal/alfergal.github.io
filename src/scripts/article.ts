@@ -19,21 +19,26 @@ function mountArticle() {
 		const bar = document.createElement('div');
 		bar.className = 'code-toolbar';
 		const label = document.createElement('span');
-		label.textContent = [pre.dataset.language, pre.dataset.filename]
-			.filter(Boolean)
-			.join(' · ');
+		label.className = 'code-labels';
+		const parts = [pre.dataset.language, pre.dataset.filename].filter(Boolean);
+		for (const value of parts) {
+			const part = document.createElement('span');
+			part.textContent = value!;
+			label.append(part);
+		}
+		const labelText = parts.join(' ');
 		bar.append(label);
 		pre.before(wrapper);
 		wrapper.append(bar, pre);
 		pre.tabIndex = 0;
-		pre.setAttribute('aria-label', label.textContent || labels.code);
+		pre.setAttribute('aria-label', labelText || labels.code);
 		if (navigator.clipboard?.writeText) {
 			const button = document.createElement('button');
 			button.type = 'button';
 			button.textContent = labels.copy;
 			button.setAttribute(
 				'aria-label',
-				`${labels.copyCode} ${label.textContent}`.trim(),
+				`${labels.copyCode} ${labelText}`.trim(),
 			);
 			const status = document.createElement('span');
 			status.className = 'sr-only';

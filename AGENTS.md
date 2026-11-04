@@ -26,3 +26,11 @@ Consult these guides before working on related tasks:
 - [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
 - [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
 - [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+
+## Permanent design rules
+
+- No decorative middle dots (Unicode U+00B7) in visible interface text or generated CSS content. Use separate labels and CSS gaps, not replacement ornaments.
+- No horizontal decorative section dividers: no `hr`, separator borders, pseudo-element rules, SVG rules or separator gradients.
+- Separate content with subtle dark background tones, vertical space, typography and composition. Preserve Cambria, the existing palette, responsive layouts and accessibility.
+- Keep meaningful scientific notation, plot axes, table borders, form controls, focus indicators and reading progress intact. These are functional, not section dividers.
+- Apply these rules to both languages, new pages/components/articles, and draft previews. The rendered design-policy tests cover editorial previews and isolated fixtures, including no-JavaScript rendering.

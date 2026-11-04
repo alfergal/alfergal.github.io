@@ -2,7 +2,7 @@
 
 Portfolio profesional bilingüe con **Inicio | Blog | Contacto**. Español predeterminado y HTML estático en inglés, con internacionalización nativa de Astro. Los artículos españoles conservan sus URLs y su estado editorial.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. El logotipo vectorial af y sus variantes de favicon, el motor del grafo optimizado y las herramientas de lectura comparten la identidad existente. GitHub y LinkedIn aparecen en Contacto y en el footer.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. El logotipo vectorial `af` mantiene únicamente sus letras; el grafo interactivo vive en la presentación. GitHub y LinkedIn aparecen en Contacto y en el footer.
 
 ## Identidad visual
 
@@ -256,9 +256,9 @@ El selector enlaza la página equivalente. Si un artículo no tiene traducción,
 
 Las pruebas nuevas utilizan traducciones sintéticas exclusivamente en copias temporales y comprueban navegación, idiomas, fechas compartidas, slugs distintos, fallback, SEO, feeds, sitemap, interfaz de lectura, responsive, teclado y accesibilidad. Se mantienen las pruebas de geometría/física del grafo y la integridad de recursos y resultados científicos.
 
-## Logotipo af orgánico
+## Logotipo af
 
-El logotipo combina las letras minúsculas `af` con una red abierta de cinco nodos. Sus curvas superiores son azules y las inferiores rosadas. El favicon conserva los contornos de las letras y reduce la red a cuatro nodos para mejorar su lectura en tamaños pequeños. Cabecera, favicons SVG y PNG e imagen social usan la geometría centralizada de `src/lib/monogram.ts`.
+El logotipo está formado únicamente por las letras minúsculas `af`, con contornos vectoriales en cursiva. La cabecera cambia suavemente a azul claro al pasar el cursor o recibir foco. El favicon y la imagen social reutilizan las mismas letras desde `src/lib/monogram.ts`; no incluyen el grafo.
 
 **Limitación tipográfica:** Cambria no está instalada ni disponible con licencia en el entorno. Los contornos son de Caladea Italic, no de Cambria. Caladea es una serif abierta distribuida bajo SIL Open Font License 1.1 y compatible en métricas con Cambria. El archivo de fuente se usó temporalmente para trazar las letras y no se distribuye con el sitio. Diseñada por The Caladea Project Authors, © 2012. [Repositorio fuente y licencia](https://github.com/googlefonts/caladea).
 

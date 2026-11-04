@@ -1,7 +1,7 @@
 import { palette } from '../data/theme';
 import { monogram, faviconMarkup } from './monogram';
 
-// Same Caladea Italic letter contours, with a larger, simpler four-node graph.
+// Source-independent lower-case letter contours on the dark brand tile.
 export const favicon =
 	'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="' +
 	monogram.viewBoxFavicon +

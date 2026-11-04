@@ -88,7 +88,7 @@ test('profile, education and certification content is concise and localized', as
 		await expect(page.locator('.education-card h3')).toHaveText(
 			lang === 'es'
 				? [
-						'Estudios de Grado en Ciencia de Datos Aplicada',
+						'Grado universitario en Ciencia de Datos Aplicada',
 						'Técnico Superior en Desarrollo de Aplicaciones Web',
 					]
 				: [

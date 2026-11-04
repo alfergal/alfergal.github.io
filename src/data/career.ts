@@ -15,7 +15,7 @@ interface CertificationEntry {
 export const education: EducationEntry[] = [
 	{
 		title: {
-			es: 'Estudios de Grado en Ciencia de Datos Aplicada',
+			es: 'Grado universitario en Ciencia de Datos Aplicada',
 			en: 'Undergraduate Studies in Applied Data Science',
 		},
 		description: {

@@ -6,10 +6,11 @@ import { favicon } from '../src/lib/favicon';
 import { socialImage } from '../src/lib/social-image';
 import { profile } from '../src/data/profile';
 
-test('header, favicon and social image share the same lower-case letter outlines without a graph', async ({
+test('header, favicon and social image share the same αf outlines without a graph', async ({
 	page,
 	request,
 }) => {
+	expect(monogram.characters).toBe('αf');
 	await page.goto('/');
 	const header = page.locator('.wordmark svg');
 	await expect(header).toHaveAttribute('viewBox', monogram.viewBox);
@@ -144,7 +145,7 @@ test('the lowercase af home link stays accessible, responsive and localized with
 	]) {
 		await page.goto(path);
 		const logo = page.getByRole('link', {
-			name: 'af — Alberto Fernández Gálvez, ' + name,
+			name: 'αf — Alberto Fernández Gálvez, ' + name,
 			exact: true,
 		});
 		await expect(logo).toHaveAttribute('href', home);
@@ -184,7 +185,7 @@ test('the lowercase af home link stays accessible, responsive and localized with
 		await staticPage.goto(site.baseURL + '/en/blog/');
 		await staticPage
 			.getByRole('link', {
-				name: 'af — Alberto Fernández Gálvez, home',
+				name: 'αf — Alberto Fernández Gálvez, home',
 				exact: true,
 			})
 			.click();

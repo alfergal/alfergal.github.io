@@ -2,6 +2,7 @@
 import Monogram from './Monogram.astro';
 import { profile } from '../data/profile';
 import { ui, homePath, blogPath, contactPath, type Locale } from '../i18n';
+import { monogram } from '../lib/monogram';
 interface Props {
 	lang: Locale;
 	alternates: Partial<Record<Locale, string>>;
@@ -21,7 +22,9 @@ const current = Astro.url.pathname;
 		<a
 			class="wordmark"
 			href={homePath(lang)}
-			aria-label={'af — ' + profile.name + ', ' + t.homeLink}
+			aria-label={
+				monogram.characters + ' — ' + profile.name + ', ' + t.homeLink
+			}
 		>
 			<Monogram />
 		</a>

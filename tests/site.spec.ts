@@ -25,7 +25,7 @@ test('one personal homepage presents the profile, education and integrated artic
 	await expect(page.locator('.hero-description')).toHaveCount(3);
 	await expect(page.locator('.wordmark')).toHaveAttribute(
 		'aria-label',
-		'af — Alberto Fernández Gálvez, inicio',
+		'αf — Alberto Fernández Gálvez, inicio',
 	);
 	await expect(page.locator('.wordmark svg')).toHaveCount(1);
 	await expect(page.locator('.graph-network')).toBeVisible();

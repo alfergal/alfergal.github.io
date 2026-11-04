@@ -222,50 +222,67 @@ a:hover {
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	padding: 16px;
+	padding: 18px;
 	background: var(--surface);
 }
 .article-card-cover {
 	width: 100%;
-	margin: 0 0 14px;
+	margin: -18px -18px 20px;
+	width: calc(100% + 36px);
 	background: var(--soft);
 }
 .article-cover-art {
 	width: 100%;
-	aspect-ratio: 4 / 3;
+	aspect-ratio: 16 / 10;
 	overflow: hidden;
 	background: var(--soft);
 }
-.article-cover-art img,
-.article-cover-art svg {
+.article-cover-art img {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
 .article-card-cover figcaption {
-	padding: 6px 8px;
+	padding: 8px 18px 0;
 	color: var(--muted);
-	font-size: 14px;
+	font-size: 13px;
 	line-height: 1.4;
+}
+.post-card-category-line {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	min-height: 26px;
+}
+.post-card-category {
+	color: var(--palette-blue);
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.025em;
 }
 .article-meta {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
-	gap: 4px 12px;
+	gap: 4px 16px;
 	color: var(--muted);
 	font-size: 14px;
+	line-height: 1.5;
+	margin-top: auto;
+	padding-top: 18px;
 }
 .post-card h3 {
 	font-size: clamp(19px, 1.6vw, 22px);
 	line-height: 1.3;
-	margin-block: 10px;
+	margin-block: 10px 8px;
 }
 .post-card > p {
 	color: var(--muted);
-	font-size: 15px;
+	font-size: 16px;
 	line-height: 1.6;
+	margin-bottom: 0;
 }
 .article-header {
 	padding: 48px 0 36px;

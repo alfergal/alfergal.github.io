@@ -1,5 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import fallbackCover from '../assets/blog-covers/editorial-neutral.webp';
 import FormattedDate from './FormattedDate.astro';
 import { ui, categoryLabel } from '../i18n';
 import { postPath } from '../lib/article-routes';
@@ -10,6 +12,8 @@ interface Props {
 const { post } = Astro.props;
 const t = ui[post.data.lang];
 const coverAlt = post.data.coverAlt?.[post.data.lang] || t.illustrativeCover;
+const cover = post.data.cover ?? fallbackCover;
+const category = categoryLabel(post.data.category, post.data.lang);
 ---
 
 <article
@@ -19,59 +23,32 @@ const coverAlt = post.data.coverAlt?.[post.data.lang] || t.illustrativeCover;
 >
 	<figure class="article-card-cover">
 		<div class="article-cover-art">
-			{post.data.cover ? (
-				<img
-					src={post.data.cover}
-					alt={coverAlt}
-					width="800"
-					height="600"
-					loading="lazy"
-					decoding="async"
-				/>
-			) : (
-				<svg viewBox="0 0 800 600" role="img" aria-label={coverAlt}>
-					<rect width="800" height="600" fill="#080f26" />
-					<path
-						d="M138 164 C245 90 324 260 411 178 S592 93 666 197 M151 408 C253 326 307 492 418 390 S567 339 652 428 M207 220 C279 282 259 333 190 386 M405 197 C448 259 458 319 418 390 M587 206 C527 260 545 326 613 376"
-						fill="none"
-						stroke="#a9d6f5"
-						stroke-opacity=".68"
-						stroke-width="5"
-					/>
-					<path
-						d="M190 386 C275 349 329 340 418 390 M418 390 C486 431 545 420 613 376"
-						fill="none"
-						stroke="#f2a7c6"
-						stroke-opacity=".68"
-						stroke-width="5"
-					/>
-					<g fill="#f8faff">
-						<circle cx="138" cy="164" r="12" />
-						<circle cx="411" cy="178" r="16" />
-						<circle cx="666" cy="197" r="10" />
-						<circle cx="151" cy="408" r="14" />
-						<circle cx="418" cy="390" r="12" />
-						<circle cx="652" cy="428" r="15" />
-					</g>
-					<circle cx="286" cy="283" r="4" fill="#f2a7c6" />
-					<circle cx="554" cy="301" r="5" fill="#a9d6f5" />
-				</svg>
-			)}
+			<Image
+				src={cover}
+				alt={coverAlt}
+				width={1600}
+				height={1000}
+				sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+				loading="lazy"
+				decoding="async"
+			/>
 		</div>
 		{post.data.coverCredit && (
 			<figcaption>{post.data.coverCredit[post.data.lang]}</figcaption>
 		)}
 	</figure>
-	<div class="article-meta">
-		<FormattedDate lang={post.data.lang} date={post.data.pubDate} />
-		<span>
-			{readingTime(post.body)} {t.reading}
-		</span>
-		<span>{categoryLabel(post.data.category, post.data.lang)}</span>
+	<div class="post-card-category-line">
+		<span class="post-card-category">{category}</span>
 		{post.data.draft && <span class="draft-label">{t.draft}</span>}
 	</div>
 	<h3>
 		<a href={postPath(post)}>{post.data.title}</a>
 	</h3>
 	<p>{post.data.description}</p>
+	<div class="article-meta">
+		<FormattedDate lang={post.data.lang} date={post.data.pubDate} />
+		<span>
+			{readingTime(post.body)} {t.reading}
+		</span>
+	</div>
 </article>

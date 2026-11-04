@@ -11,9 +11,9 @@ interface Props {
 }
 const { lang } = Astro.props;
 const t = ui[lang];
-const posts = (
-	await getPosts({ lang, includeDrafts: import.meta.env.DEV })
-).slice(0, 3);
+const posts = (await getPosts({ lang, includeDrafts: import.meta.env.DEV }))
+	.filter((post) => post.id !== 'demostracion-articulo-tecnico')
+	.slice(0, 3);
 ---
 
 <SiteLayout

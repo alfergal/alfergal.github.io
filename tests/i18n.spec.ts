@@ -125,12 +125,7 @@ test('profile positioning, in-progress education and confirmed contact links are
 			.locator('.latest-articles .article-card-cover')
 			.all()) {
 			const image = cover.locator('img');
-			if (await image.count()) await expect(image).toHaveAttribute('alt', /.+/);
-			else
-				await expect(cover.locator('svg[role=img]')).toHaveAttribute(
-					'aria-label',
-					/.+/,
-				);
+			await expect(image).toHaveAttribute('alt', /.+/);
 		}
 		await expect(
 			page.locator('iframe, input[type=email], form[action], .newsletter'),

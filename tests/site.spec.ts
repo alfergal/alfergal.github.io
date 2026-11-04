@@ -60,8 +60,19 @@ test('one personal homepage presents the profile, education and integrated artic
 	await expect(
 		page.locator('.latest-articles .post-card .article-card-cover'),
 	).toHaveCount(
-		Math.min(3, site.entries.filter((entry) => entry.lang === 'es').length),
+		Math.min(
+			3,
+			site.entries.filter(
+				(entry) =>
+					entry.lang === 'es' && entry.id !== 'demostracion-articulo-tecnico',
+			).length,
+		),
 	);
+	await expect(
+		page.locator(
+			'.latest-articles a[href="/blog/demostracion-articulo-tecnico/"]',
+		),
+	).toHaveCount(0);
 	await expect(
 		page.locator('.latest-articles .article-card-cover img[alt=""]'),
 	).toHaveCount(0);
@@ -72,6 +83,29 @@ test('one personal homepage presents the profile, education and integrated artic
 		);
 	for (const source of coverSources)
 		expect((await request.get(source)).status()).toBe(200);
+	for (const card of await page.locator('.latest-articles .post-card').all()) {
+		const image = card.locator('.article-card-cover img');
+		await expect(image).toHaveAttribute('loading', 'lazy');
+		await expect(image).toHaveAttribute('width', '1600');
+		await expect(image).toHaveAttribute('height', '1000');
+		await expect(card.locator('a')).toHaveCount(1);
+		await expect(card.locator('.post-card-category')).toBeVisible();
+		await expect(card.locator('.article-meta time')).toBeVisible();
+		await expect(card.locator('.article-meta')).toContainText(/\d+ min/);
+	}
+	await page.goto('/blog/');
+	const demoPreview = page.locator(
+		'.post-card a[href="/blog/demostracion-articulo-tecnico/"]',
+	);
+	if (
+		site.entries.some((entry) => entry.id === 'demostracion-articulo-tecnico')
+	) {
+		await expect(demoPreview).toBeVisible();
+		await expect(
+			demoPreview.locator('xpath=ancestor::article').locator('.draft-label'),
+		).toBeVisible();
+	}
+	await page.goto('/');
 	if (site.entries.filter((entry) => !entry.draft).length < 3)
 		await expect(page.locator('.blog-filters, .featured-posts')).toHaveCount(0);
 	for (const route of routesFor(site)) {
@@ -166,7 +200,7 @@ test('the integrated blog lists the collection in date order with readable metad
 		);
 		await expect(card.locator('.draft-label')).toHaveCount(entry.draft ? 1 : 0);
 		expect(blogCategories).toContain(entry.category);
-		await expect(card.locator('.article-meta')).toContainText(
+		await expect(card.locator('.post-card-category')).toContainText(
 			categoryLabel(entry.category, entry.lang),
 		);
 	}

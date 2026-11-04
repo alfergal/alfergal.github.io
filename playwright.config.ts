@@ -12,6 +12,7 @@ export default defineConfig({
 			name: 'site',
 			testMatch: [
 				'site.spec.ts',
+				'covers.spec.ts',
 				'design-policy.spec.ts',
 				'branding.spec.ts',
 				'graph.spec.ts',

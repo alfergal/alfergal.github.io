@@ -150,24 +150,6 @@ test('profile, education and certification content is concise and localized', as
 		await expect(
 			page.locator('iframe, input[type=email], form[action], .newsletter'),
 		).toHaveCount(0);
-		const contact = prefix === '/' ? '/contacto/' : '/en/contact/';
-		await page.goto(site.productionURL + contact);
-		await expect(page.locator('.contact-form-unavailable')).toBeVisible();
-		await expect(page.locator('[data-contact-form]')).toHaveCount(0);
-		await expect(page.locator('.contact-profiles h2')).toHaveText(
-			lang === 'es'
-				? 'También puedes encontrarme en'
-				: 'You can also find me on',
-		);
-		await expect(
-			page.locator('.contact-profiles .professional-links a'),
-		).toHaveText(['LinkedIn', 'GitHub']);
-		await expect(page.locator('main a[href^="mailto:"]')).toHaveCount(0);
-		await expect(
-			page.locator(
-				'main a[href*="huggingface"], main a[href*="kaggle"], main a[href*="orcid"]',
-			),
-		).toHaveCount(0);
 	}
 });
 

@@ -37,7 +37,7 @@ export default defineConfig({
 		},
 		{
 			name: 'contact',
-			testMatch: ['contact-form.spec.ts'],
+			testMatch: ['contact.spec.ts'],
 		},
 	],
 	use: {

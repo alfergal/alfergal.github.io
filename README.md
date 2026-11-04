@@ -48,7 +48,6 @@ En Settings → Pages, Source debe ser **GitHub Actions**, sin compilación Jeky
 src/
   data/profile.ts          Identidad y perfiles profesionales confirmados
   data/career.ts           Formación y certificaciones presentadas
-  data/contact-form.ts     Puerta de configuración para Formspree
   data/newsletter.ts       Configuración opcional por idioma
   i18n/                    Interfaz, rutas y etiquetas ES/EN
   lib/content.ts           Selección, orden de artículos y lectura estimada
@@ -252,9 +251,7 @@ El selector enlaza la página equivalente. Si un artículo no tiene traducción,
 
 ### Contacto, formación y newsletter
 
-**src/data/profile.ts** centraliza identidad y enlaces profesionales confirmados. Se puede añadir un correo público confirmado y perfiles reales de Hugging Face, Kaggle u ORCID. Mientras falten, no se renderizan. **src/data/career.ts** contiene las dos formaciones y las cinco certificaciones solicitadas.
-
-El formulario de Contacto usa un componente HTML con mejora progresiva y Formspree. No se muestra mientras falte cualquiera de los tres ajustes de configuración: `PUBLIC_FORMSPREE_FORM_ID`, `PUBLIC_CONTACT_PRIVACY_NOTICE` y `PUBLIC_CONTACT_PRIVACY_APPROVED=true`. El ID es público y el aviso se incorpora al HTML; no guardes secretos o información personal en esas variables. Para habilitarlo, crea y verifica un formulario en Formspree, prepara un aviso de privacidad revisado que indique responsable y contacto, datos recogidos, finalidad, base jurídica, proveedor, posibles transferencias y retención, y cómo solicitar información sobre el tratamiento. Después configura las tres variables en el entorno local o como variables de repositorio de GitHub Actions. No marques la aprobación ni publiques el formulario hasta cubrir esos puntos. No se ha creado una cuenta ni aceptado condiciones en Formspree. El formulario incluye un campo honeypot; revisa y activa también las herramientas antispam disponibles en el panel del proveedor. Los mensajes y correos no se escriben en logs del sitio.
+**src/data/profile.ts** centraliza la identidad, el correo público y los enlaces profesionales. Los perfiles opcionales de Hugging Face, Kaggle u ORCID solo se muestran cuando se han confirmado. **src/data/career.ts** contiene las dos formaciones y las cinco certificaciones solicitadas. La página de Contacto ofrece enlaces directos al correo, LinkedIn y GitHub; no recoge ni almacena mensajes.
 
 **src/data/newsletter.ts** está vacío y Newsletter.astro no muestra nada. Para una futura integración RSS→email, elegir un proveedor con feeds/listas independientes para ES y EN, configurar y probar su formulario alojado, consentimiento, privacidad y cancelación. Después añadir hostedFormUrl y privacyUrl HTTPS para el idioma operativo. El componente ofrece un enlace al formulario real del proveedor, sin almacenar correos, introducir scripts externos o construir un backend. No se ha contratado ni activado ningún servicio.
 

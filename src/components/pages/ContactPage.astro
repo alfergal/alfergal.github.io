@@ -1,13 +1,20 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import ProfessionalLinks from '../ProfessionalLinks.astro';
-import ContactForm from '../ContactForm.astro';
+import { profile, getProfessionalLinks } from '../../data/profile';
 import { ui, type Locale } from '../../i18n';
 interface Props {
 	lang: Locale;
 }
 const { lang } = Astro.props;
 const t = ui[lang];
+const links = getProfessionalLinks();
+const email = links.find((link) => link.label === 'Email')!;
+const linkedin = links.find((link) => link.label === 'LinkedIn')!;
+const github = links.find((link) => link.label === 'GitHub')!;
+const displayUrl = (href: string) => {
+	const url = new URL(href);
+	return `${url.host}${url.pathname.replace(/\/$/, '')}`;
+};
 ---
 
 <SiteLayout title={t.contact} description={t.contactIntro} lang={lang}>
@@ -17,10 +24,23 @@ const t = ui[lang];
 	>
 		<h1 id="contact-title">{t.contact}</h1>
 		<p class="page-intro">{t.contactIntro}</p>
-		<ContactForm lang={lang} />
-		<section class="contact-profiles" aria-labelledby="contact-profiles-title">
-			<h2 id="contact-profiles-title">{t.contactProfiles}</h2>
-			<ProfessionalLinks />
+		<section class="contact-options" aria-label={t.contactChannels}>
+			<div class="contact-option">
+				<h2>{t.emailLabel}</h2>
+				<a href={email.href}>{profile.email}</a>
+			</div>
+			<div class="contact-option">
+				<h2>LinkedIn</h2>
+				<a href={linkedin.href} rel="noopener noreferrer">
+					{displayUrl(linkedin.href)}
+				</a>
+			</div>
+			<div class="contact-option">
+				<h2>GitHub</h2>
+				<a href={github.href} rel="noopener noreferrer">
+					{displayUrl(github.href)}
+				</a>
+			</div>
 		</section>
 	</section>
 </SiteLayout>

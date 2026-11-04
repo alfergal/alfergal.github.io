@@ -7,16 +7,14 @@ export const profile = {
 	site: 'https://alfergal.github.io',
 	github: 'https://github.com/alfergal',
 	linkedin: 'https://www.linkedin.com/in/alberto-fernandez-galvez',
-	email: undefined as string | undefined,
+	email: 'albertofer1997@gmail.com',
 	huggingFace: undefined as string | undefined,
 	kaggle: undefined as string | undefined,
 	orcid: undefined as string | undefined,
 };
 export function getProfessionalLinks() {
 	return [
-		...(profile.email
-			? [{ label: 'Email', href: 'mailto:' + profile.email }]
-			: []),
+		{ label: 'Email', href: `mailto:${profile.email}` },
 		{ label: 'LinkedIn', href: profile.linkedin },
 		{ label: 'GitHub', href: profile.github },
 		...(profile.huggingFace

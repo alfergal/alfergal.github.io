@@ -37,22 +37,9 @@ export const ui = {
 		empty: 'Todavía no hay artículos publicados en español.',
 
 		contactIntro:
-			'¿Quieres contactar conmigo? Si tienes alguna propuesta de colaboración, una oportunidad profesional o simplemente quieres compartir una idea relacionada con Data Science, Machine Learning o inteligencia artificial, puedes escribirme a través del formulario o encontrarme en mis perfiles profesionales.',
-
-		contactFormTitle: 'Enviar un mensaje',
-		contactName: 'Nombre',
-		contactEmail: 'Correo electrónico',
-		contactSubject: 'Asunto',
-		contactMessage: 'Mensaje',
-		contactSpamField: 'Deja este campo vacío',
-		contactSubmit: 'Enviar mensaje',
-		contactSending: 'Enviando mensaje…',
-		contactSuccess: 'Mensaje enviado. Gracias por contactar.',
-		contactFailure:
-			'No se pudo enviar el mensaje. Inténtalo de nuevo más tarde.',
-		contactFormUnavailable:
-			'El formulario no está activo. Se habilitará cuando se configure el endpoint de Formspree y se publique la información de privacidad aprobada. Mientras tanto, puedes encontrarme en mis perfiles profesionales.',
-		contactProfiles: 'También puedes encontrarme en',
+			'¿Quieres contactar conmigo? Estoy abierto a oportunidades profesionales, colaboraciones y conversaciones sobre Data Science, Machine Learning e inteligencia artificial. Puedes escribirme por correo electrónico o encontrarme en mis perfiles profesionales.',
+		contactChannels: 'Vías de contacto',
+		emailLabel: 'Correo electrónico',
 
 		rssHint:
 			'Copia este enlace en tu lector RSS para seguir los artículos del blog.',
@@ -144,21 +131,9 @@ export const ui = {
 		empty: 'No articles have been published in English yet.',
 
 		contactIntro:
-			'Want to get in touch? Whether you have a collaboration proposal, a professional opportunity or simply an idea related to Data Science, Machine Learning or artificial intelligence, you can send me a message using the form or connect with me through my professional profiles.',
-
-		contactFormTitle: 'Send a message',
-		contactName: 'Name',
-		contactEmail: 'Email address',
-		contactSubject: 'Subject',
-		contactMessage: 'Message',
-		contactSpamField: 'Leave this field blank',
-		contactSubmit: 'Send message',
-		contactSending: 'Sending message…',
-		contactSuccess: 'Message sent. Thank you for getting in touch.',
-		contactFailure: 'The message could not be sent. Please try again later.',
-		contactFormUnavailable:
-			'The form is not active. It will be enabled once the Formspree endpoint is configured and approved privacy information is published. In the meantime, you can find me through my professional profiles.',
-		contactProfiles: 'You can also find me on',
+			"Interested in getting in touch? I'm open to professional opportunities, collaborations and conversations about Data Science, Machine Learning and artificial intelligence. Feel free to email me or connect through my professional profiles.",
+		contactChannels: 'Ways to get in touch',
+		emailLabel: 'Email',
 
 		rssHint: 'Copy this link into your RSS reader to follow new blog articles.',
 

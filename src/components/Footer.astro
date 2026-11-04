@@ -15,7 +15,7 @@ const { lang } = Astro.props;
 		<div class="footer-links">
 			{getProfessionalLinks().map((link) => (
 				<a href={link.href} rel="noopener noreferrer">
-					{link.label === 'Email' && lang === 'es' ? 'Correo' : link.label}
+					{link.label === 'Email' ? profile.email : link.label}
 				</a>
 			))}
 			<a href={feedPath(lang)} class="footer-rss" title={ui[lang].rssHint}>

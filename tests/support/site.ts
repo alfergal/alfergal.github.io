@@ -224,22 +224,7 @@ async function withSite(
 export const test = base.extend<{}, { site: TestSite }>({
 	site: [
 		async ({}, use, workerInfo) =>
-			withSite(
-				workerInfo.project.name === 'content',
-				use,
-				workerInfo.project.name === 'contact'
-					? {
-							PUBLIC_FORMSPREE_FORM_ID: 'testform123',
-							PUBLIC_CONTACT_PRIVACY_NOTICE:
-								'Isolated test notice. No real messages are sent.',
-							PUBLIC_CONTACT_PRIVACY_APPROVED: 'true',
-						}
-					: {
-							PUBLIC_FORMSPREE_FORM_ID: '',
-							PUBLIC_CONTACT_PRIVACY_NOTICE: '',
-							PUBLIC_CONTACT_PRIVACY_APPROVED: '',
-						},
-			),
+			withSite(workerInfo.project.name === 'content', use),
 		{ scope: 'worker', timeout: 120_000 },
 	],
 	baseURL: async ({ site }, use) => use(site.baseURL),

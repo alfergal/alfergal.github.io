@@ -71,9 +71,7 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	await expect(paintingCard.locator('.article-meta time')).toBeVisible();
 	await expect(paintingCard.locator('.draft-label')).toBeVisible();
 	await expect(paintingCard.locator('a')).toHaveCount(1);
-	const dimensions = await image.evaluate((element) => {
-		const rendered = element as HTMLImageElement;
-		return [rendered.naturalWidth, rendered.naturalHeight];
-	});
-	expect(dimensions[0] / dimensions[1]).toBeCloseTo(1.6, 1);
+	const dimensions = await image.boundingBox();
+	expect(dimensions).not.toBeNull();
+	expect(dimensions!.width / dimensions!.height).toBeCloseTo(1.6, 1);
 });

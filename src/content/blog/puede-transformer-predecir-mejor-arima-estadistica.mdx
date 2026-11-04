@@ -1,0 +1,160 @@
+---
+title: '¿Puede un Transformer predecir mejor que 50 años de estadística?'
+description: 'ARIMA frente a Transformers: un experimento matemático sobre los límites de la predicción temporal.'
+pubDate: '2026-11-04'
+category: 'Machine Learning'
+tags:
+  [
+    'Time Series',
+    'Transformers',
+    'ARIMA',
+    'Forecasting',
+    'Statistics',
+    'Python',
+  ]
+lang: 'es'
+draft: true
+featured: false
+cover: '../../assets/blog-covers/transformers-estadistica.webp'
+coverAlt:
+  es: 'Composición editorial sobre predicción temporal, modelos estadísticos y Transformers.'
+  en: 'Editorial illustration about time-series forecasting, statistical models and Transformers.'
+---
+
+import Figure from '../../components/Figure.astro';
+import ExperimentPlot from '../../components/ExperimentPlot.astro';
+
+## 1. ¿Estamos complicando demasiado la predicción?
+
+Un modelo con millones de parámetros puede perder ante una ecuación de décadas si el proceso es simple: la flexibilidad añade parámetros sin añadir información.
+
+M4 comparó 61 métodos en 100.000 series; ganó un híbrido de suavizado exponencial y red recurrente [1]. En nueve benchmarks de horizonte largo, Zeng et al. (2023) hallaron que una regresión lineal superaba a los Transformers evaluados [2]. El alcance es ese protocolo, no toda atención ni los modelos preentrenados.
+
+¿Cuándo aprende la flexibilidad estructura ausente del modelo estadístico y cuándo solo eleva el coste?
+
+## 2. ARIMA frente a Transformers: dos formas de predecir
+
+Un AR(p) expresa el valor actual como combinación de observaciones pasadas y una innovación:
+
+$$
+X_t = \mu + \sum_{i=1}^{p}\phi_i X_{t-i} + \varepsilon_t.
+$$
+
+ARIMA diferencia para tratar tendencias y añade términos de media móvil. En AR(1) estacionario, $|\phi|<1$ y la autocorrelación a retardo $k$ es $\phi^k$.
+
+La atención propia calcula interacciones entre representaciones de posiciones:
+
+$$
+\operatorname{Attention}(Q,K,V)=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+$$
+
+$Q$, $K$ y $V$ son proyecciones aprendidas que ponderan partes del contexto. No son autocorrelaciones: dependen de los datos y parámetros. La expresividad no garantiza que haya patrones complejos ni datos suficientes para aprenderlos.
+
+TimesFM, preentrenado con datos reales y sintéticos, obtuvo precisión zero-shot cercana a modelos supervisados especializados en sus benchmarks [3]. Chronos tokeniza series y adapta modelos de lenguaje; fue competitivo zero-shot en datos nuevos dentro de 42 conjuntos [4]. Zero-shot no elimina el preentrenamiento ni el riesgo de solapamiento con test [7].
+
+## 3. ¿Cuándo es imposible mejorar una predicción?
+
+Considérese un AR(1) con $\phi$ conocido e innovaciones independientes, de media cero y varianza $\sigma^2$. Como el proceso es Markoviano, $X_t$ contiene toda la información pasada pertinente. Aplicando esperanza condicional:
+
+$$
+\begin{aligned}
+\mathbb{E}[X_{t+1}\mid X_t] &= \phi X_t,\\
+\mathbb{E}[X_{t+h}\mid X_t] &= \phi\,\mathbb{E}[X_{t+h-1}\mid X_t]=\phi^h X_t.
+\end{aligned}
+$$
+
+Bajo error cuadrático, la esperanza condicional minimiza el riesgo esperado. Ningún algoritmo con la misma información puede mejorarla sistemáticamente. La varianza que permanece es
+
+$$
+\operatorname{Var}(X_{t+h}\mid X_t)=\sigma^2\sum_{j=0}^{h-1}\phi^{2j}.
+$$
+
+Es incertidumbre de innovaciones futuras, no un defecto del predictor. Esta cota supone que la dinámica y $\phi$ son conocidos. Un ARIMA estimado con muestra finita puede errar al estimar parámetros; un Transformer sí podría aproximar mejor la regla desconocida, pero no superar el óptimo poblacional con la misma información y pérdida.
+
+```python title="predictor.py"
+def predictor_optimo(x, phi, h):
+    return phi ** h * x
+```
+
+## 4. Nuestro experimento
+
+Generamos procesos sintéticos. En A usamos AR(1), $\phi=0{,}8$, $\varepsilon\sim\mathcal{N}(0,1)$ y veinte semillas. Ajustamos con 48 series y evaluamos en otras 24, a horizontes 1, 4 y 8; comparamos el óptimo, ARIMA(1,0,0) sin constante y persistencia.
+
+En B usamos $X_{t+1}=0{,}55X_t+0{,}7\tanh(1{,}4X_t)+\varepsilon_{t+1}$, diez semillas y ruido de desviación 0,55. Comparamos persistencia, ARIMA(1,0,0), una MLP de 16 neuronas y el oráculo generador. La configuración se fija antes del test. No ejecutamos Transformers ni modelos fundacionales: faltan pesos versionados y un protocolo comparable. La MLP solo prueba el efecto de la no linealidad.
+
+Medimos MAE, RMSE y MASE en pronósticos de un paso fuera de muestra. MASE escala el error por el de persistencia en entrenamiento. La tabla da medias entre semillas; las bandas de las figuras 2 y 3 son cuantiles 2,5–97,5 entre réplicas, no intervalos universales.
+
+| Proceso    | Predictor    |   MAE |  RMSE |  MASE |
+| ---------- | ------------ | ----: | ----: | ----: |
+| AR(1), h=1 | Óptimo       | 0,802 | 1,004 | 0,953 |
+| AR(1), h=1 | ARIMA        | 0,802 | 1,004 | 0,953 |
+| AR(1), h=1 | Persistencia | 0,846 | 1,059 | 1,005 |
+| No lineal  | Oráculo      | 0,441 | 0,552 | 0,934 |
+| No lineal  | ARIMA        | 0,467 | 0,585 | 0,988 |
+| No lineal  | MLP          | 0,441 | 0,553 | 0,934 |
+| No lineal  | Persistencia | 0,475 | 0,596 | 1,006 |
+
+<Figure
+	id="serie-y-autocorrelacion"
+	caption="Figura 1. Serie AR(1) generada y autocorrelación muestral frente a la estructura teórica. Cada curva usa datos sintéticos."
+>
+	<ExperimentPlot
+		figure="01-serie-autocorrelacion"
+		alt="Serie AR(1) sintética con autocorrelación muestral que decae aproximadamente como phi elevado al retardo."
+	/>
+</Figure>
+
+<Figure
+	id="predictor-optimo"
+	caption="Figura 2. En AR(1), el RMSE del predictor óptimo coincide con el error irreducible esperado; la banda muestra cuantiles entre semillas."
+>
+	<ExperimentPlot
+		figure="02-limite-predictor-optimo"
+		alt="RMSE por horizonte para el predictor óptimo, ARIMA estimado y persistencia, junto al error irreducible teórico."
+	/>
+</Figure>
+
+<Figure
+	id="errores-complejidad"
+	caption="Figura 3. La MLP recupera casi el rendimiento del oráculo en este proceso no lineal controlado; no es una conclusión sobre series reales."
+>
+	<ExperimentPlot
+		figure="03-error-lineal-no-lineal"
+		alt="Comparación de MAE del predictor óptimo, ARIMA, MLP y persistencia en los procesos lineal y no lineal."
+	/>
+</Figure>
+
+<Figure
+	id="precision-coste"
+	caption="Figura 4. Error y coste local de ajuste e inferencia en CPU; los tiempos dependen del equipo y del lote de predicciones."
+>
+	<ExperimentPlot
+		figure="04-precision-coste"
+		alt="Gráfico de RMSE frente al tiempo de ajuste, con tiempo de inferencia por mil predicciones anotado para cada método."
+	/>
+</Figure>
+
+El experimento completo, sus semillas, configuración, resultados y verificador están en el [directorio reproducible](https://github.com/alfergal/alfergal.github.io/tree/main/experiments/arima-transformers). No descarga datos externos.
+
+## 5. ¿Compensa realmente utilizar un Transformer?
+
+En A, el RMSE del ARIMA (1,004) coincide con el óptimo estimado; el valor teórico es 1. En B, la MLP baja de 0,585 (ARIMA) a 0,553, cerca del oráculo (0,552). El DM-HAC(12), calculado por réplica, favorece a la MLP en 10/10 casos ($p<0{,}001$). Solo describe este generador.
+
+La flexibilidad aporta valor cuando la dinámica real no está en la familia estadística y hay datos suficientes para aprenderla. El coste puede ser grande: en esta máquina, ajustar la MLP tomó alrededor de 1,16 s por réplica frente a 0,0005 s para ARIMA; 1.000 inferencias en lote tomaron 0,34 ms y 0,004 ms, respectivamente. Son tiempos locales de CPU, no una comparación de hardware ni de un Transformer.
+
+Las cifras no miden una competición entre modelos fundacionales y ARIMA. Los preentrenamientos amplios pueden transferir regularidades entre series, pero benchmark, horizonte, escala, covariables y posibles filtraciones cambian el resultado. El análisis de 2025 de Meyer et al. advierte sobre solapamientos y particiones poco claras [7]; el benchmark TIME de 2026 propone tareas nuevas y controles contra filtraciones para estudiar generalización zero-shot [8].
+
+## 6. Conclusiones y referencias
+
+Un Transformer puede superar a un ARIMA estimado si aprende estructura omitida, transfiere información entre series o usa más covariables. No puede mejorar sistemáticamente al predictor condicional óptimo con la misma información y pérdida cuadrática. La decisión depende de evidencia fuera de muestra y del coste, no del nombre de la arquitectura.
+
+MASE ayuda a comparar escalas [5]. Diebold–Mariano contrasta precisión predictiva, pero requiere tratar la dependencia y definir la pérdida [6]. Los resultados completos y las limitaciones están documentados junto al código.
+
+1. [Makridakis, Spiliotis y Assimakopoulos (2020), “The M4 Competition: 100,000 time series and 61 forecasting methods”](https://doi.org/10.1016/j.ijforecast.2019.04.014).
+2. [Zeng et al. (2023), “Are Transformers Effective for Time Series Forecasting?”](https://doi.org/10.1609/aaai.v37i9.26317).
+3. [Das et al. (2024), “A decoder-only foundation model for time-series forecasting” (TimesFM)](https://arxiv.org/abs/2310.10688).
+4. [Ansari et al. (2024), “Chronos: Learning the Language of Time Series”](https://arxiv.org/abs/2403.07815).
+5. [Hyndman y Koehler (2006), “Another look at measures of forecast accuracy”](https://doi.org/10.1016/j.ijforecast.2006.03.001).
+6. [Diebold y Mariano (1995), “Comparing Predictive Accuracy”](https://doi.org/10.1080/07350015.1995.10524599).
+7. [Meyer et al. (2025), “Time Series Foundation Models: Benchmarking Challenges and Requirements”](https://arxiv.org/abs/2510.13654).
+8. [Qiao et al. (2026), “It’s TIME: Towards the Next Generation of Time Series Forecasting Benchmarks”](https://arxiv.org/abs/2602.12147).

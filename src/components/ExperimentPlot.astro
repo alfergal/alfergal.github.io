@@ -1,0 +1,61 @@
+---
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+interface Props {
+	figure:
+		| '01-serie-autocorrelacion'
+		| '02-limite-predictor-optimo'
+		| '03-error-lineal-no-lineal'
+		| '04-precision-coste';
+	alt: string;
+}
+
+const { figure, alt } = Astro.props;
+const path = resolve(
+	process.cwd(),
+	'experiments/arima-transformers/figures',
+	`${figure}.svg`,
+);
+let svg = await readFile(path, 'utf8');
+svg = svg
+	.replace(/<\?xml[^>]*>\s*/i, '')
+	.replace(/<!DOCTYPE[^>]*>\s*/i, '')
+	.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+for (const id of ids) {
+	const prefixed = `${figure}-${id}`;
+	svg = svg
+		.replaceAll(`id="${id}"`, `id="${prefixed}"`)
+		.replaceAll(`url(#${id})`, `url(#${prefixed})`)
+		.replaceAll(`href="#${id}"`, `href="#${prefixed}"`)
+		.replaceAll(`xlink:href="#${id}"`, `xlink:href="#${prefixed}"`);
+}
+---
+
+<div
+	class="experiment-plot"
+	role="img"
+	aria-label={alt}
+	tabindex="0"
+	set:html={svg}
+/>
+
+<style>
+	.experiment-plot {
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
+	.experiment-plot :global(svg) {
+		display: block;
+		width: 100%;
+		min-width: 640px;
+		height: auto;
+	}
+
+	.experiment-plot:focus-visible {
+		outline: 2px solid var(--highlight);
+		outline-offset: 4px;
+	}
+</style>

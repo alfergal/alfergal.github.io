@@ -1,0 +1,130 @@
+---
+title: '¿Puede una sola arista cambiar toda una red?'
+description: 'Resistencia efectiva, teoría espectral y las matemáticas de las conexiones críticas.'
+pubDate: '2026-11-04'
+category: 'Data Science'
+tags:
+  [
+    'Network Science',
+    'Graph Theory',
+    'Spectral Graph Theory',
+    'Linear Algebra',
+    'Python',
+  ]
+lang: 'es'
+draft: true
+featured: false
+---
+
+import Figure from '../../components/Figure.astro';
+import ExperimentPlot from '../../components/ExperimentPlot.astro';
+import EffectiveResistanceExplorer from '../../components/EffectiveResistanceExplorer.astro';
+
+## 1. ¿Puede una conexión cambiarlo todo?
+
+En el camino A — B — C — D, cada resistencia vale 1 y el único recorrido da $R_{AD}=3$. Añadir A–D pone en paralelo resistencias 3 y 1: $R'_{AD}=0{,}75$, una caída del **75 %**.
+
+El índice de Kirchhoff suma resistencias de todos los pares:
+
+$$
+Kf(G)=\sum_{i<j}R_{ij}.
+$$
+
+El camino suma $Kf=10$; el ciclo, $Kf=5$. Esta arista reduce a la mitad el total, pero el porcentaje depende de la red.
+
+## 2. Las matemáticas de la resistencia efectiva
+
+Para un grafo no dirigido conectado, $L=D-A$: $A$ registra conductancias y $D$ suma las incidentes en cada nodo. Los autovalores cumplen $0=\lambda_1<\lambda_2\le\dots\le\lambda_n$; $\lambda_2$ es la conectividad algebraica.
+
+La resistencia efectiva entre $i$ y $j$ es
+
+$$
+R_{ij}=(e_i-e_j)^T L^+(e_i-e_j),
+$$
+
+con $L^+$ la pseudoinversa de Moore–Penrose: la caída de potencial al inyectar corriente en $i$ y extraerla en $j$. Resume todos los caminos eléctricos; la geodésica solo usa el más corto.
+
+Para ese laplaciano, la suma sobre pares no ordenados también es espectral:
+
+$$
+Kf(G)=n\sum_{k=2}^{n}\frac1{\lambda_k}.
+$$
+
+El factor $n$ corresponde a la suma, no a la media.
+
+## 3. ¿Qué ocurre al añadir una arista?
+
+Una conexión de conductancia $w>0$ entre $u$ y $v$ modifica el laplaciano:
+
+$$
+L'=L+wbb^T,\qquad b=e_u-e_v.
+$$
+
+En $1^\perp$, $L$ es invertible. Sherman–Morrison y $c=e_i-e_j$ dan
+
+$$
+R'_{ij}=R_{ij}-\frac{w(c^TL^+b)^2}{1+w b^TL^+b}.
+$$
+
+El término restado es no negativo: ninguna resistencia aumenta (monotonicidad de Rayleigh). Algunas quedan iguales si $c^TL^+b=0$. Como $L'\succeq L$, $\lambda_2$ tampoco baja. No equivale a minimizar $Kf$: en el ciclo de 16 nodos, $Kf$ baja 20,7 % y $\lambda_2$ no cambia.
+
+## 4. Nuestro experimento
+
+Usamos conductancia unitaria y grafos de 16 nodos: camino ($m=15$), ciclo ($m=16$), cuatro ciclos de cuatro nodos enlazados ($m=19$) y una muestra aleatoria conectada ($m=24$). $m$ varía entre familias; dentro de cada grafo todas las estrategias parten de la misma red y añaden una arista.
+
+En 50 semillas, la estrategia aleatoria toma una no arista uniforme. La geodésica maximiza distancia mínima y desempata lexicográficamente. La estrategia $Kf$ evalúa exhaustivamente todas las candidatas. Sus intervalos son percentiles 2,5–97,5 sobre una red fija.
+
+| Topología   |         Aleatoria | Mayor distancia | Máxima caída de Kf |
+| :---------- | ----------------: | --------------: | -----------------: |
+| Camino      | 27,0 % [6,9–51,8] |          50,0 % |             52,4 % |
+| Ciclo       | 15,9 % [7,5–20,7] |          20,7 % |             20,7 % |
+| Comunidades | 22,5 % [2,9–41,4] |          41,8 % |             41,8 % |
+| Aleatorio   |  9,0 % [2,7–23,1] |          23,0 % |             23,6 % |
+
+En el camino, los índices 1 y 14 (numeración desde cero) superan por poco a la pareja más distante; $\lambda_2$ crece 296,2 %. En el ciclo, la arista diametral reduce $Kf$ sin mover $\lambda_2$.
+
+<Figure
+	id="explorador-resistencia-efectiva"
+	caption="Elige una arista ausente entre ocho nodos. Métricas y matrices proceden de pseudoinversas verificadas; Restablecer recupera la red inicial."
+>
+	<EffectiveResistanceExplorer />
+</Figure>
+
+<Figure
+	id="estrategias-resistencia"
+	caption="Figura 1. Reducción de Kf por estrategia. El intervalo aleatorio cubre los percentiles 2,5–97,5 de 50 candidatas."
+>
+	<ExperimentPlot
+		experiment="resistencia-efectiva"
+		figure="01-estrategias-kirchhoff"
+		alt="Reducción de Kf por estrategia y topología; el intervalo indica la variación de 50 elecciones aleatorias."
+	/>
+</Figure>
+
+<Figure
+	id="matriz-resistencia-efectiva"
+	caption="Figura 2. Resistencias efectivas entre pares antes y después de A–H. Ambas matrices usan la misma escala."
+>
+	<ExperimentPlot
+		experiment="resistencia-efectiva"
+		figure="02-matriz-resistencias"
+		alt="Matrices de resistencia efectiva antes y después de añadir A-H a la red de ocho nodos, con escala común."
+	/>
+</Figure>
+
+El barrido exhaustivo de este equipo tardó 62–128 ms; no es una estimación para redes grandes. [Código, semillas, resultados, pruebas y derivación completa](https://github.com/alfergal/alfergal.github.io/tree/main/experiments/resistencia-efectiva).
+
+## 5. Qué nos enseña la investigación
+
+Ghosh, Boyd y Saberi [1] minimizan la resistencia total al asignar conductancias en una topología fija. Spielman y Srivastava [2] usan resistencias para muestrear y reponderar aristas en sparsificadores espectrales: quitan o reponderan conexiones para aproximar el laplaciano, no añaden una arista para bajar $Kf$.
+
+Wang et al. [3] muestran que, con difusión del laplaciano combinatorio de un grafo conectado y tras restar el modo estacionario, el calor restante integrado converge a $Kf/N$. La normalización $1/N$ es esencial. Warton et al. [4] usan consultas de resistencia efectiva para inferir propiedades de un grafo oculto. Inferir su estructura no es optimizar su conectividad.
+
+## 6. Conclusiones y referencias
+
+La posición de una arista cambia qué pares ganan rutas alternativas y cuánto se mueve el espectro. En estas cuatro redes, las caídas de $Kf$ van del 9 % al 52 %; no medimos robustez ante fallos ni generalizamos a redes mayores. La conclusión depende del grafo y de la métrica.
+
+1. [Ghosh, Boyd y Saberi (2008), “Minimizing Effective Resistance of a Graph”, SIAM Review 50(1), 37–66.](https://doi.org/10.1137/050645452)
+2. [Spielman y Srivastava (2011), “Graph Sparsification by Effective Resistances”, SIAM Journal on Computing 40(6), 1913–1926.](https://doi.org/10.1137/080734029)
+3. [Wang et al. (2026), “Effective graph resistance as cumulative heat dissipation”, Nature Communications 17, 9297.](https://doi.org/10.1038/s41467-026-75760-9)
+4. [Warton et al. (2026), “Graph Inference with Effective Resistance Queries”, PMLR 313, 1–31.](https://proceedings.mlr.press/v313/warton26a.html)

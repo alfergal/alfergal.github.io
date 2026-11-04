@@ -1,0 +1,295 @@
+---
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+interface Node {
+	id: string;
+	x: number;
+	y: number;
+}
+interface Candidate {
+	u: string;
+	v: string;
+	kirchhoff: number;
+	lambda2: number;
+	resistances: number[][];
+}
+interface InteractiveGraph {
+	nodes: Node[];
+	edges: [string, string][];
+	kirchhoff: number;
+	lambda2: number;
+	resistances: number[][];
+	candidates: Candidate[];
+}
+
+const file = resolve(
+	process.cwd(),
+	'experiments/resistencia-efectiva/resultados.json',
+);
+const experiment = JSON.parse(await readFile(file, 'utf8')) as {
+	interactive: InteractiveGraph;
+};
+const graph = experiment.interactive;
+const id = `effective-resistance-${crypto.randomUUID()}`;
+const positions = new Map(graph.nodes.map((node) => [node.id, node]));
+const initialU = 'A';
+const initialV = 'H';
+const initialUi = graph.nodes.findIndex((node) => node.id === initialU);
+const initialVi = graph.nodes.findIndex((node) => node.id === initialV);
+const initialResistance = graph.resistances[initialUi][initialVi];
+const initialValue = (value: number) =>
+	value.toLocaleString('es-ES', {
+		minimumFractionDigits: 3,
+		maximumFractionDigits: 3,
+	});
+const serialized = JSON.stringify(graph);
+---
+
+<effective-resistance-explorer
+	class="resistance-explorer"
+	data-graph={serialized}
+	data-initial-u={initialU}
+	data-initial-v={initialV}
+	aria-labelledby={`${id}-title`}
+>
+	<h3 id={`${id}-title`}>Prueba una conexión</h3>
+	<p class="explorer-intro">
+		Elige nodos sin arista. Prueba una conexión y restablece la red inicial.
+	</p>
+	<svg
+		viewBox="0 0 480 250"
+		role="img"
+		aria-labelledby={`${id}-svg-title ${id}-svg-description`}
+		class="network"
+	>
+		<title id={`${id}-svg-title`}>Dos ciclos unidos por una arista</title>
+		<desc id={`${id}-svg-description`} data-description>
+			Ocho nodos A a H forman dos ciclos conectados por la arista D-E. No hay
+			una conexión adicional.
+		</desc>
+		<g class="edges" aria-hidden="true">
+			{graph.edges.map(([u, v]) => {
+				const start = positions.get(u)!;
+				const end = positions.get(v)!;
+				return (
+					<line
+						data-edge={`${u}-${v}`}
+						x1={start.x}
+						y1={start.y}
+						x2={end.x}
+						y2={end.y}
+					/>
+				);
+			})}
+			<line data-added-edge display="none" />
+		</g>
+		<g class="nodes">
+			{graph.nodes.map((node) => (
+				<g data-node={node.id} transform={`translate(${node.x} ${node.y})`}>
+					<circle r="10" />
+					<text y="29" text-anchor="middle">
+						{node.id}
+					</text>
+				</g>
+			))}
+		</g>
+	</svg>
+	<p class="static-note">
+		La red permanece estática hasta probar una conexión.
+	</p>
+	<div class="node-controls">
+		<label for={`${id}-u`}>Nodo 1</label>
+		<select id={`${id}-u`} data-node-u disabled>
+			{graph.nodes.map((node) => (
+				<option value={node.id} selected={node.id === initialU}>
+					{node.id}
+				</option>
+			))}
+		</select>
+		<label for={`${id}-v`}>Nodo 2</label>
+		<select id={`${id}-v`} data-node-v disabled>
+			{graph.nodes.map((node) => (
+				<option value={node.id} selected={node.id === initialV}>
+					{node.id}
+				</option>
+			))}
+		</select>
+		<button type="button" data-add disabled>
+			Añadir arista
+		</button>
+		<button type="button" data-reset disabled>
+			Restablecer
+		</button>
+	</div>
+	<p
+		class="status"
+		data-status
+		role="status"
+		aria-live="polite"
+		aria-atomic="true"
+	>
+		Red inicial, sin cambios.
+	</p>
+	<dl class="metrics">
+		<div>
+			<dt>
+				Resistencia <span data-pair-label>(A, H)</span>
+			</dt>
+			<dd>
+				<span data-resistance>
+					{initialValue(initialResistance)} → {initialValue(initialResistance)}
+				</span>
+				<span data-resistance-change>0,0 %</span>
+			</dd>
+		</div>
+		<div>
+			<dt>Índice Kf</dt>
+			<dd>
+				<span data-kirchhoff>
+					{initialValue(graph.kirchhoff)} → {initialValue(graph.kirchhoff)}
+				</span>
+				<span data-kirchhoff-change>0,0 %</span>
+			</dd>
+		</div>
+		<div>
+			<dt>Conectividad, λ₂</dt>
+			<dd>
+				<span data-lambda>
+					{initialValue(graph.lambda2)} → {initialValue(graph.lambda2)}
+				</span>
+				<span data-lambda-change>0,0 %</span>
+			</dd>
+		</div>
+	</dl>
+</effective-resistance-explorer>
+
+<script>
+	import '../scripts/effective-resistance-explorer';
+</script>
+
+<style>
+	effective-resistance-explorer {
+		display: block;
+		min-width: 0;
+		margin-block: 1.5rem;
+		padding: 1rem;
+		border-radius: 0.55rem;
+		background: color-mix(in srgb, var(--palette-blue), transparent 96%);
+	}
+	effective-resistance-explorer h3 {
+		margin: 0 0 0.45rem;
+		font-size: 1.2rem;
+	}
+	.explorer-intro,
+	.static-note,
+	.status {
+		margin: 0.35rem 0 0.8rem;
+		line-height: 1.5;
+		color: var(--muted);
+	}
+	.network {
+		display: block;
+		width: min(100%, 480px);
+		height: auto;
+		margin: 0.6rem auto;
+		color: var(--palette-white);
+	}
+	.network line {
+		stroke: color-mix(in srgb, var(--palette-blue), transparent 20%);
+		stroke-width: 2.4;
+		vector-effect: non-scaling-stroke;
+	}
+	.network [data-added-edge] {
+		stroke: var(--palette-pink);
+		stroke-dasharray: 6 5;
+		stroke-width: 3;
+	}
+	.network [data-node] circle {
+		fill: var(--palette-blue);
+		stroke: var(--palette-white);
+		stroke-width: 1.4;
+		vector-effect: non-scaling-stroke;
+	}
+	.network [data-node].is-selected circle {
+		fill: var(--palette-pink);
+	}
+	.network text {
+		fill: currentColor;
+		font-family: Cambria, Georgia, serif;
+		font-size: 17px;
+	}
+	.node-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin-block: 0.8rem;
+	}
+	.node-controls label {
+		font-weight: 600;
+	}
+	.node-controls select,
+	.node-controls button {
+		min-height: 2.6rem;
+		padding: 0.35rem 0.65rem;
+		border: 1px solid color-mix(in srgb, var(--palette-blue), transparent 48%);
+		border-radius: 0.35rem;
+		background: var(--surface);
+		color: var(--palette-white);
+		font: inherit;
+	}
+	.node-controls button {
+		cursor: pointer;
+	}
+	.node-controls button:disabled,
+	.node-controls select:disabled {
+		cursor: not-allowed;
+		opacity: 0.62;
+	}
+	.node-controls :focus-visible {
+		outline: 2px solid var(--highlight);
+		outline-offset: 3px;
+	}
+	.metrics {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.55rem;
+		margin: 0.8rem 0 0;
+	}
+	.metrics > div {
+		min-width: 0;
+		padding: 0.65rem;
+		border-radius: 0.35rem;
+		background: color-mix(in srgb, var(--palette-blue), transparent 92%);
+	}
+	.metrics dt {
+		font-size: 0.88rem;
+		color: var(--muted);
+	}
+	.metrics dd {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.5rem;
+		margin: 0.25rem 0 0;
+		font-variant-numeric: tabular-nums;
+	}
+	.metrics [data-resistance],
+	.metrics [data-kirchhoff],
+	.metrics [data-lambda] {
+		color: var(--palette-white);
+	}
+	.metrics [data-resistance-change],
+	.metrics [data-kirchhoff-change],
+	.metrics [data-lambda-change] {
+		color: var(--palette-blue);
+	}
+	@media (max-width: 540px) {
+		effective-resistance-explorer {
+			padding: 0.75rem;
+		}
+		.metrics {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

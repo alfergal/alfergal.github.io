@@ -143,12 +143,18 @@ async function withSite(
 		for (const file of ['astro.config.mjs', 'package.json', 'tsconfig.json'])
 			await cp(join(repository, file), join(root, file));
 		if (!fixtureOnly) {
-			await mkdir(join(root, 'experiments'), { recursive: true });
-			await cp(
-				join(repository, 'experiments/arima-transformers'),
-				join(root, 'experiments/arima-transformers'),
-				{ recursive: true },
-			);
+			for (const experiment of ['arima-transformers', 'resistencia-efectiva']) {
+				const source = join(repository, 'experiments', experiment);
+				await mkdir(join(root, 'experiments', experiment), {
+					recursive: true,
+				});
+				await cp(source, join(root, 'experiments', experiment), {
+					recursive: true,
+					filter: (path) =>
+						!path.replace(/\\/g, '/').includes('/__pycache__/') &&
+						!path.endsWith('.pyc'),
+				});
+			}
 		}
 		await symlink(
 			join(repository, 'node_modules'),

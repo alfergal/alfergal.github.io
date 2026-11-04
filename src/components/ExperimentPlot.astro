@@ -7,14 +7,34 @@ interface Props {
 		| '01-serie-autocorrelacion'
 		| '02-limite-predictor-optimo'
 		| '03-error-lineal-no-lineal'
-		| '04-precision-coste';
+		| '04-precision-coste'
+		| '01-estrategias-kirchhoff'
+		| '02-matriz-resistencias';
+	experiment?: 'arima-transformers' | 'resistencia-efectiva';
 	alt: string;
 }
 
-const { figure, alt } = Astro.props;
+const { figure, experiment = 'arima-transformers', alt } = Astro.props;
+const allowedFigures = {
+	'arima-transformers': [
+		'01-serie-autocorrelacion',
+		'02-limite-predictor-optimo',
+		'03-error-lineal-no-lineal',
+		'04-precision-coste',
+	],
+	'resistencia-efectiva': [
+		'01-estrategias-kirchhoff',
+		'02-matriz-resistencias',
+	],
+} as const;
+if (!(allowedFigures[experiment] as readonly string[]).includes(figure)) {
+	throw new Error(`Unknown ${experiment} figure: ${figure}`);
+}
 const path = resolve(
 	process.cwd(),
-	'experiments/arima-transformers/figures',
+	'experiments',
+	experiment,
+	'figures',
 	`${figure}.svg`,
 );
 let svg = await readFile(path, 'utf8');

@@ -13,6 +13,7 @@ export default defineConfig({
 			testMatch: [
 				'site.spec.ts',
 				'transformers.spec.ts',
+				'network.spec.ts',
 				'covers.spec.ts',
 				'design-policy.spec.ts',
 				'branding.spec.ts',

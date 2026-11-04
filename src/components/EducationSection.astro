@@ -25,7 +25,8 @@ const t = ui[lang];
 					</span>
 					<p class="education-description">{entry.description[lang]}</p>
 					<p class="education-grade">
-						<span>{t.averageGrade}</span> {entry.grade[lang]}
+						<span>{t.averageGrade}</span>{' '}
+						<strong>{entry.grade[lang]}</strong>
 					</p>
 				</article>
 			))}
@@ -38,17 +39,14 @@ const t = ui[lang];
 					<article class="certification-card">
 						<p class="certification-issuer">{entry.issuer}</p>
 						<h4>{entry.name}</h4>
-						<p class="certification-meta">
-							<span>{t.earned}</span>
-							<span>
-								{t.issued}: {formatMonth(entry.issued, lang)}
-							</span>
-							{entry.hours && (
-								<span>
-									{entry.hours} {t.studyHours}
-								</span>
-							)}
+						<p class="certification-date">
+							<span>{t.issued}</span> {formatMonth(entry.issued, lang)}
 						</p>
+						{entry.hours && (
+							<p class="certification-duration">
+								{entry.hours} {t.studyHours}
+							</p>
+						)}
 					</article>
 				))}
 			</div>

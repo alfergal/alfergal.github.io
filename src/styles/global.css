@@ -815,54 +815,73 @@ post-feed {
 .education-card,
 .certification-card {
 	min-width: 0;
-	padding: 20px;
-	background: var(--bg);
+	padding: 24px;
+	background: var(--soft);
 }
 .education-card h3 {
-	font-size: 21px;
-	line-height: 1.3;
-	margin-bottom: 8px;
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.35;
+	margin: 8px 0 12px;
 	text-wrap: balance;
 }
 .education-institution,
 .certification-issuer {
+	margin: 0;
 	color: var(--accent);
-	font-size: 16px;
+	font-size: 15px;
+	line-height: 1.5;
 }
-.education-period,
-.education-grade,
-.certification-meta {
+.education-period {
+	margin: 0;
 	color: var(--muted);
 	font-size: 15px;
-}
-.education-grade span {
-	color: var(--ink);
+	line-height: 1.5;
 }
 .education-description {
 	color: var(--muted);
 	font-size: 15px;
 	line-height: 1.6;
-	margin-top: 14px;
+	margin: 14px 0 0;
 }
 .education-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-items: stretch;
 	gap: 20px;
 }
 .education-card {
-	background: var(--surface);
+	display: flex;
+	flex-direction: column;
 }
 .education-status {
 	display: inline-flex;
+	align-self: flex-start;
 	margin-top: 10px;
+	padding: 2px 9px;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--highlight) 12%, var(--surface));
 	color: var(--highlight);
 	font-size: 15px;
-}
-.education-description {
-	margin-top: 12px;
+	line-height: 1.5;
 }
 .education-grade {
-	margin-top: 12px;
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	margin: auto 0 0;
+	padding-top: 20px;
+	font-size: 15px;
+	line-height: 1.5;
+}
+.education-grade span {
+	color: var(--muted);
+}
+.education-grade strong {
+	color: var(--ink);
+	font-size: 18px;
+	font-weight: 600;
 }
 .certifications-block {
 	margin-top: 40px;
@@ -873,24 +892,41 @@ post-feed {
 }
 .certification-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: 14px;
 }
 .certification-card {
-	background: var(--soft);
+	grid-column: span 2;
+	display: flex;
+	flex-direction: column;
 	padding: 16px;
 }
-.certification-card h4 {
-	font-size: 17px;
-	font-weight: 400;
-	line-height: 1.4;
-	margin: 5px 0 12px;
+.certification-card:nth-child(4) {
+	grid-column: 2 / span 2;
 }
-.certification-meta {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px 12px;
-	font-size: 14px;
+.certification-card:nth-child(5) {
+	grid-column: 4 / span 2;
+}
+.certification-card h4 {
+	min-height: 2.7em;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.35;
+	margin: 5px 0 14px;
+	text-wrap: balance;
+}
+.certification-date,
+.certification-duration {
+	margin: 0;
+	color: var(--muted);
+	font-size: 15px;
+	line-height: 1.5;
+}
+.certification-date span {
+	color: var(--ink);
+}
+.certification-duration {
+	margin-top: 4px;
 }
 .section-heading {
 	display: flex;
@@ -932,6 +968,16 @@ post-feed {
 	.certification-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+	.certification-card,
+	.certification-card:nth-child(4),
+	.certification-card:nth-child(5) {
+		grid-column: auto;
+	}
+	.certification-card:nth-child(5) {
+		grid-column: 1 / -1;
+		width: calc(50% - 7px);
+		justify-self: center;
+	}
 }
 @media (max-width: 600px) {
 	.header-inner {
@@ -955,6 +1001,10 @@ post-feed {
 	.certification-grid {
 		grid-template-columns: 1fr;
 		gap: 16px;
+	}
+	.certification-card:nth-child(5) {
+		grid-column: 1;
+		width: 100%;
 	}
 	.profile-section {
 		padding-block: 36px;

@@ -30,7 +30,7 @@ export const education: EducationEntry[] = [
 			en: 'September 2024 to June 2027',
 		},
 		status: 'in-progress',
-		grade: { es: '8,86/10 de media', en: '8.86/10 average' },
+		grade: { es: '8,86/10', en: '8.86/10' },
 		description: {
 			es: 'Estudios en Ciencia de Datos, estadística, matemáticas aplicadas, Machine Learning y modelado de datos.',
 			en: 'Studies in Data Science, statistics, applied mathematics, Machine Learning and data modelling.',
@@ -44,7 +44,7 @@ export const education: EducationEntry[] = [
 		},
 		period: { es: '2018 a 2020', en: '2018 to 2020' },
 		status: 'completed',
-		grade: { es: '8,6/10 de media', en: '8.6/10 average' },
+		grade: { es: '8,6/10', en: '8.6/10' },
 		description: {
 			es: 'Ciclo formativo de grado superior en desarrollo de aplicaciones web.',
 			en: 'Higher vocational education in web application development.',

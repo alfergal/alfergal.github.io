@@ -208,6 +208,49 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
 			);
 			expect(columns).toBe(width <= 600 ? 1 : width <= 900 ? 2 : 3);
 		}
+		const educationGrid = page.locator('.education-grid');
+		if (await educationGrid.count()) {
+			const columns = await educationGrid.evaluate(
+				(el) => getComputedStyle(el).gridTemplateColumns.split(' ').length,
+			);
+			expect(columns).toBe(width <= 600 ? 1 : 2);
+			const sectionTone = await page
+				.locator('.education-section')
+				.evaluate((el) => getComputedStyle(el).backgroundColor);
+			const cardTone = await page
+				.locator('.education-card')
+				.first()
+				.evaluate((el) => getComputedStyle(el).backgroundColor);
+			expect(cardTone).not.toBe(sectionTone);
+		}
+		const certificationGrid = page.locator('.certification-grid');
+		const certificationLayout = await certificationGrid
+			.locator('.certification-card')
+			.evaluateAll((cards) =>
+				cards.map((card) => {
+					const { x, y, width } = card.getBoundingClientRect();
+					return { x, y, width };
+				}),
+			);
+		const certificationRows = new Set(
+			certificationLayout.map((card) => Math.round(card.y)),
+		);
+		expect(certificationRows.size).toBe(
+			width <= 600 ? 5 : width <= 900 ? 3 : 2,
+		);
+		const gridBounds = await certificationGrid.boundingBox();
+		const lastCard = certificationLayout.at(-1)!;
+		const lastCardCenter =
+			width > 900
+				? ([certificationLayout[3], certificationLayout[4]].reduce(
+						(sum, card) => sum + card.x + card.width / 2,
+						0,
+					) /
+					2)
+				: lastCard.x + lastCard.width / 2;
+		expect(
+			Math.abs(lastCardCenter - (gridBounds!.x + gridBounds!.width / 2)),
+		).toBeLessThan(2);
 	});
 }
 

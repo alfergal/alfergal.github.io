@@ -86,10 +86,32 @@ test('profile positioning, in-progress education and confirmed contact links are
 		await expect(page.locator('.education-card').first()).toContainText(
 			'Universitat Oberta de Catalunya (UOC)',
 		);
-		await expect(page.locator('.certification-card')).toHaveCount(5);
-		await expect(page.locator('.certification-card').first()).toContainText(
-			'Neo4j Graph Data Science Certification',
+		await expect(page.locator('.education-grade')).toHaveText(
+			lang === 'es'
+				? ['Nota media: 8,86/10', 'Nota media: 8,6/10']
+				: ['Grade: 8.86/10', 'Grade: 8.6/10'],
 		);
+		await expect(page.locator('.education-status')).toHaveText(
+			lang === 'es' ? ['En curso', 'Finalizado'] : ['In progress', 'Completed'],
+		);
+		await expect(page.locator('.certification-card')).toHaveCount(5);
+		await expect(page.locator('.certification-card h4')).toHaveText([
+			'Neo4j Graph Data Science Certification',
+			'Deep Learning Specialization',
+			'Machine Learning Specialization',
+			'IBM Data Science Professional Certificate',
+			'Python for Everybody Specialization',
+		]);
+		await expect(
+			page.locator('.certification-card').first().locator('.certification-date'),
+		).toHaveText(
+			lang === 'es' ? 'Expedida en julio de 2026' : 'Issued July 2026',
+		);
+		await expect(
+			page.locator('.certification-card').nth(1).locator('.certification-duration'),
+		).toHaveText(lang === 'es' ? '125 horas' : '125 hours');
+		await expect(page.locator('.certification-meta')).toHaveCount(0);
+		await expect(page.locator('.certification-earned')).toHaveCount(0);
 		if (lang === 'en') {
 			await expect(page.locator('.education-card').nth(1)).toContainText(
 				'Higher Technician qualification in Web Application Development',

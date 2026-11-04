@@ -138,7 +138,14 @@ test('profile, education and certification content is concise and localized', as
 			.locator('.latest-articles .article-card-cover')
 			.all()) {
 			const image = cover.locator('img');
-			await expect(image).toHaveAttribute('alt', /.+/);
+			if (await image.count()) {
+				await expect(image).toHaveAttribute('alt', /.+/);
+			} else {
+				await expect(
+					cover.locator('.article-cover-art--type'),
+				).toBeVisible();
+				await expect(cover).toHaveAttribute('aria-hidden', 'true');
+			}
 		}
 		await expect(
 			page.locator('iframe, input[type=email], form[action], .newsletter'),

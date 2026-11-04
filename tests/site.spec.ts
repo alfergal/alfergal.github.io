@@ -132,6 +132,40 @@ test('one personal homepage presents the profile, education and integrated artic
 	}
 });
 
+test('education, certification and latest article titles share the main section heading hierarchy', async ({
+	page,
+}) => {
+	for (const path of ['/', '/en/']) {
+		await page.goto(path);
+		const selectors = [
+			'#education-title',
+			'#certifications-title',
+			'#latest-title',
+		];
+		for (const selector of selectors)
+			expect(await page.locator(selector).evaluate((el) => el.tagName)).toBe(
+				'H2',
+			);
+		const styles = await Promise.all(
+			selectors.map((selector) =>
+				page.locator(selector).evaluate((element) => {
+					const style = getComputedStyle(element);
+					return {
+						fontFamily: style.fontFamily,
+						fontSize: style.fontSize,
+						fontWeight: style.fontWeight,
+						lineHeight: style.lineHeight,
+						marginBottom: style.marginBottom,
+					};
+				}),
+			),
+		);
+		expect(styles[1]).toEqual(styles[0]);
+		expect(styles[2]).toEqual(styles[0]);
+		expect(styles[0].fontFamily).toContain('Cambria');
+	}
+});
+
 test('dark theme is permanent and the site creates no storage or cookies', async ({
 	page,
 	context,

@@ -104,7 +104,9 @@ test('editorial cover sources have consistent, text-free 16:10 WebP exports', as
 		);
 		expect(article).toContain(`es: '${cover.alt}'`);
 		expect(article).toMatch(/coverAlt:[\s\S]*?en: '[^']+'/);
-		expect(article).toMatch(/coverCredit:[\s\S]*?es: '[^']+'[\s\S]*?en: '[^']+'/);
+		expect(article).not.toMatch(
+			/coverCredit:[\s\S]*?(?:Ilustración editorial conceptual generada digitalmente|Digitally generated conceptual editorial illustration)/,
+		);
 		expect(article).toContain('draft: true');
 	}
 	const paintingFrontmatter = painting.split('---')[1];
@@ -126,9 +128,8 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	await expect(image).toHaveAttribute('loading', 'lazy');
 	await expect(image).toHaveAttribute('width', '1280');
 	await expect(image).toHaveAttribute('height', '800');
-	await expect(paintingCard.locator('figcaption')).toContainText(
-		'no representa Santa Catalina ni una restauración real',
-	);
+	await expect(paintingCard.locator('figcaption')).toHaveCount(0);
+	await expect(image).toHaveAttribute('alt', /no es una obra histórica/);
 	await expect(paintingCard).not.toContainText('Metropolitan Museum');
 	await expect(paintingCard.locator('.post-card-category')).toBeVisible();
 	await expect(paintingCard.locator('h3 a')).toBeVisible();
@@ -154,9 +155,7 @@ test('each real article has its own accessible cover and the demonstration stays
 		await expect(image).toHaveAttribute('alt', cover.alt);
 		await expect(image).toHaveAttribute('width', '1280');
 		await expect(image).toHaveAttribute('height', '800');
-		await expect(card.locator('.article-card-cover figcaption')).toContainText(
-			'Ilustración editorial conceptual generada digitalmente',
-		);
+		await expect(card.locator('.article-card-cover figcaption')).toHaveCount(0);
 		sources.push(await image.getAttribute('src'));
 	}
 	expect(new Set(sources).size).toBe(4);
@@ -174,4 +173,20 @@ test('each real article has its own accessible cover and the demonstration stays
 		(await page.goto('/blog/demostracion-articulo-tecnico/'))?.status(),
 	).toBe(200);
 	await expect(page.locator('.draft-notice')).toBeVisible();
+});
+
+test('homepage covers stay free of generic illustration captions in both locales', async ({
+	page,
+}) => {
+	for (const path of ['/', '/en/']) {
+		await page.goto(path);
+		await expect(page.locator('.latest-articles')).toBeVisible();
+		const covers = page.locator(
+			'.latest-articles .article-card-cover:has(img)',
+		);
+		for (const cover of await covers.all()) {
+			await expect(cover.locator('figcaption')).toHaveCount(0);
+			await expect(cover.locator('img')).toHaveAttribute('alt', /\S+/);
+		}
+	}
 });

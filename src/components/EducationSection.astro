@@ -23,8 +23,11 @@ const t = ui[lang];
 			))}
 		</div>
 
-		<div class="certifications-block">
-			<h3 class="certifications-title">{t.certifications}</h3>
+		<section
+			class="certifications-block"
+			aria-labelledby="certifications-title"
+		>
+			<h2 id="certifications-title">{t.certifications}</h2>
 			<div class="certification-grid">
 				{certifications.map((entry) => (
 					<article class="certification-card">
@@ -33,6 +36,6 @@ const t = ui[lang];
 					</article>
 				))}
 			</div>
-		</div>
+		</section>
 	</div>
 </section>

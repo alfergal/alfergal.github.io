@@ -886,10 +886,6 @@ post-feed {
 .certifications-block {
 	margin-top: 40px;
 }
-.certifications-title {
-	font-size: 22px;
-	margin-bottom: 16px;
-}
 .certification-grid {
 	display: grid;
 	grid-template-columns: repeat(6, minmax(0, 1fr));

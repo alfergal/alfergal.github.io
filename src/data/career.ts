@@ -2,19 +2,6 @@ import type { Locale } from '../i18n';
 
 type Localized = Record<Locale, string>;
 
-interface ExperienceEntry {
-	company: string;
-	role: Localized;
-	start: string;
-	end: string;
-	durationMonths: number;
-	location?: Localized;
-	workMode?: Localized;
-	description: Localized;
-	technologies: string[];
-	milestone?: { title: string; description: Localized };
-}
-
 interface EducationEntry {
 	institution: string;
 	degree: Localized;
@@ -30,70 +17,6 @@ interface CertificationEntry {
 	issued: string;
 	hours?: number;
 }
-
-export const experience: ExperienceEntry[] = [
-	{
-		company: 'Metadrop',
-		role: { es: 'Desarrollador de software', en: 'Software Developer' },
-		start: '2021-07',
-		end: '2026-10',
-		durationMonths: 64,
-		location: { es: 'Madrid, España', en: 'Madrid, Spain' },
-		workMode: { es: 'Remoto', en: 'Remote' },
-		description: {
-			es: 'Desarrollo frontend y backend con Drupal, con especial atención a testing, automatización, calidad del software y colaboración ágil.',
-			en: 'Frontend and backend development with Drupal, with a focus on testing, automation, software quality and agile collaboration.',
-		},
-		technologies: [
-			'Drupal',
-			'JavaScript',
-			'PHP',
-			'BackstopJS',
-			'Behat',
-			'PHPUnit',
-		],
-		milestone: {
-			title: 'DrupalCamp Spain 2023',
-			description: {
-				es: 'Ponencia sobre QA, automatización y CI/CD.',
-				en: 'Talk on QA, automation and CI/CD.',
-			},
-		},
-	},
-	{
-		company: 'Algaráb',
-		role: { es: 'Ingeniero de software', en: 'Software Engineer' },
-		start: '2020-07',
-		end: '2021-07',
-		durationMonths: 13,
-		workMode: { es: 'Remoto', en: 'Remote' },
-		description: {
-			es: 'Diseño, desarrollo y mantenimiento de aplicaciones, integración con APIs REST y tareas de depuración y refactorización.',
-			en: 'Designed, developed and maintained applications, integrated REST APIs, and worked on debugging and refactoring.',
-		},
-		technologies: [
-			'JavaScript',
-			'TypeScript',
-			'PHP',
-			'SQL',
-			'REST APIs',
-			'Git',
-			'Docker',
-		],
-	},
-	{
-		company: 'Metrica Consulting, S.L.',
-		role: { es: 'Desarrollador de software', en: 'Software Developer' },
-		start: '2020-04',
-		end: '2020-07',
-		durationMonths: 4,
-		description: {
-			es: 'Desarrollo web con microservicios e integración de APIs REST, pruebas unitarias y de integración y colaboración en equipos ágiles.',
-			en: 'Web development with microservices and REST API integration, unit and integration testing, and agile team collaboration.',
-		},
-		technologies: ['Spring', 'Angular', 'REST APIs', 'Git', 'Jenkins', 'JIRA'],
-	},
-];
 
 export const education: EducationEntry[] = [
 	{
@@ -167,10 +90,4 @@ export function formatMonth(month: string, lang: Locale) {
 		year: 'numeric',
 		timeZone: 'UTC',
 	}).format(new Date(`${month}-15T12:00:00Z`));
-}
-
-export function formatPeriod(start: string, end: string, lang: Locale) {
-	const from = formatMonth(start, lang);
-	const to = formatMonth(end, lang);
-	return lang === 'es' ? `${from} a ${to}` : `${from} to ${to}`;
 }

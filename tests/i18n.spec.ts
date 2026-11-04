@@ -74,12 +74,11 @@ test('profile positioning, in-progress education and confirmed contact links are
 				: 'over six years of professional experience in software engineering',
 		);
 		await expect(page.locator('.hero a')).toHaveCount(0);
-		await expect(page.locator('.experience-card')).toHaveCount(3);
-		await expect(page.locator('.experience-card h3')).toHaveText([
-			'Metadrop',
-			'Algaráb',
-			'Metrica Consulting, S.L.',
-		]);
+		await expect(
+			page.locator(
+				'.experience-section, #experience-title, .experience-card, .experience-milestone',
+			),
+		).toHaveCount(0);
 		await expect(page.locator('.education-card')).toHaveCount(2);
 		await expect(page.locator('.education-card').first()).toContainText(
 			ui[lang].inProgress,
@@ -92,37 +91,12 @@ test('profile positioning, in-progress education and confirmed contact links are
 			'Neo4j Graph Data Science Certification',
 		);
 		if (lang === 'en') {
-			await expect(page.locator('.experience-card').first()).toContainText(
-				'July 2021 to October 2026',
-			);
-			await expect(page.locator('.experience-card').first()).toContainText(
-				'5 years 4 months',
-			);
 			await expect(page.locator('.education-card').nth(1)).toContainText(
 				'Higher Technician qualification in Web Application Development',
 			);
-			await expect(page.locator('.experience-card').nth(1)).toContainText(
-				'1 year 1 month',
-			);
-			await expect(page.locator('.experience-card').nth(2)).toContainText(
-				'unit and integration testing',
-			);
-		} else {
-			await expect(page.locator('.experience-card').first()).toContainText(
-				'julio de 2021 a octubre de 2026',
-			);
-			await expect(page.locator('.experience-card').first()).toContainText(
-				'5 años y 4 meses',
-			);
-			await expect(page.locator('.experience-card').nth(1)).toContainText(
-				'1 año y 1 mes',
-			);
-			await expect(page.locator('.experience-card').nth(2)).toContainText(
-				'pruebas unitarias y de integración',
-			);
 		}
 		await expect(page.locator('.professional-content > section')).toHaveCount(
-			3,
+			2,
 		);
 		await expect(page.locator('#what-title, #skills-title')).toHaveCount(0);
 		for (const cover of await page

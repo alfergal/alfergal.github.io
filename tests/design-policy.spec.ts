@@ -49,20 +49,16 @@ for (const width of [320, 768, 1440]) {
 	});
 }
 
-test('tonal sections retain aligned content, spacious lists and accessible contrast', async ({
+test('homepage sections stay aligned and accessible', async ({
 	page,
 	site,
 }) => {
 	test.setTimeout(90_000);
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/');
-	const tones = await page
-		.locator('.profile-section')
-		.evaluateAll((sections) =>
-			sections.map((section) => getComputedStyle(section).backgroundColor),
-		);
-	expect(tones[0]).not.toBe(tones[1]);
-	expect(tones[0]).toBe(tones[2]);
+	await expect(page.locator('.profile-section')).toHaveCount(2);
+	await expect(page.locator('.education-section')).toBeVisible();
+	await expect(page.locator('.latest-articles')).toBeVisible();
 	for (const width of [320, 768, 1440]) {
 		await page.setViewportSize({ width, height: 1000 });
 		const hero = await page.locator('.hero h1').boundingBox();

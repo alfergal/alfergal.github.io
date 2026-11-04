@@ -2,7 +2,6 @@
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import GraphNetwork from '../GraphNetwork.astro';
 import PostCard from '../PostCard.astro';
-import ExperienceSection from '../ExperienceSection.astro';
 import EducationSection from '../EducationSection.astro';
 import { profile } from '../../data/profile';
 import { getPosts } from '../../lib/content';
@@ -39,7 +38,6 @@ const posts = (
 		</div>
 	</section>
 	<div class="professional-content">
-		<ExperienceSection lang={lang} />
 		<EducationSection lang={lang} />
 		<section
 			id="blog"

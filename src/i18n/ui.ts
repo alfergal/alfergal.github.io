@@ -25,16 +25,11 @@ export const ui = {
 		introBlog:
 			'Este blog nace de mi curiosidad por comprender, investigar y experimentar con nuevas ideas, y de mi interés por compartir lo que voy aprendiendo. Es una forma de explorar las posibilidades de la Ciencia de Datos y descubrir hasta dónde pueden llevarnos las matemáticas, los datos y la inteligencia artificial.',
 
-		experience: 'Experiencia profesional',
 		education: 'Formación académica',
 		certifications: 'Certificaciones',
 		inProgress: 'En curso',
 		earned: 'Obtenida',
 		completed: 'Finalizado',
-		duration: 'Duración',
-		location: 'Ubicación',
-		remote: 'Remoto',
-		milestone: 'Ponencia',
 		issued: 'Expedición',
 		averageGrade: 'Nota media',
 		studyHours: 'horas',
@@ -133,16 +128,11 @@ export const ui = {
 		introBlog:
 			'This blog grew out of my curiosity to understand, investigate and experiment with new ideas, and my interest in sharing what I learn along the way. It is a way to explore the possibilities of Data Science and see how far mathematics, data and artificial intelligence can take us.',
 
-		experience: 'Professional Experience',
 		education: 'Education',
 		certifications: 'Certifications',
 		inProgress: 'In progress',
 		earned: 'Earned',
 		completed: 'Completed',
-		duration: 'Duration',
-		location: 'Location',
-		remote: 'Remote',
-		milestone: 'Talk',
 		issued: 'Issued',
 		averageGrade: 'Average grade',
 		studyHours: 'hours',

@@ -812,97 +812,37 @@ post-feed {
 	width: min(1100px, 100%);
 	margin-inline: auto;
 }
-.experience-grid {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	align-items: stretch;
-	gap: 20px;
-}
-.experience-card,
 .education-card,
 .certification-card {
 	min-width: 0;
 	padding: 20px;
 	background: var(--bg);
 }
-.experience-card h3,
 .education-card h3 {
 	font-size: 21px;
 	line-height: 1.3;
 	margin-bottom: 8px;
 	text-wrap: balance;
 }
-.experience-role,
 .education-institution,
 .certification-issuer {
 	color: var(--accent);
 	font-size: 16px;
 }
-.experience-period,
-.experience-duration,
 .education-period,
 .education-grade,
 .certification-meta {
 	color: var(--muted);
 	font-size: 15px;
 }
-.experience-period {
-	margin-top: 12px;
-}
-.experience-duration span,
 .education-grade span {
 	color: var(--ink);
 }
-.experience-context {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px 12px;
-	margin-top: 8px;
-	color: var(--muted);
-	font-size: 15px;
-}
-.experience-description,
 .education-description {
 	color: var(--muted);
 	font-size: 15px;
 	line-height: 1.6;
 	margin-top: 14px;
-}
-.experience-tags {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	margin: 14px 0 0;
-	padding: 0;
-	list-style: none;
-}
-.experience-tags li {
-	padding: 3px 8px;
-	border-radius: 2px;
-	background: var(--soft);
-	color: var(--muted);
-	font-size: 14px;
-	line-height: 1.5;
-}
-.experience-milestone {
-	margin-top: 18px;
-	padding: 12px;
-	background: var(--soft);
-}
-.milestone-label {
-	display: block;
-	color: var(--highlight);
-	font-size: 14px;
-}
-.experience-milestone strong {
-	display: block;
-	margin-top: 3px;
-	font-weight: 600;
-}
-.experience-milestone p {
-	color: var(--muted);
-	font-size: 15px;
-	margin-top: 3px;
 }
 .education-grid {
 	display: grid;
@@ -989,7 +929,6 @@ post-feed {
 @media (max-width: 900px) {
 	.post-list,
 	.featured-posts,
-	.experience-grid,
 	.certification-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -1012,7 +951,6 @@ post-feed {
 	.post-list,
 	.featured-posts,
 	.related-posts,
-	.experience-grid,
 	.education-grid,
 	.certification-grid {
 		grid-template-columns: 1fr;

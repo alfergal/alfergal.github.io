@@ -12,7 +12,7 @@ const routesFor = (site: TestSite) => [
 	...(articleFor(site) ? [`/blog/${articleFor(site)!.id}/`] : []),
 ];
 
-test('one personal homepage presents the profile, professional history and integrated articles', async ({
+test('one personal homepage presents the profile, education and integrated articles', async ({
 	page,
 	request,
 	site,
@@ -47,23 +47,15 @@ test('one personal homepage presents the profile, professional history and integ
 		'title',
 		/lector RSS/,
 	);
-	await expect(page.locator('#experience-title')).toHaveText(
-		'Experiencia profesional',
-	);
-	await expect(page.locator('.experience-card')).toHaveCount(3);
-	await expect(page.locator('.experience-card h3')).toHaveText([
-		'Metadrop',
-		'Algaráb',
-		'Metrica Consulting, S.L.',
-	]);
-	await expect(page.locator('.experience-milestone')).toContainText(
-		'DrupalCamp Spain 2023',
-	);
+	await expect(
+		page.locator('.experience-section, #experience-title, .experience-card'),
+	).toHaveCount(0);
 	await expect(page.locator('#education-title')).toHaveText(
 		'Formación académica',
 	);
 	await expect(page.locator('.education-card')).toHaveCount(2);
 	await expect(page.locator('.certification-card')).toHaveCount(5);
+	await expect(page.locator('.latest-articles')).toBeVisible();
 	await expect(page.locator('#latest-title')).toHaveText('Últimos artículos');
 	await expect(
 		page.locator('.latest-articles .post-card .article-card-cover'),

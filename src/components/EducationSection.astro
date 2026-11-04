@@ -1,0 +1,57 @@
+---
+import { certifications, education, formatMonth } from '../data/career';
+import { ui, type Locale } from '../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+
+<section
+	class="profile-section education-section"
+	aria-labelledby="education-title"
+>
+	<div class="section-inner">
+		<h2 id="education-title">{t.education}</h2>
+		<div class="education-grid">
+			{education.map((entry) => (
+				<article class="education-card">
+					<p class="education-institution">{entry.institution}</p>
+					<h3>{entry.degree[lang]}</h3>
+					<p class="education-period">{entry.period[lang]}</p>
+					<span class:list={['education-status', entry.status]}>
+						{entry.status === 'in-progress' ? t.inProgress : t.completed}
+					</span>
+					<p class="education-description">{entry.description[lang]}</p>
+					<p class="education-grade">
+						<span>{t.averageGrade}</span> {entry.grade[lang]}
+					</p>
+				</article>
+			))}
+		</div>
+
+		<div class="certifications-block">
+			<h3 class="certifications-title">{t.certifications}</h3>
+			<div class="certification-grid">
+				{certifications.map((entry) => (
+					<article class="certification-card">
+						<p class="certification-issuer">{entry.issuer}</p>
+						<h4>{entry.name}</h4>
+						<p class="certification-meta">
+							<span>{t.earned}</span>
+							<span>
+								{t.issued}: {formatMonth(entry.issued, lang)}
+							</span>
+							{entry.hours && (
+								<span>
+									{entry.hours} {t.studyHours}
+								</span>
+							)}
+						</p>
+					</article>
+				))}
+			</div>
+		</div>
+	</div>
+</section>

@@ -123,9 +123,9 @@ a:hover {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 44px;
+	width: 72px;
 	height: 44px;
-	flex: 0 0 44px;
+	flex: 0 0 72px;
 	color: var(--ink);
 }
 .af-monogram {
@@ -211,23 +211,61 @@ a:hover {
 	color: var(--muted);
 	padding-block: 16px 40px;
 }
-.post-list {
-	max-width: 880px;
+.post-list,
+.featured-posts {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	align-items: stretch;
+	gap: 20px;
 }
 .post-card {
-	padding-block: 20px;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 16px;
+	background: var(--surface);
 }
-.post-card + .post-card {
-	margin-top: 28px;
+.article-card-cover {
+	width: 100%;
+	margin: 0 0 14px;
+	background: var(--soft);
+}
+.article-cover-art {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background: var(--soft);
+}
+.article-cover-art img,
+.article-cover-art svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.article-card-cover figcaption {
+	padding: 6px 8px;
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.4;
+}
+.article-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 12px;
+	color: var(--muted);
+	font-size: 14px;
 }
 .post-card h3 {
-	font-size: clamp(22px, 2vw, 26px);
-	line-height: 1.35;
-	margin-block: 16px;
+	font-size: clamp(19px, 1.6vw, 22px);
+	line-height: 1.3;
+	margin-block: 10px;
 }
 .post-card > p {
 	color: var(--muted);
-	max-width: 70ch;
+	font-size: 15px;
+	line-height: 1.6;
 }
 .article-header {
 	padding: 48px 0 36px;
@@ -497,9 +535,11 @@ post-feed {
 	margin: 20px 0 12px;
 }
 .featured-posts {
-	background: var(--surface);
-	padding: 20px 24px;
 	margin-bottom: 40px;
+}
+.featured-posts .section-label,
+.related-posts > .section-label {
+	grid-column: 1 / -1;
 }
 .article-layout {
 	display: grid;
@@ -570,8 +610,13 @@ post-feed {
 	gap: 12px 24px;
 	font-size: 14px;
 }
+.related-posts {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+}
 .related-posts .post-card h3 {
-	font-size: 22px;
+	font-size: 20px;
 }
 .callout {
 	border-left: 2px solid var(--accent);
@@ -757,63 +802,155 @@ post-feed {
 	padding-block: 48px;
 	padding-inline: max(24px, calc((100% - 1100px) / 2));
 }
-.profile-section:nth-of-type(even) {
+.profile-section:nth-of-type(odd) {
 	background: var(--surface);
 }
-.profile-section > h2 {
+.profile-section h2 {
 	margin-bottom: 24px;
 }
-.profile-section > p {
-	max-width: 76ch;
-	color: var(--muted);
+.section-inner {
+	width: min(1100px, 100%);
+	margin-inline: auto;
 }
-.expertise-grid {
+.experience-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 28px 48px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	align-items: stretch;
+	gap: 20px;
 }
-.expertise-grid h3 {
+.experience-card,
+.education-card,
+.certification-card {
+	min-width: 0;
+	padding: 20px;
+	background: var(--bg);
+}
+.experience-card h3,
+.education-card h3 {
 	font-size: 21px;
+	line-height: 1.3;
+	margin-bottom: 8px;
+	text-wrap: balance;
+}
+.experience-role,
+.education-institution,
+.certification-issuer {
 	color: var(--accent);
-	margin-bottom: 12px;
+	font-size: 16px;
 }
-.expertise-grid p {
+.experience-period,
+.experience-duration,
+.education-period,
+.education-grade,
+.certification-meta {
 	color: var(--muted);
-	max-width: 58ch;
+	font-size: 15px;
 }
-.stack-list {
-	margin: 0;
+.experience-period {
+	margin-top: 12px;
 }
-.stack-list > div {
-	display: grid;
-	grid-template-columns: minmax(190px, 0.8fr) minmax(0, 2fr);
-	gap: 12px 32px;
-	padding-block: 14px;
+.experience-duration span,
+.education-grade span {
+	color: var(--ink);
 }
-.stack-list dt {
-	color: var(--accent);
-}
-.stack-list dd {
-	margin: 0;
-	color: var(--muted);
-}
-.education-entry h3 {
-	font-size: 21px;
-	margin-bottom: 10px;
-}
-.education-entry p {
-	color: var(--muted);
-}
-.education-entry + .education-entry {
-	margin-top: 28px;
-}
-.education-meta {
+.experience-context {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px 24px;
+	gap: 4px 12px;
+	margin-top: 8px;
+	color: var(--muted);
+	font-size: 15px;
+}
+.experience-description,
+.education-description {
+	color: var(--muted);
+	font-size: 15px;
+	line-height: 1.6;
+	margin-top: 14px;
+}
+.experience-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 14px 0 0;
+	padding: 0;
+	list-style: none;
+}
+.experience-tags li {
+	padding: 3px 8px;
+	border-radius: 2px;
+	background: var(--soft);
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.5;
+}
+.experience-milestone {
+	margin-top: 18px;
+	padding: 12px;
+	background: var(--soft);
+}
+.milestone-label {
+	display: block;
+	color: var(--highlight);
+	font-size: 14px;
+}
+.experience-milestone strong {
+	display: block;
+	margin-top: 3px;
+	font-weight: 600;
+}
+.experience-milestone p {
+	color: var(--muted);
+	font-size: 15px;
+	margin-top: 3px;
+}
+.education-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+}
+.education-card {
+	background: var(--surface);
 }
 .education-status {
+	display: inline-flex;
+	margin-top: 10px;
 	color: var(--highlight);
+	font-size: 15px;
+}
+.education-description {
+	margin-top: 12px;
+}
+.education-grade {
+	margin-top: 12px;
+}
+.certifications-block {
+	margin-top: 40px;
+}
+.certifications-title {
+	font-size: 22px;
+	margin-bottom: 16px;
+}
+.certification-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+}
+.certification-card {
+	background: var(--soft);
+	padding: 16px;
+}
+.certification-card h4 {
+	font-size: 17px;
+	font-weight: 400;
+	line-height: 1.4;
+	margin: 5px 0 12px;
+}
+.certification-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	font-size: 14px;
 }
 .section-heading {
 	display: flex;
@@ -823,8 +960,8 @@ post-feed {
 	gap: 16px;
 	margin-bottom: 24px;
 }
-.latest-articles .post-card {
-	max-width: 880px;
+.latest-articles {
+	background: var(--surface);
 }
 .standalone-page {
 	padding-block: 52px 64px;
@@ -849,6 +986,14 @@ post-feed {
 .newsletter a + a {
 	margin-left: 24px;
 }
+@media (max-width: 900px) {
+	.post-list,
+	.featured-posts,
+	.experience-grid,
+	.certification-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
 @media (max-width: 600px) {
 	.header-inner {
 		flex-wrap: wrap;
@@ -864,13 +1009,14 @@ post-feed {
 		gap: 10px;
 		padding-left: 12px;
 	}
-	.expertise-grid {
+	.post-list,
+	.featured-posts,
+	.related-posts,
+	.experience-grid,
+	.education-grid,
+	.certification-grid {
 		grid-template-columns: 1fr;
-		gap: 24px;
-	}
-	.stack-list > div {
-		grid-template-columns: 1fr;
-		gap: 4px;
+		gap: 16px;
 	}
 	.profile-section {
 		padding-block: 36px;

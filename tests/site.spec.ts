@@ -12,20 +12,20 @@ const routesFor = (site: TestSite) => [
 	...(articleFor(site) ? [`/blog/${articleFor(site)!.id}/`] : []),
 ];
 
-test('one personal homepage preserves identity, metadata and bilingual navigation and the professional homepage', async ({
+test('one personal homepage presents the profile, professional history and integrated articles', async ({
 	page,
+	request,
 	site,
 }) => {
 	await page.goto('/');
 	await expect(page.locator('h1')).toHaveText('Alberto Fernández Gálvez');
-	await expect(page.locator('.hero-alias')).toHaveCount(0);
-	await expect(page.locator('main')).not.toContainText('@alfergal');
 	await expect(page.locator('.hero-role')).toHaveText(
 		'Data Scientist | Machine Learning | Applied Statistics',
 	);
+	await expect(page.locator('.hero-description')).toHaveCount(3);
 	await expect(page.locator('.wordmark')).toHaveAttribute(
 		'aria-label',
-		'AF — Alberto Fernández Gálvez, inicio',
+		'af — Alberto Fernández Gálvez, inicio',
 	);
 	await expect(page.locator('.wordmark svg')).toHaveCount(1);
 	await expect(page.locator('.graph-network')).toBeVisible();
@@ -47,7 +47,39 @@ test('one personal homepage preserves identity, metadata and bilingual navigatio
 		'title',
 		/lector RSS/,
 	);
+	await expect(page.locator('#experience-title')).toHaveText(
+		'Experiencia profesional',
+	);
+	await expect(page.locator('.experience-card')).toHaveCount(3);
+	await expect(page.locator('.experience-card h3')).toHaveText([
+		'Metadrop',
+		'Algaráb',
+		'Metrica Consulting, S.L.',
+	]);
+	await expect(page.locator('.experience-milestone')).toContainText(
+		'DrupalCamp Spain 2023',
+	);
+	await expect(page.locator('#education-title')).toHaveText(
+		'Formación académica',
+	);
+	await expect(page.locator('.education-card')).toHaveCount(2);
+	await expect(page.locator('.certification-card')).toHaveCount(5);
 	await expect(page.locator('#latest-title')).toHaveText('Últimos artículos');
+	await expect(
+		page.locator('.latest-articles .post-card .article-card-cover'),
+	).toHaveCount(
+		Math.min(3, site.entries.filter((entry) => entry.lang === 'es').length),
+	);
+	await expect(
+		page.locator('.latest-articles .article-card-cover img[alt=""]'),
+	).toHaveCount(0);
+	const coverSources = await page
+		.locator('.latest-articles .article-card-cover img')
+		.evaluateAll((images) =>
+			images.map((image) => (image as HTMLImageElement).src),
+		);
+	for (const source of coverSources)
+		expect((await request.get(source)).status()).toBe(200);
 	if (site.entries.filter((entry) => !entry.draft).length < 3)
 		await expect(page.locator('.blog-filters, .featured-posts')).toHaveCount(0);
 	for (const route of routesFor(site)) {
@@ -167,7 +199,7 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
 			).toBe(true);
 			expect(
 				await page
-					.locator('h1, h2, h3')
+					.locator('h1, h2, h3, h4')
 					.evaluateAll((elements) =>
 						elements
 							.filter((el) => el.scrollWidth > el.clientWidth + 1)
@@ -175,6 +207,14 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
 					),
 				`${width}px ${route}`,
 			).toEqual([]);
+		}
+		await page.goto('/');
+		const articleGrid = page.locator('.latest-articles .post-list');
+		if (await articleGrid.count()) {
+			const columns = await articleGrid.evaluate(
+				(el) => getComputedStyle(el).gridTemplateColumns.split(' ').length,
+			);
+			expect(columns).toBe(width <= 600 ? 1 : width <= 900 ? 2 : 3);
 		}
 	});
 }

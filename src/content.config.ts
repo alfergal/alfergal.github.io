@@ -14,6 +14,9 @@ const blog = defineCollection({
 				pubDate: z.coerce.date(),
 				updatedDate: z.coerce.date().optional(),
 				featured: z.boolean().default(false),
+				cover: z.string().startsWith('/').optional(),
+				coverAlt: z.object({ es: z.string(), en: z.string() }).optional(),
+				coverCredit: z.object({ es: z.string(), en: z.string() }).optional(),
 				series: z
 					.object({
 						name: z.string().trim().min(1),

@@ -67,19 +67,75 @@ test('profile positioning, in-progress education and confirmed contact links are
 		await page.goto(site.productionURL + prefix);
 		await expect(page.locator('h1')).toHaveText('Alberto Fernández Gálvez');
 		await expect(page.locator('.hero-role')).toHaveText(ui[lang].role);
+		await expect(page.locator('.hero-description')).toHaveCount(3);
 		await expect(page.locator('.hero-description').first()).toContainText(
 			lang === 'es'
-				? 'seis años de experiencia en ingeniería'
-				: 'six years of software engineering',
+				? 'seis años de experiencia profesional en ingeniería'
+				: 'over six years of professional experience in software engineering',
 		);
 		await expect(page.locator('.hero a')).toHaveCount(0);
-		await expect(page.locator('.expertise-grid h3')).toHaveCount(4);
-		await expect(page.locator('.education-entry')).toContainText(
+		await expect(page.locator('.experience-card')).toHaveCount(3);
+		await expect(page.locator('.experience-card h3')).toHaveText([
+			'Metadrop',
+			'Algaráb',
+			'Metrica Consulting, S.L.',
+		]);
+		await expect(page.locator('.education-card')).toHaveCount(2);
+		await expect(page.locator('.education-card').first()).toContainText(
 			ui[lang].inProgress,
 		);
-		await expect(page.locator('.education-entry')).toContainText(
+		await expect(page.locator('.education-card').first()).toContainText(
 			'Universitat Oberta de Catalunya (UOC)',
 		);
+		await expect(page.locator('.certification-card')).toHaveCount(5);
+		await expect(page.locator('.certification-card').first()).toContainText(
+			'Neo4j Graph Data Science Certification',
+		);
+		if (lang === 'en') {
+			await expect(page.locator('.experience-card').first()).toContainText(
+				'July 2021 to October 2026',
+			);
+			await expect(page.locator('.experience-card').first()).toContainText(
+				'5 years 4 months',
+			);
+			await expect(page.locator('.education-card').nth(1)).toContainText(
+				'Higher Technician qualification in Web Application Development',
+			);
+			await expect(page.locator('.experience-card').nth(1)).toContainText(
+				'1 year 1 month',
+			);
+			await expect(page.locator('.experience-card').nth(2)).toContainText(
+				'unit and integration testing',
+			);
+		} else {
+			await expect(page.locator('.experience-card').first()).toContainText(
+				'julio de 2021 a octubre de 2026',
+			);
+			await expect(page.locator('.experience-card').first()).toContainText(
+				'5 años y 4 meses',
+			);
+			await expect(page.locator('.experience-card').nth(1)).toContainText(
+				'1 año y 1 mes',
+			);
+			await expect(page.locator('.experience-card').nth(2)).toContainText(
+				'pruebas unitarias y de integración',
+			);
+		}
+		await expect(page.locator('.professional-content > section')).toHaveCount(
+			3,
+		);
+		await expect(page.locator('#what-title, #skills-title')).toHaveCount(0);
+		for (const cover of await page
+			.locator('.latest-articles .article-card-cover')
+			.all()) {
+			const image = cover.locator('img');
+			if (await image.count()) await expect(image).toHaveAttribute('alt', /.+/);
+			else
+				await expect(cover.locator('svg[role=img]')).toHaveAttribute(
+					'aria-label',
+					/.+/,
+				);
+		}
 		await expect(
 			page.locator('iframe, input[type=email], form[action], .newsletter'),
 		).toHaveCount(0);

@@ -2,7 +2,7 @@
 
 Portfolio profesional bilingüe con **Inicio | Blog | Contacto**. Español predeterminado y HTML estático en inglés, con internacionalización nativa de Astro. Los artículos españoles conservan sus URLs y su estado editorial.
 
-Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. El monograma geométrico AF, los favicons, el motor del grafo optimizado y las herramientas de lectura comparten la identidad existente. GitHub y LinkedIn aparecen en Contacto y en el footer.
+Astro, TypeScript, Tailwind CSS y Markdown/MDX. Tema oscuro, Cambria/Caladea/Georgia y paleta azul oscuro, azul claro, rosa y blanco. El logotipo vectorial af y sus variantes de favicon, el motor del grafo optimizado y las herramientas de lectura comparten la identidad existente. GitHub y LinkedIn aparecen en Contacto y en el footer.
 
 ## Identidad visual
 
@@ -256,13 +256,11 @@ El selector enlaza la página equivalente. Si un artículo no tiene traducción,
 
 Las pruebas nuevas utilizan traducciones sintéticas exclusivamente en copias temporales y comprueban navegación, idiomas, fechas compartidas, slugs distintos, fallback, SEO, feeds, sitemap, interfaz de lectura, responsive, teclado y accesibilidad. Se mantienen las pruebas de geometría/física del grafo y la integridad de recursos y resultados científicos.
 
-## Monograma geométrico AF
+## Logotipo af orgánico
 
-La única fuente vectorial está en **src/lib/monogram.ts**. Monogram.astro, favicon.ts y social-image.ts reutilizan sus mismos trazados. No hay letras tipográficas, fuentes externas, animaciones, filtros ni degradados en el símbolo.
+El logotipo combina las letras minúsculas `af` con una red abierta de cinco nodos. Sus curvas superiores son azules y las inferiores rosadas. El favicon conserva los contornos de las letras y reduce la red a cuatro nodos para mejorar su lectura en tamaños pequeños. Cabecera, favicons SVG y PNG e imagen social usan la geometría centralizada de `src/lib/monogram.ts`.
 
-Plano 64×64 y módulo de 2 unidades; trazo uniforme de 4 unidades. La A une (6,50), (18,14) y (30,50): sus diagonales tienen pendiente ±3, aproximadamente 71,565° respecto a la horizontal. La F tiene eje vertical x=38, coronación y=14 y brazo superior hasta x=58. Comparten un travesaño y=34 que comienza en la intersección de la diagonal izquierda de la A, x=34/3 (redondeada a 11,333 en el SVG), y termina en x=54. Los pies y la cima de los ejes están alineados. Los extremos cuadrados y las uniones biseladas evitan una punta aguda excesivamente larga.
-
-El símbolo es monocromo blanco sobre azul oscuro; no necesita un acento de color. El espacio entre las piernas de la A y el eje de la F conserva la separación de las letras, mientras el travesaño las une. No se utiliza ni se atribuye una proporción áurea. La cabecera usa un área de enlace de 44×44 px; el favicon PNG de 32×32 procede del SVG de 64×64 y la imagen social incorpora el mismo grupo a escala uniforme 1,5, sin cambiar el nombre o la información profesional. Las pruebas rasterizan la geometría a 16, 32 y 64 px sin capturas de pantalla.
+**Limitación tipográfica:** Cambria no está instalada ni disponible con licencia en el entorno. Los contornos son de Caladea Italic, no de Cambria. Caladea es una serif abierta distribuida bajo SIL Open Font License 1.1 y compatible en métricas con Cambria. El archivo de fuente se usó temporalmente para trazar las letras y no se distribuye con el sitio. Diseñada por The Caladea Project Authors, © 2012. [Repositorio fuente y licencia](https://github.com/googlefonts/caladea).
 
 ## Reglas permanentes de separación visual
 

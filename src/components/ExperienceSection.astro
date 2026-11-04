@@ -1,0 +1,71 @@
+---
+import { experience, formatPeriod } from '../data/career';
+import { ui, type Locale } from '../i18n';
+interface Props {
+	lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const formatDuration = (months: number) => {
+	const years = Math.floor(months / 12);
+	const remainder = months % 12;
+	const parts = [];
+	if (years)
+		parts.push(
+			`${years} ${lang === 'es' ? (years === 1 ? 'año' : 'años') : years === 1 ? 'year' : 'years'}`,
+		);
+	if (remainder)
+		parts.push(
+			`${remainder} ${lang === 'es' ? (remainder === 1 ? 'mes' : 'meses') : remainder === 1 ? 'month' : 'months'}`,
+		);
+	return lang === 'es' ? parts.join(' y ') : parts.join(' ');
+};
+---
+
+<section
+	class="profile-section experience-section"
+	aria-labelledby="experience-title"
+>
+	<div class="section-inner">
+		<h2 id="experience-title">{t.experience}</h2>
+		<div class="experience-grid">
+			{experience.map((entry) => (
+				<article class="experience-card">
+					<h3>{entry.company}</h3>
+					<p class="experience-role">{entry.role[lang]}</p>
+					<p class="experience-period">
+						{formatPeriod(entry.start, entry.end, lang)}
+					</p>
+					<p class="experience-duration">
+						<span>{t.duration}</span>
+						{formatDuration(entry.durationMonths)}
+					</p>
+					<div class="experience-context">
+						{entry.location && <span>{entry.location[lang]}</span>}
+						{entry.workMode && <span>{entry.workMode[lang]}</span>}
+					</div>
+					<p class="experience-description">{entry.description[lang]}</p>
+					<ul
+						class="experience-tags"
+						aria-label={
+							lang === 'es'
+								? 'Tecnologías y prácticas'
+								: 'Technologies and practices'
+						}
+					>
+						{entry.technologies.map((technology) => (
+							<li>{technology}</li>
+						))}
+					</ul>
+					{entry.milestone && (
+						<div class="experience-milestone">
+							<span class="milestone-label">{t.milestone}</span>
+							<strong>{entry.milestone.title}</strong>
+							<p>{entry.milestone.description[lang]}</p>
+						</div>
+					)}
+				</article>
+			))}
+		</div>
+	</div>
+</section>

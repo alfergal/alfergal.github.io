@@ -12,25 +12,6 @@ export const profile = {
 	kaggle: undefined as string | undefined,
 	orcid: undefined as string | undefined,
 };
-export const education: {
-	institution: string;
-	title: Record<'es' | 'en', string>;
-	status: 'in-progress' | 'completed';
-}[] = [
-	{
-		institution: 'Universitat Oberta de Catalunya (UOC)',
-		title: {
-			es: 'Grado en Ciencia de Datos Aplicada',
-			en: 'Bachelor’s degree in Applied Data Science',
-		},
-		status: 'in-progress',
-	},
-];
-export const certifications: {
-	name: string;
-	status: 'earned' | 'preparing';
-	href?: string;
-}[] = [];
 export function getProfessionalLinks() {
 	return [
 		...(profile.email

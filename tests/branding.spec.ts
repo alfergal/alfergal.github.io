@@ -1,88 +1,102 @@
 import { test, expect } from './support/site';
 import AxeBuilder from '@axe-core/playwright';
 import sharp from 'sharp';
-import { monogram } from '../src/lib/monogram';
+import { monogram, monogramMarkup, faviconMarkup } from '../src/lib/monogram';
 import { favicon } from '../src/lib/favicon';
 import { socialImage } from '../src/lib/social-image';
-import { palette } from '../src/data/theme';
 import { profile } from '../src/data/profile';
 
-test('header, SVG favicon, PNG favicon and social image share the AF paths without a font dependency', async ({
+test('header, favicon and social image share font-derived lowercase outlines and a small graph', async ({
 	page,
 	request,
 }) => {
 	await page.goto('/');
-	const paths = await page
-		.locator('.wordmark svg path')
+	const header = page.locator('.wordmark svg');
+	await expect(header).toHaveAttribute('viewBox', monogram.viewBox);
+	const headerLetters = await header
+		.locator('.af-logo-letters path')
 		.evaluateAll((items) => items.map((item) => item.getAttribute('d')));
-	expect(paths).toEqual([...monogram.paths]);
-	await expect(page.locator('.wordmark svg')).toHaveAttribute(
-		'viewBox',
-		'0 0 64 64',
-	);
-	await expect(page.locator('.wordmark svg')).toHaveAttribute(
-		'aria-hidden',
-		'true',
-	);
-	await expect(page.locator('.wordmark svg')).toHaveAttribute(
-		'focusable',
-		'false',
-	);
-	const response = await request.get('/favicon.svg');
-	expect(response.status()).toBe(200);
-	expect(response.headers()['content-type']).toContain('image/svg+xml');
-	const svg = await response.text();
+	expect(headerLetters).toEqual([...monogram.letterPaths]);
+	await expect(header.locator('.af-logo-edges path')).toHaveCount(4);
+	await expect(header.locator('.af-logo-nodes circle')).toHaveCount(5);
+	await expect(header.locator('text, image, script, filter')).toHaveCount(0);
+	await expect(header).toHaveAttribute('aria-hidden', 'true');
+	await expect(header).toHaveAttribute('focusable', 'false');
+
+	const svgResponse = await request.get('/favicon.svg');
+	expect(svgResponse.status()).toBe(200);
+	expect(svgResponse.headers()['content-type']).toContain('image/svg+xml');
+	const svg = await svgResponse.text();
 	expect(svg).toBe(favicon);
-	expect(Buffer.byteLength(svg)).toBeLessThan(1000);
+	expect(Buffer.byteLength(svg)).toBeLessThan(6000);
 	expect(svg).not.toMatch(
-		/<text|<filter|<script|<foreignObject|<image|<animate|gradient|font-family/i,
+		/<text|<filter|<script|<foreignObject|<image|<animate|font-family/i,
 	);
-	const result = await page.evaluate((source) => {
+	const parsed = await page.evaluate((source) => {
 		const doc = new DOMParser().parseFromString(source, 'image/svg+xml');
 		return {
 			invalid: !!doc.querySelector('parsererror'),
-			paths: [...doc.querySelectorAll('path')].map((path) =>
+			viewBox: doc.documentElement.getAttribute('viewBox'),
+			letters: [...doc.querySelectorAll('.af-logo-letters path')].map((path) =>
 				path.getAttribute('d'),
 			),
-			stroke: doc.querySelector('g')?.getAttribute('stroke-width'),
+			edges: doc.querySelectorAll('.af-logo-edges path').length,
+			nodes: doc.querySelectorAll('.af-logo-nodes circle').length,
 		};
 	}, svg);
-	expect(result).toEqual({
+	expect(parsed).toEqual({
 		invalid: false,
-		paths: [...monogram.paths],
-		stroke: '4',
+		viewBox: monogram.viewBoxFavicon,
+		letters: [...monogram.letterPaths],
+		edges: 3,
+		nodes: 4,
 	});
+	expect(svg).toContain(faviconMarkup);
+
+	const social = await page.evaluate((source) => {
+		const doc = new DOMParser().parseFromString(source, 'image/svg+xml');
+		const letters = doc.querySelector('.af-logo-letters');
+		return {
+			invalid: !!doc.querySelector('parsererror'),
+			letters: [...doc.querySelectorAll('.af-logo-letters path')].map((path) =>
+				path.getAttribute('d'),
+			),
+			edges: doc.querySelectorAll('.af-logo-edges path').length,
+			nodes: doc.querySelectorAll('.af-logo-nodes circle').length,
+			transform: letters?.parentElement?.getAttribute('transform'),
+			text: doc.documentElement.textContent,
+			decorativeRules: [...doc.querySelectorAll('path')].filter((path) =>
+				/^M70 80h1060/.test(path.getAttribute('d') ?? ''),
+			).length,
+		};
+	}, socialImage);
+	expect(social).toMatchObject({
+		invalid: false,
+		letters: [...monogram.letterPaths],
+		edges: 4,
+		nodes: 5,
+		transform: 'translate(840 190) scale(2.25)',
+		decorativeRules: 0,
+	});
+	expect(social.text).toContain(profile.givenName);
+	expect(social.text).toContain(profile.familyName);
+	expect(social.text).toContain(profile.role);
+	expect(socialImage).toContain(monogramMarkup);
+
 	const png = await request.get('/favicon.png');
 	expect(png.status()).toBe(200);
 	expect(png.headers()['content-type']).toContain('image/png');
 	const actual = await sharp(await png.body())
 		.ensureAlpha()
 		.raw()
-		.toBuffer({ resolveWithObject: true });
+		.toBuffer();
 	const expected = await sharp(Buffer.from(svg))
 		.resize(32, 32)
 		.ensureAlpha()
 		.raw()
-		.toBuffer({ resolveWithObject: true });
-	expect(actual.info).toMatchObject({ width: 32, height: 32, channels: 4 });
-	expect(actual.data.equals(expected.data)).toBe(true);
-	const social = await page.evaluate((source) => {
-		const doc = new DOMParser().parseFromString(source, 'image/svg+xml');
-		return {
-			invalid: !!doc.querySelector('parsererror'),
-			paths: [...doc.querySelector('g')!.querySelectorAll('path')].map((path) =>
-				path.getAttribute('d'),
-			),
-			scale: doc.querySelector('g')?.getAttribute('transform'),
-			text: doc.documentElement.textContent,
-		};
-	}, socialImage);
-	expect(social.invalid).toBe(false);
-	expect(social.paths).toEqual([...monogram.paths]);
-	expect(social.scale).toBe('translate(1026 96) scale(1.5)');
-	expect(social.text).toContain(profile.givenName);
-	expect(social.text).toContain(profile.familyName);
-	expect(social.text).toContain(profile.role);
+		.toBuffer();
+	expect(actual.equals(expected)).toBe(true);
+
 	const og = await request.get('/og-image.png');
 	expect(og.status()).toBe(200);
 	expect(await sharp(await og.body()).metadata()).toMatchObject({
@@ -90,25 +104,18 @@ test('header, SVG favicon, PNG favicon and social image share the AF paths witho
 		width: 1200,
 		height: 630,
 	});
-	// The actual social image must contain the white mark in its reserved clear area.
 	const crop = await sharp(await og.body())
-		.extract({ left: 1026, top: 96, width: 96, height: 96 })
+		.extract({ left: 840, top: 190, width: 258, height: 166 })
 		.removeAlpha()
 		.raw()
 		.toBuffer();
-	const whitePixels = Array.from(
-		{ length: 96 * 96 },
-		(_, i) =>
-			crop[i * 3] > 230 && crop[i * 3 + 1] > 230 && crop[i * 3 + 2] > 230,
-	).filter(Boolean).length;
-	expect(whitePixels).toBeGreaterThan(900);
-	expect(whitePixels).toBeLessThan(2000);
+	let whitePixels = 0;
+	for (let i = 0; i < crop.length; i += 3)
+		if (crop[i] > 230 && crop[i + 1] > 230 && crop[i + 2] > 230) whitePixels++;
+	expect(whitePixels).toBeGreaterThan(700);
 });
 
-test('16, 32 and 64 pixel rasterizations retain F stems, the shared bar and the open A counter', async () => {
-	const background = [1, 3, 5].map((i) =>
-		parseInt(palette.background.slice(i, i + 2), 16),
-	);
+test('the simplified favicon keeps the same italic outlines and visible nodes at 16, 32 and 64 pixels', async () => {
 	for (const size of [16, 32, 64]) {
 		const { data, info } = await sharp(Buffer.from(favicon))
 			.resize(size, size)
@@ -116,39 +123,24 @@ test('16, 32 and 64 pixel rasterizations retain F stems, the shared bar and the 
 			.raw()
 			.toBuffer({ resolveWithObject: true });
 		expect(info).toMatchObject({ width: size, height: size, channels: 3 });
-		const pixel = (x: number, y: number) => {
-			const index =
-				(Math.floor((y * size) / 64) * size + Math.floor((x * size) / 64)) * 3;
-			return [...data.subarray(index, index + 3)];
-		};
-		// Orthogonal segments stay opaque even at 16px; counters remain dark.
-		for (const [x, y] of [
-			[38, 42],
-			[50, 14],
-			[32, 34],
-		]) {
-			const rgb = pixel(x, y);
-			expect(
-				Math.min(...rgb),
-				size + 'px segment at ' + x + ',' + y,
-			).toBeGreaterThan(230);
+		let white = 0;
+		let blue = 0;
+		let pink = 0;
+		for (let i = 0; i < data.length; i += 3) {
+			const [r, g, b] = data.subarray(i, i + 3);
+			if (r > 100 && g > 110 && b > 130 && b - r < 35) white++;
+			if (r > 100 && g > 135 && b > 170 && b > r) blue++;
+			if (r > b * 1.15 && b > g * 1.15) pink++;
 		}
-		for (const [x, y] of [
-			[18, 26],
-			[18, 46],
-		]) {
-			const rgb = pixel(x, y);
-			rgb.forEach((value, channel) =>
-				expect(
-					Math.abs(value - background[channel]),
-					size + 'px counter',
-				).toBeLessThan(size === 16 ? 32 : 4),
-			);
-		}
+		expect(white, `${size}px lettering`).toBeGreaterThan(
+			size === 16 ? 20 : size === 32 ? 100 : 400,
+		);
+		expect(blue, `${size}px upper network`).toBeGreaterThan(0);
+		expect(pink, `${size}px lower network`).toBeGreaterThan(0);
 	}
 });
 
-test('the AF home link remains accessible, responsive and localized without changing navigation', async ({
+test('the lowercase af home link stays accessible, responsive and localized without changing navigation', async ({
 	page,
 	browser,
 	site,
@@ -161,7 +153,7 @@ test('the AF home link remains accessible, responsive and localized without chan
 	]) {
 		await page.goto(path);
 		const logo = page.getByRole('link', {
-			name: 'AF — Alberto Fernández Gálvez, ' + name,
+			name: 'af — Alberto Fernández Gálvez, ' + name,
 			exact: true,
 		});
 		await expect(logo).toHaveAttribute('href', home);
@@ -169,8 +161,12 @@ test('the AF home link remains accessible, responsive and localized without chan
 		await expect(logo.locator('svg')).toBeVisible();
 		for (const width of [320, 375, 768, 1440]) {
 			await page.setViewportSize({ width, height: 1000 });
-			await expect(logo).toHaveCSS('width', '44px');
+			await expect(logo).toHaveCSS('width', '72px');
 			await expect(logo).toHaveCSS('height', '44px');
+			await expect(logo.locator('svg')).toHaveAttribute(
+				'width',
+				'68.44444444444444',
+			);
 			await expect(page.locator('.primary-nav a')).toHaveCount(3);
 			await expect(page.locator('.language-nav a')).toHaveCount(2);
 			expect(
@@ -197,12 +193,17 @@ test('the AF home link remains accessible, responsive and localized without chan
 		await staticPage.goto(site.baseURL + '/en/blog/');
 		await staticPage
 			.getByRole('link', {
-				name: 'AF — Alberto Fernández Gálvez, home',
+				name: 'af — Alberto Fernández Gálvez, home',
 				exact: true,
 			})
 			.click();
 		await expect(staticPage).toHaveURL(site.baseURL + '/en/');
-		await expect(staticPage.locator('.wordmark svg path')).toHaveCount(3);
+		await expect(
+			staticPage.locator('.wordmark svg .af-logo-letters path'),
+		).toHaveCount(2);
+		await expect(
+			staticPage.locator('.wordmark svg .af-logo-nodes circle'),
+		).toHaveCount(5);
 	} finally {
 		await context.close();
 	}

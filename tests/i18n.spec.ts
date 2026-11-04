@@ -56,7 +56,7 @@ test('six static pages provide reciprocal language links, active navigation and 
 	}
 });
 
-test('profile positioning, in-progress education and confirmed contact links are localized without placeholders', async ({
+test('profile, education and certification content is concise and localized', async ({
 	page,
 	site,
 }) => {
@@ -80,20 +80,33 @@ test('profile positioning, in-progress education and confirmed contact links are
 			),
 		).toHaveCount(0);
 		await expect(page.locator('.education-card')).toHaveCount(2);
-		await expect(page.locator('.education-card').first()).toContainText(
-			ui[lang].inProgress,
-		);
-		await expect(page.locator('.education-card').first()).toContainText(
-			'Universitat Oberta de Catalunya (UOC)',
-		);
-		await expect(page.locator('.education-grade')).toHaveText(
+		await expect(page.locator('.hero-description').nth(1)).toContainText(
 			lang === 'es'
-				? ['Nota media: 8,86/10', 'Nota media: 8,6/10']
-				: ['Grade: 8.86/10', 'Grade: 8.6/10'],
+				? 'tecnología, las finanzas, la investigación científica y la sostenibilidad'
+				: 'technology, finance, scientific research and sustainability',
 		);
-		await expect(page.locator('.education-status')).toHaveText(
-			lang === 'es' ? ['En curso', 'Finalizado'] : ['In progress', 'Completed'],
+		await expect(page.locator('.education-card h3')).toHaveText(
+			lang === 'es'
+				? [
+						'Estudios de Grado en Ciencia de Datos Aplicada',
+						'Técnico Superior en Desarrollo de Aplicaciones Web',
+					]
+				: [
+						'Undergraduate Studies in Applied Data Science',
+						'Higher Technician in Web Application Development',
+					],
 		);
+		await expect(page.locator('.education-card p')).toHaveCount(2);
+		await expect(page.locator('.education-card').first()).toContainText(
+			lang === 'es'
+				? 'preparación y visualización de datos, modelado predictivo, Machine Learning y evaluación de resultados'
+				: 'data preparation and visualisation, predictive modelling, Machine Learning and the evaluation of results',
+		);
+		await expect(
+			page.locator(
+				'.education-period, .education-status, .education-grade, .education-institution',
+			),
+		).toHaveCount(0);
 		await expect(page.locator('.certification-card')).toHaveCount(5);
 		await expect(page.locator('.certification-card h4')).toHaveText([
 			'Neo4j Graph Data Science Certification',
@@ -103,20 +116,20 @@ test('profile positioning, in-progress education and confirmed contact links are
 			'Python for Everybody Specialization',
 		]);
 		await expect(
-			page.locator('.certification-card').first().locator('.certification-date'),
-		).toHaveText(
-			lang === 'es' ? 'Expedida en julio de 2026' : 'Issued July 2026',
-		);
+			page.locator('.certification-card .certification-issuer'),
+		).toHaveText([
+			'Neo4j',
+			'DeepLearning.AI',
+			'DeepLearning.AI',
+			'IBM',
+			'University of Michigan',
+		]);
+		await expect(page.locator('.certification-card > *')).toHaveCount(10);
 		await expect(
-			page.locator('.certification-card').nth(1).locator('.certification-duration'),
-		).toHaveText(lang === 'es' ? '125 horas' : '125 hours');
-		await expect(page.locator('.certification-meta')).toHaveCount(0);
-		await expect(page.locator('.certification-earned')).toHaveCount(0);
-		if (lang === 'en') {
-			await expect(page.locator('.education-card').nth(1)).toContainText(
-				'Higher Technician qualification in Web Application Development',
-			);
-		}
+			page.locator(
+				'.certification-date, .certification-duration, .certification-meta, .certification-earned',
+			),
+		).toHaveCount(0);
 		await expect(page.locator('.professional-content > section')).toHaveCount(
 			2,
 		);
@@ -132,16 +145,43 @@ test('profile positioning, in-progress education and confirmed contact links are
 		).toHaveCount(0);
 		const contact = prefix === '/' ? '/contacto/' : '/en/contact/';
 		await page.goto(site.productionURL + contact);
-		await expect(page.locator('main .professional-links a')).toHaveText([
-			'LinkedIn',
-			'GitHub',
-		]);
+		await expect(page.locator('.contact-form-unavailable')).toBeVisible();
+		await expect(page.locator('[data-contact-form]')).toHaveCount(0);
+		await expect(page.locator('.contact-profiles h2')).toHaveText(
+			lang === 'es'
+				? 'También puedes encontrarme en'
+				: 'You can also find me on',
+		);
+		await expect(
+			page.locator('.contact-profiles .professional-links a'),
+		).toHaveText(['LinkedIn', 'GitHub']);
 		await expect(page.locator('main a[href^="mailto:"]')).toHaveCount(0);
 		await expect(
 			page.locator(
 				'main a[href*="huggingface"], main a[href*="kaggle"], main a[href*="orcid"]',
 			),
 		).toHaveCount(0);
+	}
+});
+
+test('interests and blog introductions use the requested bilingual editorial copy', async ({
+	page,
+	site,
+}) => {
+	for (const [lang, home, blog] of [
+		['es', '/', '/blog/'],
+		['en', '/en/', '/en/blog/'],
+	] as const) {
+		await page.goto(site.productionURL + home.trim());
+		await expect(page.locator('.hero-description').nth(1)).toContainText(
+			lang === 'es'
+				? 'tecnología, las finanzas, la investigación científica y la sostenibilidad'
+				: 'technology, finance, scientific research and sustainability',
+		);
+		await page.goto(site.productionURL + blog);
+		await expect(page.locator('.blog-heading p')).toHaveText(
+			ui[lang].blogIntro,
+		);
 	}
 });
 

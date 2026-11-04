@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import ProfessionalLinks from '../ProfessionalLinks.astro';
+import ContactForm from '../ContactForm.astro';
 import { ui, type Locale } from '../../i18n';
 interface Props {
 	lang: Locale;
@@ -16,7 +17,10 @@ const t = ui[lang];
 	>
 		<h1 id="contact-title">{t.contact}</h1>
 		<p class="page-intro">{t.contactIntro}</p>
-		<p>{t.contactHint}</p>
-		<ProfessionalLinks />
+		<ContactForm lang={lang} />
+		<section class="contact-profiles" aria-labelledby="contact-profiles-title">
+			<h2 id="contact-profiles-title">{t.contactProfiles}</h2>
+			<ProfessionalLinks />
+		</section>
 	</section>
 </SiteLayout>

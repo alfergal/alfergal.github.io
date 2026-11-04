@@ -33,6 +33,10 @@ export default defineConfig({
 				'i18n.spec.ts',
 			],
 		},
+		{
+			name: 'contact',
+			testMatch: ['contact-form.spec.ts'],
+		},
 	],
 	use: {
 		browserName: 'chromium',

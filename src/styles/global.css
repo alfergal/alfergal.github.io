@@ -847,16 +847,9 @@ post-feed {
 	margin: 8px 0 12px;
 	text-wrap: balance;
 }
-.education-institution,
 .certification-issuer {
 	margin: 0;
 	color: var(--accent);
-	font-size: 15px;
-	line-height: 1.5;
-}
-.education-period {
-	margin: 0;
-	color: var(--muted);
 	font-size: 15px;
 	line-height: 1.5;
 }
@@ -875,35 +868,6 @@ post-feed {
 .education-card {
 	display: flex;
 	flex-direction: column;
-}
-.education-status {
-	display: inline-flex;
-	align-self: flex-start;
-	margin-top: 10px;
-	padding: 2px 9px;
-	border-radius: 999px;
-	background: color-mix(in srgb, var(--highlight) 12%, var(--surface));
-	color: var(--highlight);
-	font-size: 15px;
-	line-height: 1.5;
-}
-.education-grade {
-	display: flex;
-	align-items: baseline;
-	flex-wrap: wrap;
-	gap: 4px 8px;
-	margin: auto 0 0;
-	padding-top: 20px;
-	font-size: 15px;
-	line-height: 1.5;
-}
-.education-grade span {
-	color: var(--muted);
-}
-.education-grade strong {
-	color: var(--ink);
-	font-size: 18px;
-	font-weight: 600;
 }
 .certifications-block {
 	margin-top: 40px;
@@ -937,19 +901,6 @@ post-feed {
 	margin: 5px 0 14px;
 	text-wrap: balance;
 }
-.certification-date,
-.certification-duration {
-	margin: 0;
-	color: var(--muted);
-	font-size: 15px;
-	line-height: 1.5;
-}
-.certification-date span {
-	color: var(--ink);
-}
-.certification-duration {
-	margin-top: 4px;
-}
 .section-heading {
 	display: flex;
 	justify-content: space-between;
@@ -970,8 +921,97 @@ post-feed {
 	color: var(--muted);
 	margin-top: 24px;
 }
-.contact-page .professional-links {
-	margin-top: 32px;
+.contact-form-section {
+	width: min(720px, 100%);
+	margin-top: 36px;
+	padding: clamp(20px, 4vw, 32px);
+	background: var(--surface);
+}
+.contact-form-section h2,
+.contact-profiles h2 {
+	margin-bottom: 20px;
+}
+.contact-privacy-notice,
+.contact-form-unavailable {
+	max-width: 68ch;
+	margin-bottom: 24px;
+	color: var(--muted);
+	font-size: 16px;
+}
+.contact-form {
+	display: grid;
+	gap: 20px;
+}
+.contact-field {
+	display: grid;
+	gap: 7px;
+}
+.contact-field label {
+	font-size: 16px;
+	font-weight: 600;
+}
+.contact-field input,
+.contact-field textarea {
+	width: 100%;
+	min-height: 48px;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 3px;
+	background: var(--bg);
+	color: var(--ink);
+	font: inherit;
+	font-size: 16px;
+	line-height: 1.5;
+}
+.contact-field textarea {
+	min-height: 160px;
+	resize: vertical;
+}
+.contact-field input:focus-visible,
+.contact-field textarea:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+.contact-form-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+}
+.contact-form-actions button {
+	min-height: 44px;
+	padding-inline: 18px;
+	background: var(--highlight);
+	color: var(--bg);
+	font-weight: 600;
+}
+.contact-form-actions button:disabled {
+	cursor: wait;
+	opacity: 0.7;
+}
+.contact-form-status {
+	color: var(--accent);
+	font-size: 16px;
+}
+.contact-form-status[data-error] {
+	color: var(--highlight);
+}
+.contact-honeypot {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	clip-path: inset(50%);
+}
+.contact-profiles {
+	margin-top: 40px;
+}
+.contact-profiles .professional-links {
+	margin-top: 12px;
 }
 .newsletter {
 	background: var(--surface);

@@ -20,18 +20,13 @@ export const ui = {
 			'¡Hola! Soy Alberto Fernández, Data Scientist con más de seis años de experiencia profesional en ingeniería de software. Durante los últimos años he orientado mi especialización hacia el Machine Learning y la estadística aplicada, combinando mi formación universitaria con mi trayectoria profesional y el desarrollo de proyectos personales.',
 
 		introInterests:
-			'Me interesan especialmente los fundamentos matemáticos, el diseño experimental y la evaluación de modelos. También me atrae aplicar la Ciencia de Datos a problemas reales en ámbitos como la banca, la salud y la investigación científica.',
+			'Me interesan especialmente los fundamentos matemáticos, el diseño experimental y la evaluación de modelos. También me atraen las posibilidades de aplicar la Ciencia de Datos a problemas reales en ámbitos como la tecnología, las finanzas, la investigación científica y la sostenibilidad.',
 
 		introBlog:
 			'Este blog nace de mi curiosidad por comprender, investigar y experimentar con nuevas ideas, y de mi interés por compartir lo que voy aprendiendo. Es una forma de explorar las posibilidades de la Ciencia de Datos y descubrir hasta dónde pueden llevarnos las matemáticas, los datos y la inteligencia artificial.',
 
 		education: 'Formación académica',
 		certifications: 'Certificaciones',
-		inProgress: 'En curso',
-		completed: 'Finalizado',
-		issued: 'Expedida en',
-		averageGrade: 'Nota media:',
-		studyHours: 'horas',
 		illustrativeCover:
 			'Ilustración editorial, no representa resultados científicos',
 
@@ -39,15 +34,27 @@ export const ui = {
 		allArticles: 'Ver todos los artículos →',
 
 		blogIntro:
-			'Comparto conocimientos, investigaciones y experimentos sobre Data Science, Machine Learning, estadística aplicada e inteligencia artificial. Desde sus fundamentos matemáticos hasta la evaluación de modelos y su aplicación práctica.',
+			'En este espacio comparto artículos, investigaciones y experimentos que nacen de preguntas e ideas que he ido explorando con el tiempo. Mi intención es profundizar en los fundamentos de la Ciencia de Datos, contrastar lo que dice la investigación científica y compartir tanto los resultados como el proceso de aprendizaje.',
 
 		empty: 'Todavía no hay artículos publicados en español.',
 
 		contactIntro:
-			'Para oportunidades profesionales, colaboraciones técnicas y proyectos de Data Science o Machine Learning. También para conversar sobre investigación aplicada e intercambiar conocimientos.',
+			'¿Quieres contactar conmigo? Si tienes alguna propuesta de colaboración, una oportunidad profesional o simplemente quieres compartir una idea relacionada con Data Science, Machine Learning o inteligencia artificial, puedes escribirme a través del formulario o encontrarme en mis perfiles profesionales.',
 
-		contactHint:
-			'Puedes contactar conmigo a través de LinkedIn o explorar mi trabajo en GitHub.',
+		contactFormTitle: 'Enviar un mensaje',
+		contactName: 'Nombre',
+		contactEmail: 'Correo electrónico',
+		contactSubject: 'Asunto',
+		contactMessage: 'Mensaje',
+		contactSpamField: 'Deja este campo vacío',
+		contactSubmit: 'Enviar mensaje',
+		contactSending: 'Enviando mensaje…',
+		contactSuccess: 'Mensaje enviado. Gracias por contactar.',
+		contactFailure:
+			'No se pudo enviar el mensaje. Inténtalo de nuevo más tarde.',
+		contactFormUnavailable:
+			'El formulario no está activo. Se habilitará cuando se configure el endpoint de Formspree y se publique la información de privacidad aprobada. Mientras tanto, puedes encontrarme en mis perfiles profesionales.',
+		contactProfiles: 'También puedes encontrarme en',
 
 		rssHint:
 			'Copia este enlace en tu lector RSS para seguir los artículos del blog.',
@@ -122,18 +129,13 @@ export const ui = {
 			'Hi! I’m Alberto Fernández, a Data Scientist with over six years of professional experience in software engineering. Over the past few years, I have increasingly focused on Machine Learning and applied statistics, combining my university studies with my professional background and personal projects.',
 
 		introInterests:
-			'I am especially interested in mathematical foundations, experimental design and model evaluation. I am also drawn to applying Data Science to real-world problems in fields such as banking, healthcare and scientific research.',
+			'I am particularly interested in mathematical foundations, experimental design and model evaluation. I am also drawn to the potential of applying Data Science to real-world problems in technology, finance, scientific research and sustainability.',
 
 		introBlog:
 			'This blog grew out of my curiosity to understand, investigate and experiment with new ideas, and my interest in sharing what I learn along the way. It is a way to explore the possibilities of Data Science and see how far mathematics, data and artificial intelligence can take us.',
 
 		education: 'Education',
 		certifications: 'Certifications',
-		inProgress: 'In progress',
-		completed: 'Completed',
-		issued: 'Issued',
-		averageGrade: 'Grade:',
-		studyHours: 'hours',
 		illustrativeCover:
 			'Editorial illustration, not representing scientific results',
 
@@ -141,14 +143,26 @@ export const ui = {
 		allArticles: 'View All Articles →',
 
 		blogIntro:
-			'I share research, experiments and knowledge about Data Science, Machine Learning, applied statistics and artificial intelligence, from mathematical foundations to model evaluation and practical applications.',
+			'This is where I share articles, research and experiments inspired by questions and ideas I have explored over time. My goal is to deepen my understanding of Data Science, examine the scientific evidence and share both the results and what I learn throughout the process.',
 
 		empty: 'No articles have been published in English yet.',
 
 		contactIntro:
-			'For professional opportunities, technical collaborations and Data Science or Machine Learning projects. I also welcome conversations about applied research and sharing knowledge.',
+			'Want to get in touch? Whether you have a collaboration proposal, a professional opportunity or simply an idea related to Data Science, Machine Learning or artificial intelligence, you can send me a message using the form or connect with me through my professional profiles.',
 
-		contactHint: 'You can reach me on LinkedIn or explore my work on GitHub.',
+		contactFormTitle: 'Send a message',
+		contactName: 'Name',
+		contactEmail: 'Email address',
+		contactSubject: 'Subject',
+		contactMessage: 'Message',
+		contactSpamField: 'Leave this field blank',
+		contactSubmit: 'Send message',
+		contactSending: 'Sending message…',
+		contactSuccess: 'Message sent. Thank you for getting in touch.',
+		contactFailure: 'The message could not be sent. Please try again later.',
+		contactFormUnavailable:
+			'The form is not active. It will be enabled once the Formspree endpoint is configured and approved privacy information is published. In the meantime, you can find me through my professional profiles.',
+		contactProfiles: 'You can also find me on',
 
 		rssHint: 'Copy this link into your RSS reader to follow new blog articles.',
 

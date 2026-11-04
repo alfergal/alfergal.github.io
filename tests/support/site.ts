@@ -89,6 +89,14 @@ export interface TestSite {
 	fixtureOnly: boolean;
 }
 export async function runAstro(root: string, ...args: string[]) {
+	return runAstroWithEnvironment(root, {}, ...args);
+}
+
+export async function runAstroWithEnvironment(
+	root: string,
+	environment: Record<string, string>,
+	...args: string[]
+) {
 	try {
 		return await execute(process.execPath, [cli, ...args], {
 			cwd: root,
@@ -96,6 +104,7 @@ export async function runAstro(root: string, ...args: string[]) {
 			maxBuffer: 2 * 1024 * 1024,
 			env: {
 				...process.env,
+				...environment,
 				ASTRO_TELEMETRY_DISABLED: '1',
 				// Astro disables HMR in test mode. These snapshots never change:
 				// a late dependency reload must not interrupt a DOM assertion.
@@ -114,6 +123,7 @@ export async function runAstro(root: string, ...args: string[]) {
 async function withSite(
 	fixtureOnly: boolean,
 	use: (site: TestSite) => Promise<void>,
+	environment: Record<string, string> = {},
 ) {
 	// No source, build or runtime state is shared with the editorial project.
 	const root = await mkdtemp(join(tmpdir(), 'alfergal-test-'));
@@ -145,13 +155,14 @@ async function withSite(
 				{ recursive: true },
 			);
 		}
-		await runAstro(root, 'build');
+		await runAstroWithEnvironment(root, environment, 'build');
 		const urls: string[] = [];
 		for (const command of ['dev', 'preview'] as const) {
 			// Record ownership before starting so teardown also covers partial startup failures.
 			started.push(command);
-			await runAstro(
+			await runAstroWithEnvironment(
 				root,
+				environment,
 				command,
 				'--background',
 				'--host',
@@ -174,7 +185,9 @@ async function withSite(
 		});
 	} finally {
 		const stopped = await Promise.allSettled(
-			started.map((command) => runAstro(root, command, 'stop')),
+			started.map((command) =>
+				runAstroWithEnvironment(root, environment, command, 'stop'),
+			),
 		);
 		// Do not remove runtime state if a server could still be running.
 		const failures = stopped.filter((result) => result.status === 'rejected');
@@ -189,7 +202,22 @@ async function withSite(
 export const test = base.extend<{}, { site: TestSite }>({
 	site: [
 		async ({}, use, workerInfo) =>
-			withSite(workerInfo.project.name === 'content', use),
+			withSite(
+				workerInfo.project.name === 'content',
+				use,
+				workerInfo.project.name === 'contact'
+					? {
+							PUBLIC_FORMSPREE_FORM_ID: 'testform123',
+							PUBLIC_CONTACT_PRIVACY_NOTICE:
+								'Isolated test notice. No real messages are sent.',
+							PUBLIC_CONTACT_PRIVACY_APPROVED: 'true',
+						}
+					: {
+							PUBLIC_FORMSPREE_FORM_ID: '',
+							PUBLIC_CONTACT_PRIVACY_NOTICE: '',
+							PUBLIC_CONTACT_PRIVACY_APPROVED: '',
+						},
+			),
 		{ scope: 'worker', timeout: 120_000 },
 	],
 	baseURL: async ({ site }, use) => use(site.baseURL),

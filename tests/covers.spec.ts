@@ -2,6 +2,7 @@ import { test, expect } from './support/site';
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 
 const coverNames = [
 	'roc-calibracion',
@@ -9,6 +10,36 @@ const coverNames = [
 	'transformers-estadistica',
 	'teoria-grafos',
 	'editorial-neutral',
+];
+const suppliedCovers = [
+	{
+		file: 'restauracion-pinturas.webp',
+		article: 'ia-colores-originales-pintura.mdx',
+		slug: 'ia-colores-originales-pintura',
+		alt: 'Ilustración digital de un rostro pintado, dividido entre una versión agrietada y envejecida y otra con color; no es una obra histórica.',
+		hash: 'a6c21fd458b2eebd189f1b76a80ad574dd1dd66975d0a80024f6a89219665693',
+	},
+	{
+		file: 'roc-auc-calibracion.webp',
+		article: 'roc-auc-calibracion-probabilidades.mdx',
+		slug: 'roc-auc-calibracion-probabilidades',
+		alt: 'Ilustración conceptual de dos curvas ROC azul y rosa junto a una diagonal de referencia; no muestra datos experimentales.',
+		hash: 'c3b7d2c62e0948e4567123a797c8b9c4be32c6800ace3dab08b7b95eaeb9483a',
+	},
+	{
+		file: 'series-temporales-transformers.webp',
+		article: 'puede-transformer-predecir-mejor-arima-estadistica.mdx',
+		slug: 'puede-transformer-predecir-mejor-arima-estadistica',
+		alt: 'Ilustración conceptual de una serie temporal con una predicción y una banda de incertidumbre; no muestra los resultados del experimento.',
+		hash: '4716f2c8b099cf482f81b17e097a35647f6bda68bda3ab75e9c5daa60787a998',
+	},
+	{
+		file: 'grafos-arista.webp',
+		article: 'una-arista-cambia-red-resistencia-efectiva.mdx',
+		slug: 'una-arista-cambia-red-resistencia-efectiva',
+		alt: 'Ilustración de una red de nodos azules conectados y una arista resaltada en rosa.',
+		hash: 'f84207d3133ef5a28e9efebd081699c5b4d5494a435b352ff974fa6176baf78a',
+	},
 ];
 
 test('editorial cover sources have consistent, text-free 16:10 WebP exports', async () => {
@@ -39,16 +70,46 @@ test('editorial cover sources have consistent, text-free 16:10 WebP exports', as
 		expect(svg).toContain('#F2A7C6');
 	}
 
+	for (const cover of suppliedCovers) {
+		const data = await readFile(join('src/assets/blog-covers', cover.file));
+		const metadata = await sharp(data).metadata();
+		expect(metadata.format, cover.file).toBe('webp');
+		expect(metadata.width, cover.file).toBe(1280);
+		expect(metadata.height, cover.file).toBe(800);
+		expect(data.byteLength, cover.file).toBeLessThan(250_000);
+		expect(createHash('sha256').update(data).digest('hex'), cover.file).toBe(
+			cover.hash,
+		);
+	}
+	expect(new Set(suppliedCovers.map((cover) => cover.file)).size).toBe(4);
+
+	const editableSeriesCover = await readFile(
+		'src/assets/blog-covers/series-temporales-transformers.svg',
+		'utf8',
+	);
+	expect(editableSeriesCover).toContain('viewBox="0 0 1600 1000"');
+	expect(editableSeriesCover).not.toMatch(/<text\b/i);
+
 	const painting = await readFile(
 		'src/content/blog/ia-colores-originales-pintura.mdx',
 		'utf8',
 	);
-	expect(painting).toContain(
-		"cover: '../../assets/blog-covers/restoration-split.webp'",
-	);
-	expect(painting).toContain('objeto 436534, CC0');
-	expect(painting).toContain('no representa una restauración histórica');
-	expect(painting).toContain('draft: true');
+	for (const cover of suppliedCovers) {
+		const article = await readFile(
+			join('src/content/blog', cover.article),
+			'utf8',
+		);
+		expect(article).toContain(
+			`cover: '../../assets/blog-covers/${cover.file}'`,
+		);
+		expect(article).toContain(`es: '${cover.alt}'`);
+		expect(article).toMatch(/coverAlt:[\s\S]*?en: '[^']+'/);
+		expect(article).toMatch(/coverCredit:[\s\S]*?es: '[^']+'[\s\S]*?en: '[^']+'/);
+		expect(article).toContain('draft: true');
+	}
+	const paintingFrontmatter = painting.split('---')[1];
+	expect(paintingFrontmatter).not.toContain('The Metropolitan Museum of Art');
+	expect(paintingFrontmatter).not.toContain('objeto 436534, CC0');
 });
 
 test('development Blog previews use accessible optimized covers at 16:10', async ({
@@ -61,10 +122,14 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 		'.post-card:has(a[href="/blog/ia-colores-originales-pintura/"])',
 	);
 	const image = paintingCard.locator('.article-card-cover img');
-	await expect(image).toHaveAttribute('alt', /Roses.*sintético/);
+	await expect(image).toHaveAttribute('alt', /rostro pintado.*envejecida/);
 	await expect(image).toHaveAttribute('loading', 'lazy');
-	await expect(image).toHaveAttribute('width', '1600');
-	await expect(image).toHaveAttribute('height', '1000');
+	await expect(image).toHaveAttribute('width', '1280');
+	await expect(image).toHaveAttribute('height', '800');
+	await expect(paintingCard.locator('figcaption')).toContainText(
+		'no representa Santa Catalina ni una restauración real',
+	);
+	await expect(paintingCard).not.toContainText('Metropolitan Museum');
 	await expect(paintingCard.locator('.post-card-category')).toBeVisible();
 	await expect(paintingCard.locator('h3 a')).toBeVisible();
 	await expect(paintingCard.locator('> p')).toBeVisible();
@@ -74,4 +139,39 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	const dimensions = await image.boundingBox();
 	expect(dimensions).not.toBeNull();
 	expect(dimensions!.width / dimensions!.height).toBeCloseTo(1.6, 1);
+});
+
+test('each real article has its own accessible cover and the demonstration stays out of editorial listings', async ({
+	page,
+}) => {
+	await page.goto('/blog/');
+	const sources: (string | null)[] = [];
+	for (const cover of suppliedCovers) {
+		const card = page.locator(
+			`.post-card:has(a[href="/blog/${cover.slug}/"])`,
+		);
+		const image = card.locator('.article-card-cover img');
+		await expect(image).toHaveAttribute('alt', cover.alt);
+		await expect(image).toHaveAttribute('width', '1280');
+		await expect(image).toHaveAttribute('height', '800');
+		await expect(card.locator('.article-card-cover figcaption')).toContainText(
+			'Ilustración editorial conceptual generada digitalmente',
+		);
+		sources.push(await image.getAttribute('src'));
+	}
+	expect(new Set(sources).size).toBe(4);
+	for (const source of sources) {
+		expect(source).not.toBeNull();
+		expect(
+			(await page.request.get(new URL(source!, page.url()).href)).status(),
+		).toBe(200);
+	}
+	await expect(
+		page.locator('.post-card a[href="/blog/demostracion-articulo-tecnico/"]'),
+	).toHaveCount(0);
+
+	expect(
+		(await page.goto('/blog/demostracion-articulo-tecnico/'))?.status(),
+	).toBe(200);
+	await expect(page.locator('.draft-notice')).toBeVisible();
 });

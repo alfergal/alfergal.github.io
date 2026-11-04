@@ -15,6 +15,22 @@ test('isolated collections preview all entries in date order and expose publicat
 			(entry) => entry.title,
 		),
 	);
+	const unillustrated = site.entries.find(
+		(entry) => entry.lang === 'es' && !entry.cover,
+	);
+	expect(unillustrated).toBeDefined();
+	const unillustratedCard = page.locator(
+		`.post-card:has(a[href="${unillustrated!.path}"])`,
+	);
+	await expect(
+		unillustratedCard.locator('.article-cover-art--type'),
+	).toBeVisible();
+	await expect(unillustratedCard.locator('.article-cover-art img')).toHaveCount(
+		0,
+	);
+	await expect(
+		unillustratedCard.locator('.article-cover-type-title'),
+	).toHaveText(unillustrated!.title);
 	await page.goto(article);
 	const entry = site.entries.find((item) => item.id === 'qa-verification-new')!;
 	await expect(page.locator('.article-category')).toHaveText(entry.category);

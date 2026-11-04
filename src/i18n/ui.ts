@@ -27,8 +27,6 @@ export const ui = {
 
 		education: 'Formación académica',
 		certifications: 'Certificaciones',
-		illustrativeCover:
-			'Ilustración editorial, no representa resultados científicos',
 
 		latest: 'Últimos artículos',
 		allArticles: 'Ver todos los artículos →',
@@ -136,8 +134,6 @@ export const ui = {
 
 		education: 'Education',
 		certifications: 'Certifications',
-		illustrativeCover:
-			'Editorial illustration, not representing scientific results',
 
 		latest: 'Latest Articles',
 		allArticles: 'View All Articles →',

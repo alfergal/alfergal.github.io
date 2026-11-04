@@ -86,8 +86,8 @@ test('one personal homepage presents the profile, education and integrated artic
 	for (const card of await page.locator('.latest-articles .post-card').all()) {
 		const image = card.locator('.article-card-cover img');
 		await expect(image).toHaveAttribute('loading', 'lazy');
-		await expect(image).toHaveAttribute('width', '1600');
-		await expect(image).toHaveAttribute('height', '1000');
+		await expect(image).toHaveAttribute('width', '1280');
+		await expect(image).toHaveAttribute('height', '800');
 		await expect(card.locator('a')).toHaveCount(1);
 		await expect(card.locator('.post-card-category')).toBeVisible();
 		await expect(card.locator('.article-meta time')).toBeVisible();
@@ -97,13 +97,14 @@ test('one personal homepage presents the profile, education and integrated artic
 	const demoPreview = page.locator(
 		'.post-card a[href="/blog/demostracion-articulo-tecnico/"]',
 	);
+	await expect(demoPreview).toHaveCount(0);
 	if (
 		site.entries.some((entry) => entry.id === 'demostracion-articulo-tecnico')
 	) {
-		await expect(demoPreview).toBeVisible();
-		await expect(
-			demoPreview.locator('xpath=ancestor::article').locator('.draft-label'),
-		).toBeVisible();
+		expect(
+			(await page.goto('/blog/demostracion-articulo-tecnico/'))?.status(),
+		).toBe(200);
+		await expect(page.locator('.draft-notice')).toBeVisible();
 	}
 	await page.goto('/');
 	if (site.entries.filter((entry) => !entry.draft).length < 3)
@@ -188,7 +189,11 @@ test('the integrated blog lists the collection in date order with readable metad
 			(entry) => entry.title,
 		),
 	);
-	for (const entry of site.entries.filter((entry) => entry.lang === 'es')) {
+	for (const entry of site.entries.filter(
+		(entry) =>
+			entry.lang === 'es' &&
+			entry.id !== 'demostracion-articulo-tecnico',
+	)) {
 		const link = page.locator(`h3 a[href="/blog/${entry.id}/"]`);
 		const card = page.locator('.post-card').filter({ has: link });
 		await expect(card.locator('time')).toHaveAttribute(
@@ -300,7 +305,10 @@ test('links work without JavaScript and keyboard users can skip to main content'
 	});
 	const noJS = await context.newPage();
 	await noJS.goto(`${baseURL}/blog/`);
-	const entry = articleFor(site);
+	const entry =
+		site.entries.find(
+			(item) => item.id !== 'demostracion-articulo-tecnico',
+		) ?? site.entries[0];
 	if (entry) {
 		await noJS.locator(`.post-card a[href="/blog/${entry.id}/"]`).click();
 		await expect(noJS.locator('h1')).toHaveText(entry.title);

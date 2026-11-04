@@ -248,6 +248,26 @@ a:hover {
 	height: 100%;
 	object-fit: cover;
 }
+.article-cover-art--type {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 8px;
+	padding: clamp(18px, 3.5vw, 36px);
+	color: var(--ink);
+}
+.article-cover-type-category {
+	color: var(--palette-blue);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.025em;
+}
+.article-cover-type-title {
+	max-width: 28ch;
+	font-size: clamp(16px, 1.55vw, 22px);
+	line-height: 1.25;
+}
 .article-card-cover figcaption {
 	padding: 8px 18px 0;
 	color: var(--muted);

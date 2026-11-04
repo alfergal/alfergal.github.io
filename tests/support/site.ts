@@ -30,6 +30,7 @@ export interface Entry {
 	draft: boolean;
 	date: number;
 	featured: boolean;
+	cover: boolean;
 	lang: 'es' | 'en';
 	path: string;
 }
@@ -61,6 +62,7 @@ export async function readEntries(root: string): Promise<Entry[]> {
 						draft: data.draft !== false,
 						date: new Date(data.pubDate).valueOf(),
 						featured: data.featured === true,
+						cover: Boolean(data.cover),
 						lang: data.lang === 'en' ? ('en' as const) : ('es' as const),
 					};
 					return {
@@ -75,10 +77,16 @@ export async function readEntries(root: string): Promise<Entry[]> {
 	).sort((a, b) => b.date - a.date || a.id.localeCompare(b.id));
 }
 export function listedEntries(entries: Entry[]) {
-	const published = entries.filter((entry) => !entry.draft);
+	const editorialEntries = entries.filter(
+		(entry) => entry.id !== 'demostracion-articulo-tecnico',
+	);
+	const published = editorialEntries.filter((entry) => !entry.draft);
 	const featured =
 		published.length >= 3 ? published.filter((entry) => entry.featured) : [];
-	return [...featured, ...entries.filter((entry) => !featured.includes(entry))];
+	return [
+		...featured,
+		...editorialEntries.filter((entry) => !featured.includes(entry)),
+	];
 }
 export interface TestSite {
 	root: string;

@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
-import fallbackCover from '../assets/blog-covers/editorial-neutral.webp';
 import FormattedDate from './FormattedDate.astro';
 import { ui, categoryLabel } from '../i18n';
 import { postPath } from '../lib/article-routes';
@@ -11,8 +10,8 @@ interface Props {
 }
 const { post } = Astro.props;
 const t = ui[post.data.lang];
-const coverAlt = post.data.coverAlt?.[post.data.lang] || t.illustrativeCover;
-const cover = post.data.cover ?? fallbackCover;
+const coverAlt = post.data.coverAlt?.[post.data.lang] || post.data.title;
+const cover = post.data.cover;
 const category = categoryLabel(post.data.category, post.data.lang);
 ---
 
@@ -21,22 +20,34 @@ const category = categoryLabel(post.data.category, post.data.lang);
 	data-post-category={post.data.category}
 	data-post-tags={JSON.stringify(post.data.tags)}
 >
-	<figure class="article-card-cover">
-		<div class="article-cover-art">
-			<Image
-				src={cover}
-				alt={coverAlt}
-				width={1600}
-				height={1000}
-				sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
-				loading="lazy"
-				decoding="async"
-			/>
-		</div>
-		{post.data.coverCredit && (
-			<figcaption>{post.data.coverCredit[post.data.lang]}</figcaption>
-		)}
-	</figure>
+	{cover ? (
+		<figure class="article-card-cover">
+			<div class="article-cover-art">
+				<Image
+					src={cover}
+					alt={coverAlt}
+					width={cover.width}
+					height={cover.height}
+					sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+			{post.data.coverCredit && (
+				<figcaption>{post.data.coverCredit[post.data.lang]}</figcaption>
+			)}
+		</figure>
+	) : (
+		<figure
+			class="article-card-cover article-card-cover--type"
+			aria-hidden="true"
+		>
+			<div class="article-cover-art article-cover-art--type">
+				<span class="article-cover-type-category">{category}</span>
+				<span class="article-cover-type-title">{post.data.title}</span>
+			</div>
+		</figure>
+	)}
 	<div class="post-card-category-line">
 		<span class="post-card-category">{category}</span>
 		{post.data.draft && <span class="draft-label">{t.draft}</span>}

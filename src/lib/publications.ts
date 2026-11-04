@@ -2,17 +2,24 @@ import type { CollectionEntry } from 'astro:content';
 
 type Post = CollectionEntry<'blog'>;
 export const publicationThreshold = 3;
+export const demonstrationArticleId = 'demostracion-articulo-tecnico';
 
 export function publicationGroups<
 	T extends { id: string; data: { draft: boolean; featured: boolean } },
 >(posts: T[]) {
-	const published = posts.filter((post) => !post.data.draft);
+	const editorialPosts = posts.filter(
+		(post) => post.id !== demonstrationArticleId,
+	);
+	const published = editorialPosts.filter((post) => !post.data.draft);
 	const featured =
 		published.length >= publicationThreshold
 			? published.filter((post) => post.data.featured)
 			: [];
 	const ids = new Set(featured.map((post) => post.id));
-	return { featured, recent: posts.filter((post) => !ids.has(post.id)) };
+	return {
+		featured,
+		recent: editorialPosts.filter((post) => !ids.has(post.id)),
+	};
 }
 
 export function seriesPosts(post: Post, posts: Post[]) {

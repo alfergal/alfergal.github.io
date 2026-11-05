@@ -47,6 +47,15 @@ const suppliedCovers = [
 		alt: 'Ilustración conceptual de un bacteriófago estilizado azul y rosa, con cápside geométrica, cola y una hélice central no basada en una estructura concreta.',
 		hash: 'e40589bac82ae5c18b0523426008e654fde615f76cd274ea33b1d1f1025ec634',
 	},
+	{
+		file: 'statebench-memoria-estado.webp',
+		article: 'ia-recordar-cambios-statebench.mdx',
+		slug: 'ia-recordar-cambios-statebench',
+		alt: 'Ilustración conceptual de una secuencia azul de estados que atraviesa operaciones y termina en estados rosas; una conexión interrumpida representa una actualización perdida.',
+		hash: '574dcdca2d288478e68f1d15efdbe7a3d06d78ada6baa4ad9e0f731786a148e1',
+		width: 1600,
+		height: 1000,
+	},
 ];
 
 test('editorial cover sources have consistent, text-free 16:10 WebP exports', async () => {
@@ -81,14 +90,14 @@ test('editorial cover sources have consistent, text-free 16:10 WebP exports', as
 		const data = await readFile(join('src/assets/blog-covers', cover.file));
 		const metadata = await sharp(data).metadata();
 		expect(metadata.format, cover.file).toBe('webp');
-		expect(metadata.width, cover.file).toBe(1280);
-		expect(metadata.height, cover.file).toBe(800);
+		expect(metadata.width, cover.file).toBe(cover.width ?? 1280);
+		expect(metadata.height, cover.file).toBe(cover.height ?? 800);
 		expect(data.byteLength, cover.file).toBeLessThan(250_000);
 		expect(createHash('sha256').update(data).digest('hex'), cover.file).toBe(
 			cover.hash,
 		);
 	}
-	expect(new Set(suppliedCovers.map((cover) => cover.file)).size).toBe(5);
+	expect(new Set(suppliedCovers.map((cover) => cover.file)).size).toBe(6);
 
 	const editableSeriesCover = await readFile(
 		'src/assets/blog-covers/series-temporales-transformers.svg',
@@ -159,6 +168,18 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	await expect(virusCover).toHaveAttribute('width', '1280');
 	await expect(virusCover).toHaveAttribute('height', '800');
 	await expect(virusCard.locator('figcaption')).toHaveCount(0);
+	const statebenchCard = page.locator(
+		'.post-card:has(a[href="/blog/ia-recordar-cambios-statebench/"])',
+	);
+	const statebenchCover = statebenchCard.locator('.article-card-cover img');
+	await expect(statebenchCover).toHaveAttribute(
+		'alt',
+		/Ilustración conceptual de una secuencia azul de estados/,
+	);
+	await expect(statebenchCover).toHaveAttribute('loading', 'lazy');
+	await expect(statebenchCover).toHaveAttribute('width', '1600');
+	await expect(statebenchCover).toHaveAttribute('height', '1000');
+	await expect(statebenchCard.locator('figcaption')).toHaveCount(0);
 });
 
 test('each real article has its own accessible cover and the demonstration stays out of editorial listings', async ({
@@ -167,17 +188,15 @@ test('each real article has its own accessible cover and the demonstration stays
 	await page.goto('/blog/');
 	const sources: (string | null)[] = [];
 	for (const cover of suppliedCovers) {
-		const card = page.locator(
-			`.post-card:has(a[href="/blog/${cover.slug}/"])`,
-		);
+		const card = page.locator(`.post-card:has(a[href="/blog/${cover.slug}/"])`);
 		const image = card.locator('.article-card-cover img');
 		await expect(image).toHaveAttribute('alt', cover.alt);
-		await expect(image).toHaveAttribute('width', '1280');
-		await expect(image).toHaveAttribute('height', '800');
+		await expect(image).toHaveAttribute('width', String(cover.width ?? 1280));
+		await expect(image).toHaveAttribute('height', String(cover.height ?? 800));
 		await expect(card.locator('.article-card-cover figcaption')).toHaveCount(0);
 		sources.push(await image.getAttribute('src'));
 	}
-	expect(new Set(sources).size).toBe(5);
+	expect(new Set(sources).size).toBe(6);
 	for (const source of sources) {
 		expect(source).not.toBeNull();
 		expect(

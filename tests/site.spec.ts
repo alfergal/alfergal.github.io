@@ -85,9 +85,17 @@ test('one personal homepage presents the profile, education and integrated artic
 		expect((await request.get(source)).status()).toBe(200);
 	for (const card of await page.locator('.latest-articles .post-card').all()) {
 		const image = card.locator('.article-card-cover img');
-		await expect(image).toHaveAttribute('loading', 'lazy');
-		await expect(image).toHaveAttribute('width', '1280');
-		await expect(image).toHaveAttribute('height', '800');
+		if (await image.count()) {
+			await expect(image).toHaveAttribute('loading', 'lazy');
+			await expect(image).toHaveAttribute('width', '1280');
+			await expect(image).toHaveAttribute('height', '800');
+		} else {
+			await expect(card.locator('.article-card-cover--type')).toHaveAttribute(
+				'aria-hidden',
+				'true',
+			);
+			await expect(card.locator('.article-cover-type-title')).toBeVisible();
+		}
 		await expect(card.locator('a')).toHaveCount(1);
 		await expect(card.locator('.post-card-category')).toBeVisible();
 		await expect(card.locator('.article-meta time')).toBeVisible();

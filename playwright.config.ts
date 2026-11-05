@@ -23,6 +23,7 @@ export default defineConfig({
 				'temperature.spec.ts',
 				'painting.spec.ts',
 				'virus-article.spec.ts',
+				'statebench.spec.ts',
 			],
 		},
 		{

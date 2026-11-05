@@ -1,0 +1,86 @@
+{
+  "seed": 20261105,
+  "variables": 5,
+  "lengths": [
+    8,
+    32,
+    128,
+    512
+  ],
+  "repetitions": 40,
+  "experiment": "Deletion sensitivity on finite toy state systems; no language models evaluated",
+  "results": {
+    "8": {
+      "r_trivial": {
+        "mean": 0.0,
+        "sd_across_traces": 0.0
+      },
+      "aperiodic": {
+        "mean": 0.45,
+        "sd_across_traces": 0.06817210498023292
+      },
+      "soluble": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      },
+      "general_finite": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      }
+    },
+    "32": {
+      "r_trivial": {
+        "mean": 0.0,
+        "sd_across_traces": 0.0
+      },
+      "aperiodic": {
+        "mean": 0.109375,
+        "sd_across_traces": 0.01582405261068229
+      },
+      "soluble": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      },
+      "general_finite": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      }
+    },
+    "128": {
+      "r_trivial": {
+        "mean": 0.0,
+        "sd_across_traces": 0.0
+      },
+      "aperiodic": {
+        "mean": 0.028125,
+        "sd_across_traces": 0.003876085455912764
+      },
+      "soluble": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      },
+      "general_finite": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      }
+    },
+    "512": {
+      "r_trivial": {
+        "mean": 0.0,
+        "sd_across_traces": 0.0
+      },
+      "aperiodic": {
+        "mean": 0.00703125,
+        "sd_across_traces": 0.000969021363978191
+      },
+      "soluble": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      },
+      "general_finite": {
+        "mean": 1.0,
+        "sd_across_traces": 0.0
+      }
+    }
+  }
+}

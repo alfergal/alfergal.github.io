@@ -11,6 +11,7 @@ const title =
 
 test('StateBench draft renders equations, matching synthetic results and its SVG accessibly', async ({
 	page,
+	context,
 	site,
 	request,
 }) => {
@@ -29,6 +30,26 @@ test('StateBench draft renders equations, matching synthetic results and its SVG
 	expect(
 		await page.locator('.prose .katex-mathml math').count(),
 	).toBeGreaterThan(10);
+	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+	const plainTextBlock = page.locator('.code-block').first();
+	await expect(plainTextBlock.locator('.code-labels > span')).toHaveCount(1);
+	await expect(plainTextBlock.locator('.code-labels > span')).toBeHidden();
+	const copyButton = plainTextBlock.getByRole('button', {
+		name: /Copiar código/,
+	});
+	await expect(copyButton).toBeVisible();
+	const copyAlignment = await plainTextBlock
+		.locator('.code-toolbar')
+		.evaluate((bar) => {
+			const button = bar.querySelector('button')!.getBoundingClientRect();
+			const toolbar = bar.getBoundingClientRect();
+			const paddingRight = parseFloat(getComputedStyle(bar).paddingRight);
+			return Math.abs(toolbar.right - button.right - paddingRight) < 2;
+		});
+	expect(copyAlignment).toBe(true);
+	const code = await plainTextBlock.locator('pre code').textContent();
+	await copyButton.click();
+	expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(code);
 
 	const image = page.locator('.prose figure img');
 	await expect(image).toHaveCount(1);
@@ -40,15 +61,6 @@ test('StateBench draft renders equations, matching synthetic results and its SVG
 		'soluble',
 		'general_finite',
 	] as const;
-	for (const [length, values] of Object.entries(results.results)) {
-		for (const family of families) {
-			const percent = Math.round(values[family].mean * 1000) / 10;
-			const formatted = Number.isInteger(percent)
-				? String(percent)
-				: percent.toFixed(1).replace('.', ',');
-			expect(figureAlt, `${family} ${length}`).toContain(`${formatted} %`);
-		}
-	}
 	const formattedSeries = (family: (typeof families)[number]) =>
 		Object.values(results.results).map(({ [family]: metric }) => {
 			const percent = Math.round(metric.mean * 1000) / 10;
@@ -56,15 +68,18 @@ test('StateBench draft renders equations, matching synthetic results and its SVG
 				? String(percent)
 				: percent.toFixed(1).replace('.', ',');
 		});
-	expect(figureAlt).toContain(
-		`R-trivial da ${formattedSeries('r_trivial')[0]} %`,
-	);
+	const lengthValues = Object.keys(results.results);
+	const lengths = `${lengthValues.slice(0, -1).join(', ')} y ${lengthValues.at(-1)}`;
+	const rTrivialValues = formattedSeries('r_trivial');
 	const aperiodicValues = formattedSeries('aperiodic');
-	expect(figureAlt).toContain(
-		`aperiódica, ${aperiodicValues.slice(0, -1).join(' %, ')} % y ${aperiodicValues.at(-1)} %`,
-	);
-	expect(figureAlt).toContain(
-		`soluble y finita general dan ${formattedSeries('soluble')[0]} % en cada longitud`,
+	const solubleValues = formattedSeries('soluble');
+	const generalValues = formattedSeries('general_finite');
+	expect(new Set(rTrivialValues).size).toBe(1);
+	expect(new Set(solubleValues).size).toBe(1);
+	expect(new Set(generalValues).size).toBe(1);
+	expect(solubleValues).toEqual(generalValues);
+	expect(figureAlt).toBe(
+		`Mapa de calor por longitud (${lengths} pasos): R-trivial, ${rTrivialValues[0]} %; aperiódica, ${aperiodicValues.slice(0, -1).join(' %, ')} % y ${aperiodicValues.at(-1)} %; soluble y finita general, ${solubleValues[0]} %.`,
 	);
 	await expect(image.locator('..').locator('..')).toContainText('Figura 1');
 	const source = await image.getAttribute('src');
@@ -141,9 +156,10 @@ test('StateBench draft renders equations, matching synthetic results and its SVG
 	expect(visibleCharacters).toBeGreaterThanOrEqual(5300);
 	expect(visibleCharacters).toBeLessThanOrEqual(6000);
 	expect(text).not.toContain('\u00b7');
-	expect(text).toContain('no se evaluó ningún modelo neuronal.');
-	expect(text).toContain('no reproduce asignaciones por paso');
-	for (const width of [320, 390, 768, 1024, 1440]) {
+	expect(text).toContain('sin modelos neuronales');
+	expect(text).toContain('no replica el generador oficial');
+	expect(text).toContain('sigue influyendo en el resultado final');
+	for (const width of [375, 768, 1440]) {
 		await page.setViewportSize({ width, height: 900 });
 		expect(
 			await page.evaluate(
@@ -151,6 +167,22 @@ test('StateBench draft renders equations, matching synthetic results and its SVG
 			),
 			`horizontal overflow at ${width}px`,
 		).toBe(true);
+		const heading = page.locator('.article-header h1');
+		await expect(heading).toBeVisible();
+		const headingMetrics = await heading.evaluate((element) => ({
+			fontSize: getComputedStyle(element).fontSize,
+			overflow: element.scrollWidth > element.clientWidth,
+		}));
+		expect(headingMetrics.fontSize).toBe(width <= 1000 ? '32px' : '44px');
+		expect(headingMetrics.overflow).toBe(false);
+		await expect(page.locator('.article-toc summary')).toBeVisible();
+		await expect(page.locator('.article-toc details')).not.toHaveAttribute(
+			'open',
+		);
+		await expect(page.locator('.prose table')).toBeVisible();
+		await expect(page.locator('.prose .katex-display').first()).toBeVisible();
+		await expect(plainTextBlock.locator('.code-toolbar button')).toBeVisible();
+		await expect(page.locator('.prose figure img')).toBeVisible();
 	}
 });
 

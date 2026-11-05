@@ -9,13 +9,13 @@ draft: true
 featured: false
 cover: '../../assets/blog-covers/statebench-memoria-estado.webp'
 coverAlt:
-  es: 'Ilustración conceptual de una secuencia azul de estados que atraviesa operaciones y termina en estados rosas; una conexión interrumpida representa una actualización perdida.'
-  en: 'Conceptual illustration of a blue sequence of states passing through operations and ending in pink states; a broken connection represents a missed update.'
+  es: 'Secuencia de estados azules que atraviesa una red de operaciones y termina en estados rosas; una conexión interrumpida representa una actualización perdida.'
+  en: 'Blue states passing through a network of operations and ending as pink states; a broken connection represents a missed update.'
 ---
 
 import Figure from '../../components/Figure.astro';
 
-Una IA puede recuperar una frase escrita hace cien mil palabras. Pero tras veinte cambios, ¿sabe **cómo ha quedado el mundo**? Recuperar datos y seguir transformaciones son capacidades distintas. _StateBench_, preprint de Petty, Merrill y Sabharwal del 2 de noviembre de 2026, estudia esa diferencia [1].
+Una IA puede localizar una frase escrita miles de palabras atrás. Pero, después de veinte cambios, ¿sabe **cómo han quedado las cosas**? Recuperar datos no es actualizar un estado. *StateBench*, preprint de Petty, Merrill y Sabharwal (2026), estudia esa diferencia [1].
 
 ## 1. Recordar no es actualizar
 
@@ -28,69 +28,88 @@ A = 9
 B = B + 2
 ```
 
-El resultado es **A = 9 y B = 7**. `B = A` copia un valor; no crea un vínculo permanente. Buscar la última aparición de cada variable no basta: hay que **ejecutar las operaciones en orden**.
+El resultado es **A = 9 y B = 7**. `B = A` copia un valor en ese instante; no crea un vínculo permanente. Hay que **ejecutar las instrucciones en orden**.
 
-## 2. La matemática de seguir un estado
+Fuera del código ocurre igual: recordar que unas llaves cambiaron de manos no basta para saber dónde están después de varios movimientos.
 
-Si tenemos $m$ variables con valores en un conjunto finito $V$, el estado es $s_t\in V^m$. Cada instrucción $a_t$ aplica una transformación $T_{a_t}$:
+## 2. Las matemáticas de seguir un estado
 
-$$
-s_{t+1}=T_{a_t}(s_t),\qquad s_n=(T_{a_{n-1}}\circ\cdots\circ T_{a_0})(s_0).
-$$
-
-**El orden importa.** Con $q$ valores por variable hay $q^m$ estados posibles. Un intérprete los actualiza; un modelo debe reconstruir los cambios desde los tokens.
-
-Las transformaciones forman un **monoide**: incluyen la identidad y su composición es asociativa, aunque el orden puede cambiar el resultado. La sobrescritura $R_4$ es idempotente, $R_4\circ R_4=R_4$; incrementar módulo diez es cíclico, $C^{10}=I$. **Krohn–Rhodes** clasifica sistemas finitos según los grupos que requieren sus composiciones. StateBench distingue así cuatro familias: R-trivial, aperiódica, soluble y finita general [1]. No son cuatro longitudes de contexto, sino estructuras de operaciones.
-
-## 3. ¿Qué está midiendo StateBench?
-
-| Familia            | Ejemplo                          | Qué exige                          |
-| ------------------ | -------------------------------- | ---------------------------------- |
-| **R-trivial**      | `x = 4`, valor inmutable         | Recuperar el valor inicial.        |
-| **Aperiódica**     | `x = 4; x = 2`                   | Encontrar la última sobrescritura. |
-| **Soluble**        | `x = (x + 1) mod 10`             | Acumular cambios cíclicos.         |
-| **Finita general** | `x = y` o intercambiar variables | Seguir dependencias y su orden.    |
-
-El paper establece resultados teóricos bajo **modelos y supuestos concretos** de arquitectura y precisión. Por ejemplo, demuestra que Gated DeltaNet con autovalores positivos expresa todas las tareas aperiódicas y algunas solubles; ciertos Transformers de atención hard con precisión logarítmica expresan precisamente problemas solubles. No es una afirmación de que cualquier Transformer comercial sea incapaz de seguir asignaciones.
-
-En experimentos desde cero con modelos de 275 millones de parámetros, entrenados hasta 256 asignaciones y probados hasta 64.000, Gated DeltaNet e híbridos generalizaron casi perfectamente en las tres familias más simples. Los Transformers se degradaron con la longitud y no aprendieron la familia finita general. Los resultados de modelos preentrenados y de frontera también variaron por nivel y formato; estos últimos bajaron a 13 % o menos en los problemas generales más largos [1, 2]. **Son resultados ajenos**, no una evaluación propia de LLM. Buscar valores y editar una hoja de cálculo pueden dar puntuaciones distintas aun con la misma lógica [2].
-
-## 4. Nuestra demostración: ¿qué pasos importan?
-
-Medimos qué fracción de operaciones cambia el resultado final al borrarse individualmente. Para una traza $a=(a_1,\ldots,a_n)$ y estado inicial fijo $s_0$, sea $F_{s_0}(a)$ el estado final:
+Con $m$ variables y valores en un conjunto finito $V$, el estado es $s_t\in V^m$. Cada instrucción $a_t$ aplica una transformación $T_{a_t}$:
 
 $$
-D(a)=\frac{1}{n}\sum_{t=1}^{n}\mathbf 1\!\left[F_{s_0}(a)\neq F_{s_0}(a_{-t})\right],\qquad a_{-t}=(a_1,\ldots,a_{t-1},a_{t+1},\ldots,a_n).
+s_{t+1}=T_{a_t}(s_t),\qquad
+s_n=(T_{a_{n-1}}\circ\cdots\circ T_{a_0})(s_0).
 $$
 
-No es la sensibilidad del paper, que estudia cuántas posiciones pueden afectar la salida al intervenir un valor. **Borrar una operación y alterarla durante la ejecución son medidas distintas** [1].
+Con $q$ valores por variable hay $q^m$ estados. Un intérprete actualiza uno; un modelo debe inferirlo desde los tokens.
 
-Generamos 40 trazas sintéticas por longitud, con cinco variables y valores de 0 a 4. La familia soluble aplica incrementos modulares simultáneos a pares: no reproduce asignaciones por paso ni el generador oficial. R-trivial vuelve a escribir valores iniciales. Resultados y script están en el repositorio; no se evaluó ningún modelo neuronal.
+**No todas las operaciones conservan el pasado igual.** Al escribir `x = 4`, su valor anterior deja de importar. Repetirlo tampoco cambia nada: es una operación *idempotente*, $R_4\circ R_4=R_4$.
+
+En cambio, `x = (x + 1) mod 10` acumula cambios; tras diez incrementos vuelve al inicio: $C^{10}=I$. Al intercambiar variables también importa el orden. Ya no basta con recordar el último valor.
+
+Estas transformaciones forman un **monoide**: se componen asociativamente y existe una identidad. **Krohn–Rhodes** permite analizar sus componentes algebraicos. StateBench distingue cuatro familias [1]:
+
+| Familia | Ejemplo | Qué debe seguir el modelo |
+| --- | --- | --- |
+| **R-trivial** | `let x = 4` | Primera asignación inmutable. |
+| **Aperiódica** | `x = 4; x = 2` | Última sobrescritura relevante. |
+| **Soluble** | `x = (x + 1) mod 10` | Cambios acumulados sobre el propio valor. |
+| **Finita general** | `x = y`; intercambios | Dependencias entre variables y orden. |
+
+No son cuatro tamaños de contexto, sino **estructuras de operaciones**. Los intercambios arbitrarios de cinco elementos pueden generar el grupo no soluble $S_5$; un solo intercambio no representa esa complejidad.
+
+## 3. Qué descubrió StateBench
+
+El paper demuestra que **Gated DeltaNet con autovalores positivos** expresa todos los problemas aperiódicos y algunos solubles. Ciertos Transformers teóricos con atención *hard* y precisión logarítmica resuelven problemas solubles; afirmar que esa clase es su límite exacto requiere la hipótesis $\mathrm{TC}^{0}\ne\mathrm{NC}^{1}$ [1]. **No es un límite universal de los Transformers comerciales.**
+
+Con **275 millones de parámetros**, modelos entrenados hasta **256 asignaciones** fueron evaluados hasta **64.000**. Gated DeltaNet e híbridos generalizaron casi perfectamente en las tres primeras familias. Los Transformers se degradaron con la longitud y **no dominaron las tareas finitas generales ni dentro de entrenamiento** [1].
+
+En modelos de frontera, la exactitud cayó al **13 % o menos** en los problemas generales más largos [2]. Y la misma lógica daba puntuaciones distintas como búsqueda de valores o edición de una hoja de cálculo: **el formato también importa**.
+
+Son resultados de los investigadores, **no mediciones realizadas para este blog**.
+
+## 4. Nuestra demostración: cuándo importa un paso
+
+Construimos sistemas finitos **sin modelos neuronales** para medir qué fracción de pasos cambia el resultado al borrarse. Sea $F_{s_0}(a)$ el estado final de la traza $a=(a_1,\ldots,a_n)$, con estado inicial $s_0$:
+
+$$
+D(a)=\frac{1}{n}\sum_{t=1}^{n}\mathbf 1\left[F_{s_0}(a)\ne F_{s_0}(a_{-t})\right],
+$$
+
+Aquí $a_{-t}$ omite el paso $t$. **No es la sensibilidad del paper**, basada en intervenciones sobre valores [1].
+
+Generamos **40 trazas por longitud**, con cinco variables y valores de 0 a 4. Derivamos de intercambios variantes de sobrescrituras e incrementos modulares; R-trivial reescribe valores iniciales. La variante soluble actualiza pares simultáneamente y **no replica el generador oficial**.
+
+La figura muestra qué proporción de operaciones sigue influyendo en el resultado final. Los valores próximos a cero indican que borrar un paso apenas altera el estado; los próximos al 100 % señalan operaciones cuya eliminación cambia el resultado en estas trazas sintéticas.
 
 <Figure
-	id="statebench-sensibilidad"
-	caption="Figura 1. Fracción media de operaciones cuyo borrado cambia el estado final en 40 trazas sintéticas por longitud. Demostración de sistemas exactos; no mide modelos de lenguaje."
+  id="statebench-sensibilidad"
+  caption="Figura 1. Sensibilidad al borrado en cuatro construcciones sintéticas, con 40 trazas por longitud. No representa la precisión de ningún modelo de lenguaje."
 >
-	<img
-		src="/figures/statebench-sensibilidad.svg"
-		alt="Mapa de calor de la sensibilidad media al borrado. En longitudes 8, 32, 128 y 512, R-trivial da 0 %; aperiódica, 45 %, 10,9 %, 2,8 % y 0,7 %; soluble y finita general dan 100 % en cada longitud."
-		width="1140"
-		height="624"
-		loading="lazy"
-		decoding="async"
-	/>
+  <img
+    src="/figures/statebench-sensibilidad.svg"
+    alt="Mapa de calor por longitud (8, 32, 128 y 512 pasos): R-trivial, 0 %; aperiódica, 45 %, 10,9 %, 2,8 % y 0,7 %; soluble y finita general, 100 %."
+    width="1140"
+    height="624"
+    loading="lazy"
+    decoding="async"
+  />
 </Figure>
 
-Aquí, las sobrescrituras anteriores suelen quedar anuladas y su fracción crítica baja del 45 % al 0,7 %. Borrar un incremento no nulo o intercambio cambia el resultado; R-trivial da cero porque reescribe valores iniciales. **No son leyes generales de esas clases**: describen estas trazas y métrica. El repositorio permite repetir la demostración [3].
+La diferencia responde al diseño: R-trivial reescribe valores iniciales, mientras que la variante soluble aplica incrementos por pares y los intercambios son reversibles. En las trazas aperiódicas, las sobrescrituras posteriores pueden anular pasos anteriores y su fracción crítica baja del **45 % al 0,7 %**. Estas observaciones describen esta construcción, no son leyes generales de cada familia.
 
-## 5. Conclusión: contexto no equivale a estado
+Son resultados de **nuestras trazas**, no tasas de acierto de la IA. El [código y los resultados](https://github.com/alfergal/alfergal.github.io/tree/main/experiments/statebench) permiten reproducirlos.
 
-Consultar el pasado no garantiza reconstruir el presente. Importan la estructura de las operaciones, la arquitectura y el formato, no solo los tokens. La demostración ilustra cómo reglas distintas conservan o borran dependencias: **no evalúa Transformers ni LLM**.
+## 5. Conclusión: disponer del historial no basta
 
-Recordar un dato, formar una representación útil, predecir y comprender un mecanismo son capacidades distintas. StateBench mide seguimiento de estado controlado; no demuestra comprensión general del mundo.
+Un agente puede editar archivos y cancelar tareas durante horas, conservar cada mensaje y aun así equivocarse sobre **qué sigue pendiente**. Consultar el pasado no garantiza representar el presente.
+
+StateBench muestra que importan la estructura de las operaciones, la arquitectura y el formato. Nuestra demostración aporta intuición matemática, **no evalúa LLM ni comprensión del mundo**.
+
+Para estos sistemas, la pregunta interesante no es solo **cuántos tokens recuerdan**, sino **cuántos cambios consecutivos pueden seguir sin perder el estado**.
 
 ### Referencias
 
-1. Petty, J., Merrill, W. y Sabharwal, A. (2026). _A Fine-Grained Hierarchy and Benchmark for State Tracking in Language Models_. Preprint v1, arXiv:2611.03094, 2 de noviembre de 2026. [Artículo y apéndices](https://arxiv.org/html/2611.03094v1).
-2. Allen Institute for AI (2026). [_StateBench: Testing how language models track state changes over long documents_](https://huggingface.co/blog/allenai/statebench).
-3. Allen Institute for AI. [Código y datos oficiales de StateBench](https://github.com/allenai/state-bench). Nuestro script solo reproduce la demostración sintética descrita arriba.
+1. Petty, J., Merrill, W. y Sabharwal, A. (2026). *A Fine-Grained Hierarchy and Benchmark for State Tracking in Language Models*. Preprint v1, arXiv:2611.03094. [Artículo y apéndices](https://arxiv.org/html/2611.03094v1).
+2. Allen Institute for AI (2026). [*StateBench: Testing how language models track state changes over long documents*](https://huggingface.co/blog/allenai/statebench).
+3. Allen Institute for AI. [Repositorio oficial de StateBench](https://github.com/allenai/state-bench).

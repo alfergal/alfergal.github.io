@@ -24,6 +24,9 @@ function mountArticle() {
 		for (const value of parts) {
 			const part = document.createElement('span');
 			part.textContent = value!;
+			if (value === pre.dataset.language && value?.toLowerCase() === 'text') {
+				part.hidden = true;
+			}
 			label.append(part);
 		}
 		const labelText = parts.join(' ');

@@ -323,7 +323,7 @@ a:hover {
 	margin-bottom: 16px;
 }
 .article-header h1 {
-	font-size: clamp(2rem, 3.6vw, 3rem);
+	font-size: clamp(2rem, 3.2vw, 2.75rem);
 	line-height: 1.15;
 }
 .description {

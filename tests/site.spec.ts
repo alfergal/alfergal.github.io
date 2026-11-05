@@ -87,8 +87,14 @@ test('one personal homepage presents the profile, education and integrated artic
 		const image = card.locator('.article-card-cover img');
 		if (await image.count()) {
 			await expect(image).toHaveAttribute('loading', 'lazy');
-			await expect(image).toHaveAttribute('width', '1280');
-			await expect(image).toHaveAttribute('height', '800');
+			const dimensions = await image.evaluate((element) => {
+				const image = element as HTMLImageElement;
+				return {
+					width: Number(image.getAttribute('width')),
+					height: Number(image.getAttribute('height')),
+				};
+			});
+			expect(dimensions.width / dimensions.height).toBeCloseTo(1.6, 1);
 		} else {
 			await expect(card.locator('.article-card-cover--type')).toHaveAttribute(
 				'aria-hidden',

@@ -51,7 +51,7 @@ const suppliedCovers = [
 		file: 'statebench-memoria-estado.webp',
 		article: 'ia-recordar-cambios-statebench.mdx',
 		slug: 'ia-recordar-cambios-statebench',
-		alt: 'Ilustración conceptual de una secuencia azul de estados que atraviesa operaciones y termina en estados rosas; una conexión interrumpida representa una actualización perdida.',
+		alt: 'Secuencia de estados azules que atraviesa una red de operaciones y termina en estados rosas; una conexión interrumpida representa una actualización perdida.',
 		hash: '574dcdca2d288478e68f1d15efdbe7a3d06d78ada6baa4ad9e0f731786a148e1',
 		width: 1600,
 		height: 1000,
@@ -174,7 +174,7 @@ test('development Blog previews use accessible optimized covers at 16:10', async
 	const statebenchCover = statebenchCard.locator('.article-card-cover img');
 	await expect(statebenchCover).toHaveAttribute(
 		'alt',
-		/Ilustración conceptual de una secuencia azul de estados/,
+		/Secuencia de estados azules que atraviesa una red de operaciones/,
 	);
 	await expect(statebenchCover).toHaveAttribute('loading', 'lazy');
 	await expect(statebenchCover).toHaveAttribute('width', '1600');
